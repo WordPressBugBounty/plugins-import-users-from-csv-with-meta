@@ -8,7 +8,7 @@ class ACUI_Exporter{
 		$upload_dir = wp_upload_dir();
 		$this->path_csv = $upload_dir['basedir'] . "/export-users.csv";
 
-        add_action( 'init', array( $this, 'download_export_file' ) );
+        add_action( 'init', array( $this, 'download_export_file' ), 11 );
         add_action( 'admin_init', array( $this, 'download_export_file' ) );
 		add_action( 'wp_ajax_acui_export_users_csv', array( $this, 'export_users_csv' ) );
 		add_action( 'wp_ajax_acui_export_save_settings', array( $this, 'ajax_save_settings' ) );
@@ -289,11 +289,13 @@ class ACUI_Exporter{
                 'filename' => $exporter->get_filename()
             );
 
+			$current_url = isset( $_POST['current_url'] ) ? sanitize_text_field( $_POST['current_url'] ) : admin_url( 'tools.php?page=acui&tab=export' );
+
             wp_send_json_success(
                 array(
                     'step' => 'done',
                     'percentage' => 100,
-                    'url' => add_query_arg( $query_args, admin_url( 'tools.php?page=acui&tab=export' ) ),
+                    'url' => add_query_arg( $query_args, $current_url ),
 					'results' => $this->get_results()
                 )
             );

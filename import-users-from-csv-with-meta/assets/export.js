@@ -50,6 +50,7 @@
 			data: {
 				form: data,
 				action: 'acui_export_users_csv',
+				current_url: window.location.href,
 				step: step,
 				filename: filename,
 				delimiter: $this.$form.find( '[name="delimiter"]' ).val(),
