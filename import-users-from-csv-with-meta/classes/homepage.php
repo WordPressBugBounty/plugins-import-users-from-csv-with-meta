@@ -38,7 +38,6 @@ class ACUI_Homepage{
 			$delete_users_assign_posts_options = array( 0 => __( 'No user selected', 'import-users-from-csv-with-meta' ) );
 			$delete_users_assign_posts_option_selected = 0;
 		}
-		
 ?>
 	<div class="wrap acui">	
 

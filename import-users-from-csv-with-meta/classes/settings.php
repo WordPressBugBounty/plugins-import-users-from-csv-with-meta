@@ -12,7 +12,7 @@ class ACUI_Settings{
         $this->settings = apply_filters( 'acui_settings', array(
             'import_common' => array(
                 'path_to_file' => array( 
-                    'sanitization' => 'text',
+                    'sanitization' => 'url_path',
                     'default' => ''
                 ),
                 'role' => array( 
@@ -188,6 +188,12 @@ class ACUI_Settings{
 
             case 'checkbox':
                 return ( $value != 'yes' ) ? 'no' : 'yes';
+
+            case 'url_path':
+                $url_sanitized = sanitize_url( $value );
+                $path_sanitized = sanitize_file_name( $value );
+                return empty( $url_sanitized ) ? $path_sanitized : $url_sanitized;
+
         }
     }
 
