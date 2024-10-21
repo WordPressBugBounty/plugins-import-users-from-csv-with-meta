@@ -30,7 +30,7 @@ class ACUI_MelapressLoginSecurity{
 		if( !$created )
 			return;
 
-		$ppm_wp_history = new PPM_WP_History();
+		$ppm_wp_history = new \PPMWP\PPM_WP_History();
 		$userdata = get_userdata( $user_id );
 		$password = $userdata->user_pass;
 
@@ -60,7 +60,7 @@ class ACUI_MelapressLoginSecurity{
 	}
 
 	function maybe_reactivate_force_reset_password_login( $users_created, $users_updated, $users_deleted, $users_ignored ){	
-		$ppm_wp_history = new PPM_WP_History();
+		$ppm_wp_history = new \PPMWP\PPM_WP_History();
 		global $wp_hasher;
 
 		foreach( $users_created as $user_id ){
@@ -77,7 +77,7 @@ class ACUI_MelapressLoginSecurity{
 				'pest'      => 'sss',
 			);
 
-			PPM_WP_History::_push( $user_id, $password_event );
+			\PPMWP\PPM_WP_History::_push( $user_id, $password_event );
 
 			update_user_meta( $user_id, 'ppmwp_last_activity', current_time( 'timestamp' ) );
 			
