@@ -130,7 +130,7 @@ class ACUI_Homepage{
 						<th scope="row"><label for="user_login"><?php _e( 'Send email', 'import-users-from-csv-with-meta' ); ?></label></th>
 						<td>
 							<p id="sends_email_wrapper">
-								<?php ACUIHTML()->checkbox( array( 'name' => 'sends_email', 'label' => sprintf( __( 'Do you wish to send an email from this plugin with credentials and other data? <a href="%s">(email template found here)</a>', admin_url( 'tools.php?page=acui&tab=mail-options' ) ), 'import-users-from-csv-with-meta' ), 'current' => 'yes', 'compare_value' => $settings->get( 'sends_email' ) ) ); ?>
+								<?php ACUIHTML()->checkbox( array( 'name' => 'sends_email', 'label' => sprintf( __( 'Do you wish to send an email from this plugin with credentials and other data? <a href="%s">(email template found here)</a>', 'import-users-from-csv-with-meta' ), admin_url( 'tools.php?page=acui&tab=mail-options' ) ), 'current' => 'yes', 'compare_value' => $settings->get( 'sends_email' ) ) ); ?>
 							</p>
 							<p id="send_email_updated_wrapper">
 								<?php ACUIHTML()->checkbox( array( 'name' => 'send_email_updated', 'label' => __( 'Do you wish to send this mail also to users that are being updated? (not just to the one which are being created)', 'import-users-from-csv-with-meta' ), 'current' => 'yes', 'compare_value' => $settings->get( 'send_email_updated' ) ) ); ?>

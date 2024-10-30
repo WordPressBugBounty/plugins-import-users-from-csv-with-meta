@@ -41,7 +41,7 @@ class ACUI_MelapressLoginSecurity{
 			'pest'      => 'sss',
 		);
 
-		PPM_WP_History::_push( $user_id, $password_event );
+		\PPMWP\PPM_WP_History::_push( $user_id, $password_event );
 
 		update_user_meta( $user_id, 'ppmwp_last_activity', current_time( 'timestamp' ) );
 		

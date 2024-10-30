@@ -25,6 +25,9 @@ class ACUI_Cron{
 			wp_die( __( 'Nonce check failed', 'import-users-from-csv-with-meta' ) ); 
 		}
 
+		if( !function_exists( 'as_unschedule_all_actions' ) )
+			include_once( plugin_dir_path( __FILE__ ) . "lib/action-scheduler/action-scheduler.php" );
+
 		$period = sanitize_text_field( $form_data[ "period" ] );
 
 		if( isset( $form_data["cron-activated"] ) && $form_data["cron-activated"] == "1" ){

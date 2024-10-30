@@ -3,8 +3,8 @@ Contributors: carazo, hornero
 Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: csv, import, export, importer, exporter
 Requires at least: 3.4
-Tested up to: 6.6.2
-Stable tag: 1.27.6
+Tested up to: 6.7
+Stable tag: 1.27.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -116,6 +116,12 @@ Plugin will automatically detect:
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 1.27.7 =
+*   Ready for WordPress 6.7
+*   Fixed a problem in the link of email template in main import tab
+*   Action Scheduler now is only loaded if it is necessary
+*   Fixed another problem with the Melapress Login Security addon
 
 = 1.27.6 =
 *   Fixed a problem with the Melapress Login Security addon
