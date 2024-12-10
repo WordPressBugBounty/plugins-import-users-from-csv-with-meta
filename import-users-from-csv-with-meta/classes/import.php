@@ -555,7 +555,7 @@ class ACUI_Import{
                         else
                             $data[0] = __('Invalid roles','import-users-from-csv-with-meta').' (' . implode( ', ', $invalid_roles ) . ')';
                 
-                        $errors[] = ACUIHelper()->new_error( $row, $data[0], 'warning' );    
+                        $errors[] = ACUIHelper()->new_error( $row, $data[0], 'warning' );  
                     }
                 }
             }
@@ -618,7 +618,11 @@ class ACUI_Import{
                                 continue;	
                         }
                         else{
-                            update_user_meta( $user_id, $headers[ $i ], $data[ $i ] );
+                            if( is_object( $data[ $i ] ) && get_class( $data[ $i ] ) === '__PHP_Incomplete_Class' )
+                                $errors[] = ACUIHelper()->new_error( $row, __( 'Invalid value __PHP_Incomplete_Class', 'import-users-from-csv-with-meta' ), 'warning' );
+                            else    
+                                update_user_meta( $user_id, $headers[ $i ], $data[ $i ] );
+                            
                             continue;
                         }
                     }
