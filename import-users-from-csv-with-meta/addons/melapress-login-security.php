@@ -11,8 +11,7 @@ class ACUI_MelapressLoginSecurity{
     
     function hooks(){
 		add_action( 'acui_documentation_after_plugins_activated', array( $this, 'documentation' ) );
-		add_action( 'post_acui_import_single_user', array( $this, 'import' ), PHP_INT_MAX, 10  );
-		add_action( 'acui_after_import_users', array( $this, 'maybe_reactivate_force_reset_password_login' ), 10, 4 );
+		add_action( 'post_acui_import_single_user', array( $this, 'import' ), PHP_INT_MAX, 10 );
 	}
 
 	function documentation(){
@@ -26,11 +25,11 @@ class ACUI_MelapressLoginSecurity{
 		<?php
 	}
 
-	function import( $headers, $data, $user_id, $role, $positions, $form_data, $is_frontend, $is_cron, $password_changed, $created ){
+	public function import( $headers, $data, $user_id, $role, $positions, $form_data, $is_frontend, $is_cron, $password_changed, $created ) {
 		if( !$created )
 			return;
 
-		$ppm_wp_history = new \PPMWP\PPM_WP_History();
+		$password_history = new MLS\Password_History();
 		$userdata = get_userdata( $user_id );
 		$password = $userdata->user_pass;
 
@@ -40,61 +39,14 @@ class ACUI_MelapressLoginSecurity{
 			'by'        => 'user',
 			'pest'      => 'sss',
 		);
-
-		\PPMWP\PPM_WP_History::push( $user_id, $password_event );
-
-		update_user_meta( $user_id, 'ppmwp_last_activity', current_time( 'timestamp' ) );
 		
-		if( !$ppm_wp_history->ppm_get_first_login_policy( $user_id ) )
-			return;
+		MLS\Password_History::push( $user_id, $password_event );
 		
-		$ppm_wp_history->ppm_apply_forced_reset_usermeta( $user_id );
-		$userdata = get_user_by( 'id', $user_id );
-		$key = get_password_reset_key( $userdata );
-		if ( !is_wp_error( $key ) ) {
-			update_user_meta( $user_id, PPM_WP_META_USER_RESET_PW_ON_LOGIN, $key );
-		}
+		update_user_meta( $user_id, MLS_PREFIX . '_last_activity', current_time( 'timestamp' ) );
 
-		global $wp_hasher;
-		wp_update_user( array( 'ID' => $user_id, 'user_activation_key' => time() . ':' . $wp_hasher->HashPassword( $key ) ) );
-	}
-
-	function maybe_reactivate_force_reset_password_login( $users_created, $users_updated, $users_deleted, $users_ignored ){	
-		$ppm_wp_history = new \PPMWP\PPM_WP_History();
-		global $wp_hasher;
-
-		foreach( $users_created as $user_id ){
-			$userdata = get_userdata( $user_id );
-			if( empty( $userdata ) )
-				continue;
-
-			$password = $userdata->user_pass;
-
-			$password_event = array(
-				'password'  => $password,
-				'timestamp' => current_time( 'timestamp' ),
-				'by'        => 'user',
-				'pest'      => 'sss',
-			);
-
-			\PPMWP\PPM_WP_History::push( $user_id, $password_event );
-
-			update_user_meta( $user_id, 'ppmwp_last_activity', current_time( 'timestamp' ) );
-			
-			if( !$ppm_wp_history->ppm_get_first_login_policy( $user_id ) )
-				return;
-			
-			$ppm_wp_history->ppm_apply_forced_reset_usermeta( $user_id );
-			$userdata = get_user_by( 'id', $user_id );
-			$key = get_password_reset_key( $userdata );
-			if ( !is_wp_error( $key ) ) {
-				update_user_meta( $user_id, PPM_WP_META_USER_RESET_PW_ON_LOGIN, $key );
-			}
-
-			wp_update_user( array( 'ID' => $user_id, 'user_activation_key' => time() . ':' . $wp_hasher->HashPassword( $key ) ) );
-		}
-
-		delete_transient( 'acui_last_import_results' );
+		if ( $password_history->ppm_get_first_login_policy( $userdata->ID ) ) {
+			$password_history->apply_forced_reset_usermeta( $user_id );
+		}		
 	}
 }
 
