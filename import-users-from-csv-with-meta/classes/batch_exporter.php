@@ -38,7 +38,7 @@ class ACUI_Batch_Exporter{
         add_filter( 'acui_export_data', array( $this, 'maybe_order_row_alphabetically' ), 10, 3 );
         add_filter( 'acui_export_data', array( $this, 'maybe_order_row_filtered_columns_parameter' ), 11, 5 );
 
-		$this->filename = 'user-export-' . get_current_user_id() . '.csv';
+		$this->filename = uniqid( 'user-export-' . get_current_user_id() . '-' ) . ".csv";
 		$this->user_data = array( "user_login", "user_email", "source_user_id", "user_pass", "user_nicename", "user_url", "user_registered", "display_name" );
         $this->accepted_order_by = array( 'ID', 'display_name', 'name', 'user_name', 'login', 'user_login', 'nicename', 'user_nicename', 'email', 'user_email', 'url', 'user_url', 'registered', 'user_registered', 'post_count' );
 		$this->woocommerce_default_user_meta_keys = array( 'billing_first_name', 'billing_last_name', 'billing_email', 'billing_phone', 'billing_country', 'billing_address_1', 'billing_city', 'billing_state', 'billing_postcode', 'shipping_first_name', 'shipping_last_name', 'shipping_country', 'shipping_address_1', 'shipping_address_2', 'shipping_city', 'shipping_state', 'shipping_postcode' );
