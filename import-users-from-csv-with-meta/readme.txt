@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: csv, import, export, importer, exporter
 Requires at least: 3.4
 Tested up to: 6.7.1
-Stable tag: 1.27.13
+Stable tag: 1.27.14
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -116,6 +116,9 @@ Plugin will automatically detect:
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 1.27.14 =
+*   Fixed a problem with long exports created in the previous version
 
 = 1.27.13 =
 *   The name of the exported file has been anonymized so that no attacker can brute force the file while it is being generated and before it is downloaded to obtain information

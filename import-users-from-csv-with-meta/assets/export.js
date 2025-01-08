@@ -13,17 +13,10 @@
 
         $( "html, body" ).animate({ scrollTop: 0 }, "slow" );
 
-		var currentDate    = new Date(),
-			day            = currentDate.getDate(),
-			month          = currentDate.getMonth() + 1,
-			year           = currentDate.getFullYear(),
-			timestamp      = currentDate.getTime(),
-			filename       = 'user-export-' + day + '-' + month + '-' + year + '-' + timestamp + '.csv';
-
 		event.data.userExportForm.$form.addClass( 'user-exporter__exporting' );
 		event.data.userExportForm.$form.find( '.user-exporter-progress' ).val( 0 );
         event.data.userExportForm.$form.find( '.user-exporter-progress-value' ).text( acui_export_js_object.starting_process + " - 0%" );
-		event.data.userExportForm.processStep( 1, $( this ).serialize(), '', filename );
+		event.data.userExportForm.processStep( 1, $( this ).serialize(), '' );
 	};
 
 	userExportForm.prototype.processStep = function( step, data, filename ) {
@@ -50,9 +43,9 @@
 			data: {
 				form: data,
 				action: 'acui_export_users_csv',
+				filename: filename,
 				current_url: window.location.href,
 				step: step,
-				filename: filename,
 				delimiter: $this.$form.find( '[name="delimiter"]' ).val(),
 				role: $this.$form.find( '[name="role"]' ).val(),
 				from: $this.$form.find( '[name="from"]' ).val(),
@@ -87,7 +80,7 @@
 					} else {
 						$this.$form.find( '.user-exporter-progress' ).val( response.data.percentage );
                         $this.$form.find( '.user-exporter-progress-value' ).text( acui_export_js_object.step + " " + response.data.step + " " + acui_export_js_object.of_approximately +  " " + response.data.total_steps + " " + acui_export_js_object.steps + " - " + response.data.percentage + "%" );
-						$this.processStep( parseInt( response.data.step, 10 ), data, filename );
+						$this.processStep( parseInt( response.data.step, 10 ), data, response.data.filename );
 					}
 				}
 			}

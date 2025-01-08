@@ -264,9 +264,12 @@ class ACUI_Exporter{
 			delete_transient( 'acui_export_bad_character_formulas_values_cleaned' );
 			$this->save_settings();
 		}
-               
-        $exporter->set_page( $step );
-        $exporter->set_delimiter( isset( $_POST['delimiter'] ) ? sanitize_text_field( $_POST['delimiter'] ) : '' );
+        
+		if( isset( $_POST['filename'] ) && !empty( $_POST['filename'] ) )
+			$exporter->set_filename( sanitize_file_name( $_POST['filename'] ) );
+
+		$exporter->set_page( $step );
+		$exporter->set_delimiter( isset( $_POST['delimiter'] ) ? sanitize_text_field( $_POST['delimiter'] ) : '' );
         $exporter->set_role( isset( $_POST['role'] ) ? sanitize_text_field( $_POST['role'] ) : '' );
         $exporter->set_from( isset( $_POST['from'] ) ? sanitize_text_field( $_POST['from'] ) : '' );
         $exporter->set_to( isset( $_POST['to'] ) ? sanitize_text_field( $_POST['to'] ) : '' );
@@ -296,7 +299,8 @@ class ACUI_Exporter{
                     'step' => 'done',
                     'percentage' => 100,
                     'url' => add_query_arg( $query_args, $current_url ),
-					'results' => $this->get_results()
+					'results' => $this->get_results(),
+					'filename' => $exporter->get_filename()
                 )
             );
         } else {
@@ -305,6 +309,7 @@ class ACUI_Exporter{
                     'step' => ++$step,
                     'total_steps' => $exporter->get_total_steps(),
                     'percentage' => $exporter->get_percent_complete(),
+					'filename' => $exporter->get_filename()
                 )
             );
         }
