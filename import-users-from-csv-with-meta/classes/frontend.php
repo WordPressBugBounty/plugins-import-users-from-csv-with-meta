@@ -228,7 +228,9 @@ class ACUI_Frontend{
 
 				<tr class="form-field">
 					<th scope="row"><label for=""><?php _e( 'Attribute columns', 'import-users-from-csv-with-meta' ); ?></label></th>
-					<td><?php _e( 'You can use columns attribute to set which columns must be exported and in which order. Use a list of fields separated by commas, for example', 'import-users-from-csv-with-meta' ); ?> <pre>[export-users columns="user_email,first_name,last_name"]</pre>
+					<td>
+						<?php _e( 'You can use columns attribute to set which columns must be exported and in which order. Use a list of fields separated by commas, for example', 'import-users-from-csv-with-meta' ); ?> <pre>[export-users columns="user_email,first_name,last_name"]</pre><br/>
+						<?php _e( 'You can also name each column with a different name to the data following this method', 'import-users-from-csv-with-meta' ); ?>: <pre>user_email=>Email,first_name=>First name,last_name=>Last name</pre>
 					</td>
 				</tr>
 

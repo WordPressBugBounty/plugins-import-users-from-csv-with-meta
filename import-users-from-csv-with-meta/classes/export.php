@@ -111,7 +111,10 @@ class ACUI_Exporter{
 					<th scope="row"><?php _e( 'Columns', 'import-users-from-csv-with-meta' ); ?></th>
 					<td>
 						<?php ACUIHTML()->textarea( array( 'name' => 'columns', 'value' => $settings->get( 'columns' ) ) ); ?>
-						<span class="description"><?php _e( 'You can use this field to set which columns must be exported and in which order. If you leave it empty, all columns will be exported. Use a list of fields separated by commas, for example', 'import-users-from-csv-with-meta' ); ?>: user_email,first_name,last_name</span>
+						<span class="description">
+							<?php _e( 'You can use this field to set which columns must be exported and in which order. If you leave it empty, all columns will be exported. Use a list of fields separated by commas, for example', 'import-users-from-csv-with-meta' ); ?>: user_email,first_name,last_name<br/>
+							<?php _e( 'You can also name each column with a different name to the data following this method', 'import-users-from-csv-with-meta' ); ?>: user_email=>Email,first_name=>First name,last_name=>Last name<br/>
+						</span>
 					</td>
 				</tr>
 				<tr id="acui_user_created_wrapper" valign="top">
