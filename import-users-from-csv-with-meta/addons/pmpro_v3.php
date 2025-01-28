@@ -82,19 +82,19 @@ class ACUI_PMPro{
 
         // Fix date formats.
         if ( ! empty( $membership_startdate ) ) {
-            $membership_startdate = date( 'Y-m-d', strtotime( $membership_startdate, current_time( 'timestamp' ) ) );
+            $membership_startdate = date( 'Y-m-d H:i:s', strtotime( $membership_startdate, current_time( 'timestamp' ) ) );
         } else {
             $membership_startdate = current_time( 'mysql' );
         }
 
         if ( ! empty( $membership_enddate ) ) {
-            $membership_enddate = date( 'Y-m-d', strtotime( $membership_enddate, current_time( 'timestamp' ) ) );
+            $membership_enddate = date( 'Y-m-d H:i:s', strtotime( $membership_enddate, current_time( 'timestamp' ) ) );
         } else {
             $membership_enddate = 'NULL';
         }
 
         if ( ! empty( $membership_timestamp ) ) {
-            $membership_timestamp = date( 'Y-m-d', strtotime($membership_timestamp, current_time( 'timestamp' ) ) );
+            $membership_timestamp = date( 'Y-m-d H:i:s', strtotime($membership_timestamp, current_time( 'timestamp' ) ) );
         }
 
         if ( ! empty( $membership_discount_code ) && empty( $membership_code_id ) ) {
