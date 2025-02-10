@@ -99,18 +99,20 @@ class ACUI_Exporter{
 					<th scope="row"><?php _e( 'Role', 'import-users-from-csv-with-meta' ); ?></th>
 					<td>
                         <?php ACUIHTML()->select( array(
-                            'options' => ACUI_Helper::get_editable_roles(),
-                            'name' => 'role',
+                            'options' => ACUI_Helper::get_editable_roles( false ),
+                            'name' => 'role[]',
                             'show_option_all' => false,
-                            'show_option_none' => __( 'All roles', 'import-users-from-csv-with-meta' ),
-							'selected' => $settings->get( 'role' ),
+                            'show_option_none' => false,
+							'multiple' => true,
+							'selected' => is_array( $settings->get( 'role' ) ) ? $settings->get( 'role' ) : array( $settings->get( 'role' ) ),
+							'style' => 'width:100%;'
                         )); ?>
 					</td>
 				</tr>
 				<tr id="acui_columns" valign="top">
 					<th scope="row"><?php _e( 'Columns', 'import-users-from-csv-with-meta' ); ?></th>
 					<td>
-						<?php ACUIHTML()->textarea( array( 'name' => 'columns', 'value' => $settings->get( 'columns' ) ) ); ?>
+						<?php ACUIHTML()->textarea( array( 'name' => 'columns', 'value' => $settings->get( 'columns' ), 'style' => 'width:100%;' ) ); ?>
 						<span class="description">
 							<?php _e( 'You can use this field to set which columns must be exported and in which order. If you leave it empty, all columns will be exported. Use a list of fields separated by commas, for example', 'import-users-from-csv-with-meta' ); ?>: user_email,first_name,last_name<br/>
 							<?php _e( 'You can also name each column with a different name to the data following this method', 'import-users-from-csv-with-meta' ); ?>: user_email=>Email,first_name=>First name,last_name=>Last name<br/>
@@ -175,8 +177,6 @@ class ACUI_Exporter{
 			</tbody>
 		</table>
 
-		<input type="hidden" name="action" value="acui_export_users_csv"/>
-		
 		<?php wp_nonce_field( 'codection-security', 'security' ); ?>
 
         <div class="user-exporter-progress-wrapper">
@@ -190,6 +190,8 @@ class ACUI_Exporter{
 		$( "input[name='from']" ).change( function() {
 			$( "input[name='to']" ).attr( 'min', $( this ).val() );
 		})
+
+		$( '#role' ).select2();
 
 		$( '#convert_timestamp' ).on( 'click', function() {
 			if( $('#convert_timestamp').is(':checked') ){
@@ -273,7 +275,7 @@ class ACUI_Exporter{
 
 		$exporter->set_page( $step );
 		$exporter->set_delimiter( isset( $_POST['delimiter'] ) ? sanitize_text_field( $_POST['delimiter'] ) : '' );
-        $exporter->set_role( isset( $_POST['role'] ) ? sanitize_text_field( $_POST['role'] ) : '' );
+        $exporter->set_role( isset( $_POST['role'] ) ? array_map( 'sanitize_text_field', $_POST['role'] ) : '' );
         $exporter->set_from( isset( $_POST['from'] ) ? sanitize_text_field( $_POST['from'] ) : '' );
         $exporter->set_to( isset( $_POST['to'] ) ? sanitize_text_field( $_POST['to'] ) : '' );
         $exporter->set_convert_timestamp( isset( $_POST['convert_timestamp'] ) ? $_POST['convert_timestamp'] : '' );

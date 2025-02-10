@@ -96,6 +96,7 @@ class ACUI_HTML{
 			'data'             => array(),
 			'readonly'         => false,
 			'disabled'         => false,
+			'style'			   => ''
 		);
 
 		$args = wp_parse_args( $args, $defaults );
@@ -133,7 +134,14 @@ class ACUI_HTML{
 		}
 
 		$class  = implode( ' ', array_map( 'sanitize_html_class', explode( ' ', $args['class'] ) ) );
-		$output = '<select' . $disabled . $readonly . ' name="' . esc_attr( $args['name'] ) . '" id="' . esc_attr( $this->sanitize_key( $args['id'] ) ) . '" class="acui-select ' . $class . '"' . $multiple . ' data-placeholder="' . $placeholder . '"'. $data_elements . '>';
+
+		if ( isset( $args['style'] ) && $args['style'] ) {
+			$style = ' style="' . safecss_filter_attr( $args['style'] ) . '"';
+		} else {
+			$style = '';
+		}
+
+		$output = '<select' . $disabled . $readonly . ' name="' . esc_attr( $args['name'] ) . '" id="' . esc_attr( $this->sanitize_key( $args['id'] ) ) . '" class="acui-select ' . $class . '"' . $multiple . ' data-placeholder="' . $placeholder . '"'. $data_elements . ' ' . $style . '>';
 
 		if ( ! isset( $args['selected'] ) || ( is_array( $args['selected'] ) && empty( $args['selected'] ) ) || ! $args['selected'] ) {
 			$selected = "";
@@ -312,7 +320,8 @@ class ACUI_HTML{
 			'label'       => null,
 			'desc'        => null,
 			'class'       => 'large-text',
-			'disabled'    => false
+			'disabled'    => false,
+			'style'		  => '',
 		);
 
 		$args = wp_parse_args( $args, $defaults );
@@ -323,17 +332,23 @@ class ACUI_HTML{
 			$disabled = ' disabled="disabled"';
 		}
 
+		if ( isset( $args['style'] ) && $args['style'] ) {
+			$style = ' style="' . safecss_filter_attr( $args['style'] ) . '"';
+		} else {
+			$style = '';
+		}
+
 		$output = '<span id="acui-' . $this->sanitize_key( $args['name'] ) . '-wrap">';
 
-			if ( ! empty( $args['label'] ) ) {
-				$output .= '<label class="acui-label" for="' . $this->sanitize_key( $args['name'] ) . '">' . esc_html( $args['label'] ) . '</label>';
-			}
+		if ( ! empty( $args['label'] ) ) {
+			$output .= '<label class="acui-label" for="' . $this->sanitize_key( $args['name'] ) . '">' . esc_html( $args['label'] ) . '</label>';
+		}
 
-			$output .= '<textarea name="' . esc_attr( $args['name'] ) . '" id="' . $this->sanitize_key( $args['name'] ) . '" class="' . $class . '"' . $disabled . '>' . esc_attr( $args['value'] ) . '</textarea>';
+		$output .= '<textarea name="' . esc_attr( $args['name'] ) . '" id="' . $this->sanitize_key( $args['name'] ) . '" class="' . $class . '"' . $disabled . ' ' . $style . '>' . esc_attr( $args['value'] ) . '</textarea>';
 
-			if ( ! empty( $args['desc'] ) ) {
-				$output .= '<span class="acui-description">' . esc_html( $args['desc'] ) . '</span>';
-			}
+		if ( ! empty( $args['desc'] ) ) {
+			$output .= '<span class="acui-description">' . esc_html( $args['desc'] ) . '</span>';
+		}
 
 		$output .= '</span>';
 

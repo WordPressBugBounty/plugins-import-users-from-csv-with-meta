@@ -3,12 +3,12 @@ Contributors: carazo, hornero
 Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: csv, import, export, importer, exporter
 Requires at least: 3.4
-Tested up to: 6.7.1
-Stable tag: 1.27.16
+Tested up to: 6.7.2
+Stable tag: 1.28
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Import and export users and customers including user meta, roles, and other. Compatible with many plugins. Do it from the front end or using cron.
+Import users and customers and export users and customers including user meta, roles, and other. Compatible with many plugins. Do it from the front end or using cron.
 
 == Description ==
 
@@ -116,6 +116,10 @@ Plugin will automatically detect:
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 1.28 =
+*   The export dialog now allows the use of several roles
+*   Improved role selection interface on user import page
 
 = 1.27.16 =
 *   PMPro addon now import startdate and enddate with hours, minutes and seconds if needed

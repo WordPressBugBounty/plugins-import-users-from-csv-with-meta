@@ -195,7 +195,10 @@ class ACUI_Batch_Exporter{
     }
 
     function get_role(){
-		return empty( $this->role ) ? '' : explode( ',', $this->role );
+		if( empty( $this->role ) )
+			return '';
+		
+		return is_array( $this->role ) ? $this->role : explode( ',', $this->role );
     }
 
     function set_from( $from ){

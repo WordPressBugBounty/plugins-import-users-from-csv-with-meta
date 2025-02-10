@@ -73,8 +73,8 @@ class ACUI_Settings{
             'import_cron' => array(),
             'export_common' => array(
                 'role' => array( 
-                    'sanitization' => 'text',
-                    'default' => ''
+                    'sanitization' => 'array_text',
+                    'default' => array( 'subscriber' )
                 ),
                 'columns' => array( 
                     'sanitization' => 'text',

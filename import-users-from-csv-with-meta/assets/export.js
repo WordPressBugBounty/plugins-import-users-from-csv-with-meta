@@ -47,7 +47,7 @@
 				current_url: window.location.href,
 				step: step,
 				delimiter: $this.$form.find( '[name="delimiter"]' ).val(),
-				role: $this.$form.find( '[name="role"]' ).val(),
+				role: $this.$form.find( '[name="role[]"]' ).val(),
 				from: $this.$form.find( '[name="from"]' ).val(),
 				to: $this.$form.find( '[name="to"]' ).val(),
 				convert_timestamp: convert_timestamp,
