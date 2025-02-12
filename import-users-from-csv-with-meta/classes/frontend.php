@@ -464,7 +464,8 @@ class ACUI_Frontend{
 	function sanitize_shortcode_values( $key, $value ){
 		switch( $key ){
 			case 'role':
-				return ( preg_match('/^[a-zA-Z0-9_-]+$/', $value ) ) ? $value : '';
+			case 'role[]':
+				return ( preg_match('/^[a-zA-Z0-9_-]+(,[a-zA-Z0-9_-]+)*$/', $value ) ) ? $value : '';
 
 			case 'from':
 			case 'to:':
@@ -493,6 +494,11 @@ class ACUI_Frontend{
 
     function shortcode_export( $atts ) {
         $atts = shortcode_atts( array( 'role' => '', 'from' => '', 'to' => '', 'delimiter' => '', 'order_fields_alphabetically' => '', 'double_encapsulate_serialized_values' => '', 'display_arrays_as_comma_separated_list_of_values' => '', 'columns' => '', 'orderby' => '', 'order' => '' ), $atts );
+
+		if( isset( $atts['role'] ) ){
+			$atts['role[]'] = $atts['role'];
+			unset( $atts['role'] );
+		}
 
 		wp_enqueue_script( 'jquery' );
 

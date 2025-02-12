@@ -4,11 +4,11 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: csv, import, export, importer, exporter
 Requires at least: 3.4
 Tested up to: 6.7.2
-Stable tag: 1.28
+Stable tag: 1.28.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Import users and customers and export users and customers including user meta, roles, and other. Compatible with many plugins. Do it from the front end or using cron.
+Import and export users and customers including user meta, roles, and other. Compatible with many plugins. Do it from the front end or using cron.
 
 == Description ==
 
@@ -116,6 +116,10 @@ Plugin will automatically detect:
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 1.28.1 =
+*   Fixed a problem with select2 enqueue
+*   Fixed the export in the frontend using the shortcode
 
 = 1.28 =
 *   The export dialog now allows the use of several roles

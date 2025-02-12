@@ -269,7 +269,10 @@ class ACUI_Exporter{
 			delete_transient( 'acui_export_bad_character_formulas_values_cleaned' );
 			$this->save_settings();
 		}
-        
+
+		if( isset( $_POST['role'] ) && !is_array( $_POST['role'] ) )
+			$_POST['role'] = explode( ',', $_POST['role'] );
+
 		if( isset( $_POST['filename'] ) && !empty( $_POST['filename'] ) )
 			$exporter->set_filename( sanitize_file_name( $_POST['filename'] ) );
 

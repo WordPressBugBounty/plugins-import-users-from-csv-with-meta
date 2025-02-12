@@ -184,7 +184,7 @@ class ACUI_Settings{
                 return sanitize_text_field( $value );
 
             case 'array_text':
-                return array_map( 'sanitize_text_field', $value );
+                return array_map( 'sanitize_text_field', is_array( $value ) ? $value : array( $value ) );
 
             case 'checkbox':
                 return ( $value != 'yes' ) ? 'no' : 'yes';
