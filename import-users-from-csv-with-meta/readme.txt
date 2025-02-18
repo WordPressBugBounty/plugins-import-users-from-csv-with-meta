@@ -1,10 +1,10 @@
 === Import and export users and customers ===
-Contributors: carazo, hornero
+Contributors: carazo
 Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: csv, import, export, importer, exporter
 Requires at least: 3.4
 Tested up to: 6.7.2
-Stable tag: 1.28.2
+Stable tag: 1.28.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -116,6 +116,9 @@ Plugin will automatically detect:
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 1.28.3 =
+*   You can now choose to delete or change the role of users that do not appear in the CSV but only of the role(s) that have appeared in the import
 
 = 1.28.2 =
 *   Fixed the export in the frontend using the shortcode when there is no role parameter

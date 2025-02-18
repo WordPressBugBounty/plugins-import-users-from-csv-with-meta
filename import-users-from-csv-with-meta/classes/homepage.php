@@ -29,7 +29,7 @@ class ACUI_Homepage{
 		$sample_path = $upload_dir["path"] . '/test.csv';
 		$sample_url = plugin_dir_url( dirname( __FILE__ ) ) . 'test.csv';
 
-		if( is_int( $settings->get( 'delete_users_assign_posts' ) ) ){
+		if( ctype_digit( $settings->get( 'delete_users_assign_posts' ) ) ){
 			$delete_users_assign_posts_user = get_user_by( 'id', $settings->get( 'delete_users_assign_posts' ) );
 			$delete_users_assign_posts_options = array( $settings->get( 'delete_users_assign_posts' ) => $delete_users_assign_posts_user->display_name );
 			$delete_users_assign_posts_option_selected = $settings->get( 'delete_users_assign_posts' );
@@ -266,6 +266,20 @@ class ACUI_Homepage{
 						</td>
 					</tr>
 
+					<tr id="acui_not_present_same_role" class="form-field form-required">
+						<th scope="row"><label for="not_present_same_role"><?php _e( 'Apply only to users with the same role as imported users', 'import-users-from-csv-with-meta' ); ?></label></th>
+						<td>
+							<?php ACUIHTML()->select( array(
+								'options' => array( 'no' => __( 'No, apply to all users regardless of their role', 'import-users-from-csv-with-meta' ), 'yes' => __( 'Yes, delete or modify the role only for users who have the role(s) of the imported user(s).', 'import-users-from-csv-with-meta' ) ),
+								'name' => 'not_present_same_role',
+								'show_option_all' => false,
+								'show_option_none' => false,
+								'selected' => $settings->get( 'not_present_same_role' ),
+							)); ?>
+							<p class="description"><?php _e( 'Sometimes, you may want only the users of the imported users\' role to be affected and not the rest of the system user.', 'import-users-from-csv-with-meta' ); ?></p>
+						</td>
+					</tr>
+
 					<?php do_action( 'acui_homepage_after_users_not_present_rows' ); ?>
 
 					</tbody>
@@ -333,6 +347,7 @@ class ACUI_Homepage{
 			</div>
 		</div>
 
+		
 		<!--<div class="row">
 			<div class="batch-importer">
 				<h1><?php esc_html_e( 'Import Products', 'woocommerce' ); ?></h1>

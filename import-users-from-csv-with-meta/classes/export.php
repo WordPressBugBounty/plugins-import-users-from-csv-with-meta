@@ -270,11 +270,13 @@ class ACUI_Exporter{
 			$this->save_settings();
 		}
 
-		if( isset( $_POST['role'] ) && !is_array( $_POST['role'] ) )
-			$_POST['role'] = explode( ',', $_POST['role'] );
+		if( isset( $_POST['role'] ) ){
+			if( !is_array( $_POST['role'] ) )
+				$_POST['role'] = explode( ',', $_POST['role'] );
 
-		if( !array_filter( $_POST['role'] ) )
-			unset( $_POST['role'] );
+			if( !array_filter( $_POST['role'] ) )
+				unset( $_POST['role'] );
+		}		
 
 		if( isset( $_POST['filename'] ) && !empty( $_POST['filename'] ) )
 			$exporter->set_filename( sanitize_file_name( $_POST['filename'] ) );

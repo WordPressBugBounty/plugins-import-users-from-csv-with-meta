@@ -665,7 +665,7 @@ class ACUI_Import{
             ACUI_Email_Options::send_email( $user_object, $positions, $headers, $data, $created, $password );
         }
 
-        return array( 'result' => ( $created ) ? 'created' : 'updated', 'user_id' => $user_id );
+        return array( 'result' => ( $created ) ? 'created' : 'updated', 'user_id' => $user_id, 'role' => is_array( $role ) ? $role : array( $role ) );
     }
 
     function prepare_settings( $form_data ){
@@ -690,6 +690,7 @@ class ACUI_Import{
         $settings['delete_users_only_specified_role'] = isset( $form_data["delete_users_only_specified_role"] ) ? sanitize_text_field( $form_data["delete_users_only_specified_role"] ) : false;			
         $settings['change_role_not_present'] = isset( $form_data["change_role_not_present"] ) ? sanitize_text_field( $form_data["change_role_not_present"] ) : '';
         $settings['change_role_not_present_role'] = isset( $form_data["change_role_not_present_role"] ) ? sanitize_text_field( $form_data["change_role_not_present_role"] ) : '';
+        $settings['not_present_same_role'] = isset( $form_data["not_present_same_role"] ) ? sanitize_text_field( $form_data["not_present_same_role"] ) : 'no';
         
         if( $is_cron ){
             $settings['allow_multiple_accounts'] = ( get_option( "acui_cron_allow_multiple_accounts" ) == "allowed" ) ? "allowed" : "not_allowed";
@@ -708,17 +709,18 @@ class ACUI_Import{
         return ( microtime( true ) - $time_start ) >= $time_per_step;
     }
 
-    function save_transients( $columns, $headers, $headers_filtered, $positions, $errors, $errors_totals, $results, $users_created, $users_updated, $users_ignored ){
-        set_transient( 'acui_columns', $columns, HOUR_IN_SECONDS );
-        set_transient( 'acui_headers', $headers, HOUR_IN_SECONDS );
-        set_transient( 'acui_headers_filtered', $headers_filtered, HOUR_IN_SECONDS );
-        set_transient( 'acui_positions', $positions, HOUR_IN_SECONDS );
-        set_transient( 'acui_errors', $errors, HOUR_IN_SECONDS );
-        set_transient( 'acui_errors_totals', $errors_totals, HOUR_IN_SECONDS );
-        set_transient( 'acui_results', $results, HOUR_IN_SECONDS );
-        set_transient( 'acui_users_created', $users_created, HOUR_IN_SECONDS );
-        set_transient( 'acui_users_updated', $users_updated, HOUR_IN_SECONDS );
-        set_transient( 'acui_users_ignored', $users_ignored, HOUR_IN_SECONDS );
+    function save_transients( $columns, $headers, $headers_filtered, $positions, $errors, $errors_totals, $results, $users_created, $users_updated, $users_ignored, $roles_appeared ){
+        set_transient( 'acui_columns', $columns, 15 * MINUTE_IN_SECONDS );
+        set_transient( 'acui_headers', $headers, 15 * MINUTE_IN_SECONDS );
+        set_transient( 'acui_headers_filtered', $headers_filtered, 15 * MINUTE_IN_SECONDS );
+        set_transient( 'acui_positions', $positions, 15 * MINUTE_IN_SECONDS );
+        set_transient( 'acui_errors', $errors, 15 * MINUTE_IN_SECONDS );
+        set_transient( 'acui_errors_totals', $errors_totals, 15 * MINUTE_IN_SECONDS );
+        set_transient( 'acui_results', $results, 15 * MINUTE_IN_SECONDS );
+        set_transient( 'acui_users_created', $users_created, 15 * MINUTE_IN_SECONDS );
+        set_transient( 'acui_users_updated', $users_updated, 15 * MINUTE_IN_SECONDS );
+        set_transient( 'acui_users_ignored', $users_ignored, 15 * MINUTE_IN_SECONDS );
+        set_transient( 'acui_roles_appeared', $roles_appeared, 15 * MINUTE_IN_SECONDS );
     }
 
     function import_users( $file, $form_data, $_is_cron = false, $_is_frontend = false, $step = 1, $initial_row = 0, $time_per_step = -1 ){
@@ -756,6 +758,8 @@ class ACUI_Import{
             $users_created = array();
             $users_updated = array();
             $users_ignored = array();
+
+            $roles_appeared = $settings['role_default'];
         }
         else{
             $columns = get_transient( 'acui_columns' );
@@ -772,6 +776,8 @@ class ACUI_Import{
             $users_created = get_transient( 'acui_users_created' );
             $users_updated = get_transient( 'acui_users_updated' );
             $users_ignored = get_transient( 'acui_users_ignored' );
+
+            $roles_appeared = get_transient( 'acui_roles_appeared' );
         }
 
         if( $step == 1 ){
@@ -817,6 +823,7 @@ class ACUI_Import{
                 endif;
 
                 $result = $this->import_user( $row, $columns, $headers, $data, $positions, $form_data, $settings );
+                $roles_appeared = array_unique( array_intersect( $roles_appeared, $result['role'] ) );
 
                 switch( $result['result'] ){
                     case 'created':
@@ -837,7 +844,7 @@ class ACUI_Import{
             }
 
             if( $this->time_exceeded( $time_start, $time_per_step ) ){
-                $this->save_transients( $columns, $headers, $headers_filtered, $positions, $errors, $errors_totals, $results, $users_created, $users_updated, $users_ignored );
+                $this->save_transients( $columns, $headers, $headers_filtered, $positions, $errors, $errors_totals, $results, $users_created, $users_updated, $users_ignored, $roles_appeared );
                 
                 if( $is_cron ){
                     as_enqueue_async_action( 'acui_cron_process_step', array( 'step' => $step + 1, 'initial_row' => $row ) );
@@ -903,8 +910,8 @@ class ACUI_Import{
                 'exclude' => array( get_current_user_id() ), // current user never cannot be deleted
             );
 
-            if( $settings['delete_users_only_specified_role'] ){
-                $args[ 'role__in' ] = $settings['role_default'];
+            if( $settings['delete_users_only_specified_role'] || $settings['not_present_same_role'] = 'yes' ){
+                $args[ 'role__in' ] = $roles_appeared;
             }
 
             $all_users = get_users( $args );
@@ -923,16 +930,23 @@ class ACUI_Import{
         if( $change_role_not_present_flag && !$delete_users_flag ):
             require_once( ABSPATH . 'wp-admin/includes/user.php');	
 
-            $all_users = get_users( array( 
+            $args = array( 
                 'fields' => array( 'ID' ),
-                'role__not_in' => array( 'administrator' )
-            ) );
+                'role__not_in' => $exclude_roles,
+                'exclude' => array( get_current_user_id() ),
+            );
+
+            if( $settings['not_present_same_role'] = 'yes' ){
+                $args[ 'role__in' ] = $roles_appeared;
+            }
+
+            $all_users = get_users( $args );
+            $all_users_ids = array_map( function( $element ){ return intval( $element->ID ); }, $all_users );
+            $users_to_change_role = array_diff( $all_users_ids, $users_registered );
             
-            foreach ( $all_users as $user ) {
-                if( !in_array( $user->ID, $users_registered ) ){
-                    $user_object = new WP_User( $user->ID );
-                    $user_object->set_role( $change_role_not_present_role );
-                }
+            foreach ( $users_to_change_role as $user_to_change_role ) {
+                $user_object = new WP_User( $user_to_change_role );
+                $user_object->set_role( $change_role_not_present_role );
             }
         endif;
         

@@ -42,7 +42,7 @@ class ACUI_Options{
 			self::$prefix . 'frontend_role' => '',
 			self::$prefix . 'frontend_update_existing_users' => false,
 			self::$prefix . 'frontend_update_roles_existing_users' => false,
-			// emials
+			// emails
 			self::$prefix . 'manually_send_mail' => false,
 			self::$prefix . 'manually_send_mail_updated' => false,
 			self::$prefix . 'automatic_wordpress_email' => false,
