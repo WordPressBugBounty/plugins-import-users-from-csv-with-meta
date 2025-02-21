@@ -117,6 +117,11 @@ Plugin will automatically detect:
 
 == Changelog ==
 
+= 1.28.4 =
+*   Fixed the export when selecting alphabetical order
+*   Fixed a fatal error in certain imports using certain roles
+*   Fixed a problem selecting no_role
+
 = 1.28.3 =
 *   You can now choose to delete or change the role of users that do not appear in the CSV but only of the role(s) that have appeared in the import
 
