@@ -62,6 +62,10 @@ class ACUI_Import{
                 ACUI_Frontend::admin_gui();	
             break;
     
+            case 'cron':
+                ACUI_Cron::admin_gui();
+            break;
+            
             case 'columns':
                 ACUI_Columns::admin_gui();
             break;
@@ -70,18 +74,18 @@ class ACUI_Import{
                 ACUI_MetaKeys::admin_gui();
             break;
     
-            case 'doc':
-                ACUI_Doc::message();
-            break;
-    
             case 'mail-options':
                 ACUI_Email_Options::admin_gui();
             break;
     
-            case 'cron':
-                ACUI_Cron::admin_gui();
+            case 'doc':
+                ACUI_Doc::message();
             break;
-    
+
+            case 'csv-uploaded':
+                ACUI_CSV_Uploaded::admin_gui();
+            break;
+        
             case 'help':
                 ACUI_Help::message();
             break;
@@ -102,7 +106,8 @@ class ACUI_Import{
                 'columns' => __( 'Extra profile fields', 'import-users-from-csv-with-meta' ), 
                 'meta-keys' => __( 'Meta keys', 'import-users-from-csv-with-meta' ), 
                 'mail-options' => __( 'Mail options', 'import-users-from-csv-with-meta' ), 
-                'doc' => __( 'Documentation', 'import-users-from-csv-with-meta' ), 
+                'doc' => __( 'Documentation', 'import-users-from-csv-with-meta' ),
+                'csv-uploaded' => __( 'CSV uploaded', 'import-users-from-csv-with-meta' ),
                 'help' => __( 'More...', 'import-users-from-csv-with-meta' )
         );
     

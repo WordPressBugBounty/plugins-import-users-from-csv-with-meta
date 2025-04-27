@@ -206,8 +206,6 @@ class ACUI_Cron{
 		}
 		</style>
 
-		<h2><?php _e( "Execute an import of users periodically", 'import-users-from-csv-with-meta' ); ?></h2>
-
 		<form method="POST" enctype="multipart/form-data" action="" accept-charset="utf-8">
 			<table class="form-table">
 				<tbody>

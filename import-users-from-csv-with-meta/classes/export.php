@@ -91,7 +91,6 @@ class ACUI_Exporter{
 	?>
 	<div id="acui_export_results"></div>
 
-	<h3 id="acui_export_users_header"><?php _e( 'Export users', 'import-users-from-csv-with-meta' ); ?></h3>
 	<form class="acui_exporter">
 		<table class="form-table">
 			<tbody>

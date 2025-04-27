@@ -8,9 +8,6 @@ class ACUI_Homepage{
 
     function hooks(){
         add_action( 'admin_enqueue_scripts', array( $this, 'load_scripts' ), 10, 1 );
-		add_action( 'acui_homepage_start', array( $this, 'maybe_remove_old_csv' ) );
-        add_action( 'wp_ajax_acui_delete_attachment', array( $this, 'delete_attachment' ) );
-		add_action( 'wp_ajax_acui_bulk_delete_attachment', array( $this, 'bulk_delete_attachment' ) );
 		add_action( 'wp_ajax_acui_delete_users_assign_posts_data', array( $this, 'delete_users_assign_posts_data' ) );
     }
 
@@ -47,8 +44,6 @@ class ACUI_Homepage{
 
 				<div id='message' class='updated acui-message'><?php printf( __( 'File must contain at least <strong>2 columns: username and email</strong>. These should be the first two columns and it should be placed <strong>in this order: username and email</strong>. Both data are required unless you use <a href="%s">this addon to allow empty emails</a>. If there are more columns, this plugin will manage it automatically.', 'import-users-from-csv-with-meta' ), 'https://import-wp.com/allow-no-email-addon/' ); ?></div>
 				<div id='message-password' class='error acui-message'><?php _e( 'Please, read carefully how <strong>passwords are managed</strong> and also take note about capitalization, this plugin is <strong>case sensitive</strong>.', 'import-users-from-csv-with-meta' ); ?></div>
-
-				<h2><?php _e( 'Import users and customers from CSV','import-users-from-csv-with-meta' ); ?></h2>
 			</div>
 		</div>
 
@@ -423,45 +418,6 @@ class ACUI_Homepage{
 			check_delete_users_checked();
 		});
 
-		$( '.delete_attachment' ).click( function(){
-			var answer = confirm( "<?php _e( 'Are you sure you want to delete this file?', 'import-users-from-csv-with-meta' ); ?>" );
-			if( answer ){
-				var data = {
-					'action': 'acui_delete_attachment',
-					'attach_id': $( this ).attr( "attach_id" ),
-					'security': '<?php echo wp_create_nonce( "codection-security" ); ?>'
-				};
-
-				$.post(ajaxurl, data, function(response) {
-					if( response != 1 )
-						alert( response );
-					else{
-						alert( "<?php _e( 'File successfully deleted', 'import-users-from-csv-with-meta' ); ?>" );
-						document.location.reload();
-					}
-				});
-			}
-		});
-
-		$( '#bulk_delete_attachment' ).click( function(){
-			var answer = confirm( "<?php _e( 'Are you sure you want to delete ALL CSV files uploaded? There can be CSV files from other plugins.', 'import-users-from-csv-with-meta' ); ?>" );
-			if( answer ){
-				var data = {
-					'action': 'acui_bulk_delete_attachment',
-					'security': '<?php echo wp_create_nonce( "codection-security" ); ?>'
-				};
-
-				$.post(ajaxurl, data, function(response) {
-					if( response != 1 )
-						alert( "<?php _e( 'There were problems deleting the files, please check file permissions', 'import-users-from-csv-with-meta' ); ?>" );
-					else{
-						alert( "<?php _e( 'Files successfully deleted', 'import-users-from-csv-with-meta' ); ?>" );
-						document.location.reload();
-					}
-				});
-			}
-		});
-
 		$( '.toggle_upload_path' ).click( function( e ){
 			e.preventDefault();
 			$( '#upload_file,#introduce_path' ).toggle();
@@ -512,91 +468,7 @@ class ACUI_Homepage{
 	<?php 
 	}
 
-	function maybe_remove_old_csv(){
-		$args_old_csv = array( 'post_type'=> 'attachment', 'post_mime_type' => 'text/csv', 'post_status' => 'inherit', 'posts_per_page' => -1 );
-		$old_csv_files = new WP_Query( $args_old_csv );
-
-		if( $old_csv_files->found_posts > 0 ): ?>
-		<div class="postbox">
-		    <div title="<?php _e( 'Click to open/close', 'import-users-from-csv-with-meta' ); ?>" class="handlediv">
-		      <br>
-		    </div>
-
-		    <h3 class="hndle"><span>&nbsp;&nbsp;&nbsp;<?php _e( 'Old CSV files uploaded', 'import-users-from-csv-with-meta' ); ?></span></h3>
-
-		    <div class="inside" style="display: block;">
-		    	<p><?php _e( 'For security reasons you should delete these files, probably they would be visible on the Internet if a bot or someone discover the URL. You can delete each file or maybe you want to delete all CSV files you have uploaded:', 'import-users-from-csv-with-meta' ); ?></p>
-		    	<input type="button" value="<?php _e( 'Delete all CSV files uploaded', 'import-users-from-csv-with-meta' ); ?>" id="bulk_delete_attachment" style="float:right;" />
-		    	<ul>
-		    		<?php while($old_csv_files->have_posts()) : 
-		    			$old_csv_files->the_post(); 
-
-		    			if( get_the_date() == "" )
-		    				$date = "undefined";
-		    			else
-		    				$date = get_the_date();
-		    		?>
-		    		<li><a href="<?php echo wp_get_attachment_url( get_the_ID() ); ?>"><?php the_title(); ?></a> <?php _e( 'uploaded on', 'import-users-from-csv-with-meta' ) . ' ' . $date; ?> <input type="button" value="<?php _e( 'Delete', 'import-users-from-csv-with-meta' ); ?>" class="delete_attachment" attach_id="<?php the_ID(); ?>" /></li>
-		    		<?php endwhile; ?>
-		    		<?php wp_reset_postdata(); ?>
-		    	</ul>
-		        <div style="clear:both;"></div>
-		    </div>
-		</div>
-		<?php endif;
-	}
-
-    function delete_attachment() {
-		check_ajax_referer( 'codection-security', 'security' );
-	
-		if( ! current_user_can( apply_filters( 'acui_capability', 'create_users' ) ) )
-            wp_die( __( 'Only users who are allowed to create users can delete CSV attachments.', 'import-users-from-csv-with-meta' ) );
-	
-		$attach_id = absint( $_POST['attach_id'] );
-		$mime_type  = (string) get_post_mime_type( $attach_id );
-	
-		if( $mime_type != 'text/csv' )
-			_e('This plugin can only delete the type of file it manages, i.e. CSV files.', 'import-users-from-csv-with-meta' );
-	
-		$result = wp_delete_attachment( $attach_id, true );
-	
-		if( $result === false )
-			_e( 'There were problems deleting the file, please check file permissions', 'import-users-from-csv-with-meta' );
-		else
-			echo 1;
-	
-		wp_die();
-	}
-
-	function bulk_delete_attachment(){
-		check_ajax_referer( 'codection-security', 'security' );
-	
-		if( ! current_user_can( apply_filters( 'acui_capability', 'create_users' ) ) )
-        wp_die( __( 'Only users who are allowed to create users can bulk delete CSV attachments.', 'import-users-from-csv-with-meta' ) );
-	
-		$args_old_csv = array( 'post_type'=> 'attachment', 'post_mime_type' => 'text/csv', 'post_status' => 'inherit', 'posts_per_page' => -1 );
-		$old_csv_files = new WP_Query( $args_old_csv );
-		$result = 1;
-	
-		while($old_csv_files->have_posts()) : 
-			$old_csv_files->the_post();
-	
-			$mime_type  = (string) get_post_mime_type( get_the_ID() );
-			if( $mime_type != 'text/csv' )
-				wp_die( __('This plugin can only delete the type of file it manages, i.e. CSV files.', 'import-users-from-csv-with-meta' ) );
-	
-			if( wp_delete_attachment( get_the_ID(), true ) === false )
-				$result = 0;
-		endwhile;
-		
-		wp_reset_postdata();
-	
-		echo $result;
-	
-		wp_die();
-	}
-
-    function delete_users_assign_posts_data(){
+	function delete_users_assign_posts_data(){
         check_ajax_referer( 'codection-security', 'security' );
 	
 		if( ! current_user_can( apply_filters( 'acui_capability', 'create_users' ) ) )
