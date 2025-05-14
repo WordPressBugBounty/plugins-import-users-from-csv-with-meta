@@ -261,8 +261,12 @@ class ACUI_Exporter{
 			wp_die( __( 'Only users who are allowed to create users can export them.', 'import-users-from-csv-with-meta' ) );
     
         $step = isset( $_POST['step'] ) ? absint( $_POST['step'] ) : 1;
-                
+		        
         $exporter = new ACUI_Batch_Exporter();
+		$exporter->set_role( isset( $_POST['role'] ) ? array_map( 'sanitize_text_field', $_POST['role'] ) : '' );
+        $exporter->set_from( isset( $_POST['from'] ) ? sanitize_text_field( $_POST['from'] ) : '' );
+        $exporter->set_to( isset( $_POST['to'] ) ? sanitize_text_field( $_POST['to'] ) : '' );
+		$exporter->fill_total_rows( $step == 1 );	
 
 		if( $step == 1 ){
 			delete_transient( 'acui_export_bad_character_formulas_values_cleaned' );
@@ -282,9 +286,6 @@ class ACUI_Exporter{
 
 		$exporter->set_page( $step );
 		$exporter->set_delimiter( isset( $_POST['delimiter'] ) ? sanitize_text_field( $_POST['delimiter'] ) : '' );
-        $exporter->set_role( isset( $_POST['role'] ) ? array_map( 'sanitize_text_field', $_POST['role'] ) : '' );
-        $exporter->set_from( isset( $_POST['from'] ) ? sanitize_text_field( $_POST['from'] ) : '' );
-        $exporter->set_to( isset( $_POST['to'] ) ? sanitize_text_field( $_POST['to'] ) : '' );
         $exporter->set_convert_timestamp( isset( $_POST['convert_timestamp'] ) ? $_POST['convert_timestamp'] : '' );
         $exporter->set_datetime_format( isset( $_POST['datetime_format'] ) ? sanitize_text_field( $_POST['datetime_format'] ) : '' );
         $exporter->set_order_fields_alphabetically( isset( $_POST['order_fields_alphabetically'] ) ? $_POST['order_fields_alphabetically'] : '' );

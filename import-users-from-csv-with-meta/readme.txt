@@ -3,8 +3,8 @@ Contributors: carazo
 Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: csv, import, export, importer, exporter
 Requires at least: 3.4
-Tested up to: 6.8
-Stable tag: 1.28.6
+Tested up to: 6.8.1
+Stable tag: 1.29
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -116,6 +116,11 @@ Plugin will automatically detect:
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 1.29 =
+*   Fixed a problem when exporting a huge list of users when the process was stopped without finishing and an attempt was made to restart
+*   Improved the performance of the export
+*   Improved compatibility with latest versions of PHP
 
 = 1.28.6 =
 *   Bug fixed, included the new file in the repository
