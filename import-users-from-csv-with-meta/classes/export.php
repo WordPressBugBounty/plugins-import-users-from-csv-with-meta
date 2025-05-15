@@ -263,7 +263,13 @@ class ACUI_Exporter{
         $step = isset( $_POST['step'] ) ? absint( $_POST['step'] ) : 1;
 		        
         $exporter = new ACUI_Batch_Exporter();
-		$exporter->set_role( isset( $_POST['role'] ) ? array_map( 'sanitize_text_field', $_POST['role'] ) : '' );
+
+		$role = isset($_POST['role']) ? $_POST['role'] : array();
+		if( !is_array( $role ) ){
+			$role = array( $role );
+		}
+
+		$exporter->set_role( isset( $_POST['role'] ) ? array_map( 'sanitize_text_field', $role ) : '' );
         $exporter->set_from( isset( $_POST['from'] ) ? sanitize_text_field( $_POST['from'] ) : '' );
         $exporter->set_to( isset( $_POST['to'] ) ? sanitize_text_field( $_POST['to'] ) : '' );
 		$exporter->fill_total_rows( $step == 1 );	
