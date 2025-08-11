@@ -729,6 +729,10 @@ class ACUI_Import{
     }
 
     function import_users( $file, $form_data, $_is_cron = false, $_is_frontend = false, $step = 1, $initial_row = 0, $time_per_step = -1 ){
+        if( !function_exists( 'wp_delete_user' ) ) {
+            require_once( ABSPATH . 'wp-admin/includes/user.php' );
+        }
+        
         $time_start = microtime( true );
 
         if( $time_per_step == -1 )
@@ -937,8 +941,6 @@ class ACUI_Import{
         endif;
 
         if( $change_role_not_present_flag && !$delete_users_flag ):
-            require_once( ABSPATH . 'wp-admin/includes/user.php');	
-
             $args = array( 
                 'fields' => array( 'ID' ),
                 'role__not_in' => $exclude_roles,
