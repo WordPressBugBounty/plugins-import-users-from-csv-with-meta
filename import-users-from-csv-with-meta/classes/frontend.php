@@ -538,4 +538,3 @@ class ACUI_Frontend{
 
 $acui_frontend = new ACUI_Frontend();
 $acui_frontend->hooks();
-

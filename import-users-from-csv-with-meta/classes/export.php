@@ -97,7 +97,8 @@ class ACUI_Exporter{
 				<tr id="acui_role_wrapper" valign="top">
 					<th scope="row"><?php _e( 'Role', 'import-users-from-csv-with-meta' ); ?></th>
 					<td>
-                        <?php ACUIHTML()->select( array(
+                        <?php 
+						ACUIHTML()->select( array(
                             'options' => ACUI_Helper::get_editable_roles( false ),
                             'name' => 'role[]',
                             'show_option_all' => false,
@@ -207,9 +208,9 @@ class ACUI_Exporter{
 				'security': '<?php echo wp_create_nonce( "codection-security" ); ?>'
 			};
 
-			$.post(ajaxurl, data, function(response) {
+			$.post( ajaxurl, data, function( response ) {
 				alert( response.data.message );
-			});
+			} );
 		} );
 	} )
 	</script>
@@ -264,6 +265,14 @@ class ACUI_Exporter{
 		        
         $exporter = new ACUI_Batch_Exporter();
 
+		if( isset( $_POST['role'] ) ){
+			if( !is_array( $_POST['role'] ) )
+				$_POST['role'] = explode( ',', $_POST['role'] );
+
+			if( !array_filter( $_POST['role'] ) )
+				unset( $_POST['role'] );
+		}
+
 		$role = isset($_POST['role']) ? $_POST['role'] : array();
 		if( !is_array( $role ) ){
 			$role = array( $role );
@@ -278,14 +287,6 @@ class ACUI_Exporter{
 			delete_transient( 'acui_export_bad_character_formulas_values_cleaned' );
 			$this->save_settings();
 		}
-
-		if( isset( $_POST['role'] ) ){
-			if( !is_array( $_POST['role'] ) )
-				$_POST['role'] = explode( ',', $_POST['role'] );
-
-			if( !array_filter( $_POST['role'] ) )
-				unset( $_POST['role'] );
-		}		
 
 		if( isset( $_POST['filename'] ) && !empty( $_POST['filename'] ) )
 			$exporter->set_filename( sanitize_file_name( $_POST['filename'] ) );
@@ -348,8 +349,8 @@ class ACUI_Exporter{
 	function save_settings(){
 		$settings = array();
 
-		isset( $_POST['settings'] ) ? parse_str( $_POST['settings'], $settings) : parse_str( $_POST['form'], $settings);
-
+		isset( $_POST['settings'] ) ? parse_str( $_POST['settings'], $settings) : parse_str( $_POST['form'], $settings );
+		
 		ACUISettings()->save_multiple( 'export_backend', $settings );
 	}
 }

@@ -208,7 +208,7 @@ class ACUI_Settings{
 
         foreach( $settings_to_save as $setting => $setting_options ){
             $sanitize_type = $setting_options['sanitization'];
-            if( !isset( $data[ $setting ] ) && $sanitize_type != 'checkbox' )
+            if( !isset( $data[ $setting ] ) && $sanitize_type != 'checkbox' && $setting != 'role' )
                 continue;
 
             $values[ $setting ] = isset( $data[ $setting ] ) ? $this->sanitize( $data[ $setting ], $sanitize_type ) : 'no';
