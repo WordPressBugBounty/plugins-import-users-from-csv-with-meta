@@ -10,7 +10,7 @@ class ACUI_Doc{
 		<tbody>
 			<tr valign="top">
 				<th scope="row"><?php _e( 'Columns position', 'import-users-from-csv-with-meta' ); ?></th>
-				<td><small><em><?php _e( '(Documents should look like the one presented in the screenshot. Remember to fill the first two columns with the next values)', 'import-users-from-csv-with-meta' ); ?></em></small>
+				<td><small><em><?php _e( 'You can name these first two columns whatever you want; only the order matters. In the rest of the columns, the order doesn\'t matter, but what you name them is what matters.', 'import-users-from-csv-with-meta' ); ?></em></small>
 					<ol>
 						<li><?php _e( 'Username: you can leave it empty and the username will be generated randomly', 'import-users-from-csv-with-meta' ); ?> </li>
 						<li><?php _e( 'Email:', 'import-users-from-csv-with-meta' ); ?> <?php echo apply_filters( 'acui_documentation_email_message', sprintf( __( 'required, although you can use <a href="%s">this addon to allow users to be imported without an associated email address</a>.','import-users-from-csv-with-meta' ), 'https://import-wp.com/allow-no-email-addon/' ) ); ?></li>

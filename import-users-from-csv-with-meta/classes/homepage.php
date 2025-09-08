@@ -42,7 +42,7 @@ class ACUI_Homepage{
 			<div class="header">
 				<?php do_action( 'acui_homepage_start' ); ?>
 
-				<div id='message' class='updated acui-message'><?php printf( __( 'File must contain at least <strong>2 columns: username and email</strong>. These should be the first two columns and it should be placed <strong>in this order: username and email</strong>. Both data are required unless you use <a href="%s">this addon to allow empty emails</a>. If there are more columns, this plugin will manage it automatically.', 'import-users-from-csv-with-meta' ), 'https://import-wp.com/allow-no-email-addon/' ); ?></div>
+				<div id='message' class='updated acui-message'><?php printf( __( 'File must contain at least <strong>2 columns: username and email</strong>. These should be the first two columns and it should be placed <strong>in this order: username and email</strong>. You can name these first two columns whatever you want; only the order matters. In the rest of the columns, the order doesn\'t matter, but what you name them is what matters. Both data are required unless you use <a href="%s">this addon to allow empty emails</a>. If there are more columns, this plugin will manage it automatically.', 'import-users-from-csv-with-meta' ), 'https://import-wp.com/allow-no-email-addon/' ); ?></div>
 				<div id='message-password' class='error acui-message'><?php _e( 'Please, read carefully how <strong>passwords are managed</strong> and also take note about capitalization, this plugin is <strong>case sensitive</strong>.', 'import-users-from-csv-with-meta' ); ?></div>
 			</div>
 		</div>
