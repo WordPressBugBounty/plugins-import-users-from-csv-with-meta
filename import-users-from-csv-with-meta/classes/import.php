@@ -920,7 +920,7 @@ class ACUI_Import{
             $args = array( 
                 'fields' => array( 'ID' ),
                 'role__not_in' => $exclude_roles,
-                'exclude' => array( get_current_user_id() ), // current user never cannot be deleted
+                'exclude' => apply_filters( 'acui_exclude_users_to_delete', array( get_current_user_id() ) ), // current user never cannot be deleted
             );
 
             if( $settings['delete_users_only_specified_role'] || $settings['not_present_same_role'] = 'yes' ){
@@ -944,7 +944,7 @@ class ACUI_Import{
             $args = array( 
                 'fields' => array( 'ID' ),
                 'role__not_in' => $exclude_roles,
-                'exclude' => array( get_current_user_id() ),
+                'exclude' => apply_filters( 'acui_exclude_users_to_change_role', array( get_current_user_id() ) ),
             );
 
             if( $settings['not_present_same_role'] = 'yes' ){
