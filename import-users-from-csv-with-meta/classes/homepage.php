@@ -27,9 +27,16 @@ class ACUI_Homepage{
 		$sample_url = plugin_dir_url( dirname( __FILE__ ) ) . 'test.csv';
 
 		if( ctype_digit( $settings->get( 'delete_users_assign_posts' ) ) ){
-			$delete_users_assign_posts_user = get_user_by( 'id', $settings->get( 'delete_users_assign_posts' ) );
-			$delete_users_assign_posts_options = array( $settings->get( 'delete_users_assign_posts' ) => $delete_users_assign_posts_user->display_name );
-			$delete_users_assign_posts_option_selected = $settings->get( 'delete_users_assign_posts' );
+			$delete_users_assign_posts_user_id = $settings->get( 'delete_users_assign_posts' );
+			$delete_users_assign_posts_user = get_user_by( 'id', $delete_users_assign_posts_user_id );
+
+			if( $delete_users_assign_posts_user ) {
+				$delete_users_assign_posts_options = array( $delete_users_assign_posts_user_id => $delete_users_assign_posts_user->display_name);
+			} else {
+				$delete_users_assign_posts_options = array();
+			}
+
+			$delete_users_assign_posts_option_selected = $delete_users_assign_posts_user_id;
 		}
 		else{
 			$delete_users_assign_posts_options = array( 0 => __( 'No user selected', 'import-users-from-csv-with-meta' ) );
