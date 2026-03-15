@@ -144,8 +144,10 @@ class ACUI_Helper{
     }
 
     function get_restricted_fields(){
+        global $wpdb;
+
         $wp_users_fields = $this->get_wp_users_fields();
-        $wp_min_fields = array( "Username", "Email", "role"  );
+        $wp_min_fields = array( "Username", "Email", "role", $wpdb->prefix . 'capabilities', $wpdb->prefix . 'user_level' );
         $acui_restricted_fields = array_merge( $wp_users_fields, $wp_min_fields );
         
         return apply_filters( 'acui_restricted_fields', $acui_restricted_fields );
@@ -331,11 +333,13 @@ class ACUI_Helper{
 		return $foundid;
 	}
 
-    function print_table_header_footer( $headers ){
+    function print_table_header_footer( $headers, $show_header = true ){
+        if( $show_header ):
         ?>
         <h3><?php echo apply_filters( 'acui_log_inserting_updating_data_title', __( 'Inserting and updating data', 'import-users-from-csv-with-meta' ) ); ?></h3>
-        <table id="acui_results">
-            <thead>
+        <?php endif; ?>
+        <table class="acui-import-rows">
+            <thead <?php if( !$show_header ) echo 'style="display:none;"'; ?>>
                 <tr>
                     <th><?php _e( 'Row', 'import-users-from-csv-with-meta' ); ?></th>
                     <?php foreach( $headers as $element ): 
@@ -344,6 +348,14 @@ class ACUI_Helper{
                     <?php do_action( 'acui_header_table_extra_rows' ); ?>
                 </tr>
             </thead>
+            <tbody>
+        <?php
+    }
+
+    function print_table_end( $show_footer = false, $headers = array() ){
+        ?>
+            </tbody>
+            <?php if( $show_footer ): ?>
             <tfoot>
                 <tr>
                     <th><?php _e( 'Row', 'import-users-from-csv-with-meta' ); ?></th>
@@ -353,13 +365,7 @@ class ACUI_Helper{
                     <?php do_action( 'acui_header_table_extra_rows' ); ?>
                 </tr>
             </tfoot>
-            <tbody>
-        <?php
-    }
-
-    function print_table_end(){
-        ?>
-            </tbody>
+            <?php endif; ?>
         </table>
         <?php
     }
@@ -444,7 +450,7 @@ class ACUI_Helper{
     function print_results( $results, $errors ){
         ?>
         <h3><?php _e( 'Results', 'import-users-from-csv-with-meta' ); ?></h3>
-        <table id="acui_results">
+        <table id="acui_import_summary" class="form-table">
             <tbody>
                 <tr>
                     <th><?php _e( 'Users processed', 'import-users-from-csv-with-meta' ); ?></th>
@@ -482,9 +488,20 @@ class ACUI_Helper{
         ?>
         <script>
         jQuery( document ).ready( function( $ ){
-            $( '#acui_results,#acui_errors' ).DataTable({
-                "scrollX": true,
-            });
+            var $tables = $( '.acui-import-rows' );
+            if ( $tables.length > 1 ) {
+                var $first = $tables.first();
+                $tables.not( ':first' ).each( function() {
+                    $first.find( 'tbody' ).append( $( this ).find( 'tbody tr' ) );
+                    $( this ).closest( '.wrap' ).remove();
+                } );
+            }
+            if ( $tables.length && ! $.fn.DataTable.isDataTable( $tables.first()[0] ) ) {
+                $tables.first().DataTable({ "scrollX": true });
+            }
+            if ( $( '#acui_errors' ).length && ! $.fn.DataTable.isDataTable( '#acui_errors' ) ) {
+                $( '#acui_errors' ).DataTable({ "scrollX": true });
+            }
         } )
         </script>
         <?php
@@ -493,17 +510,22 @@ class ACUI_Helper{
     function basic_css(){
         ?>
         <style type="text/css">
-            .wrap{
+            #acui_import_log{
                 overflow-x:auto!important;
             }
 
-            .wrap table{
-                min-width:800px!important;
+            .acui-import-rows,
+            #acui_errors{
+                min-width:800px;
             }
 
-            .wrap table th,
-            .wrap table td{
-                width:200px!important;
+            .acui-import-rows th,
+            .acui-import-rows td,
+            #acui_errors th,
+            #acui_errors td{
+                min-width:150px;
+                text-align:left;
+                white-space:nowrap;
             }
         </style>
         <?php

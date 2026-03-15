@@ -354,4 +354,5 @@ class ACUI_Exporter{
 		ACUISettings()->save_multiple( 'export_backend', $settings );
 	}
 }
+global $acui_exporter;
 $acui_exporter = new ACUI_Exporter();

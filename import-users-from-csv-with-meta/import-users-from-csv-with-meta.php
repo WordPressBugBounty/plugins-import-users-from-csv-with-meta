@@ -3,7 +3,7 @@
 Plugin Name:	Import and export users and customers
 Plugin URI:		https://www.codection.com
 Description:	Using this plugin you will be able to import and export users or customers choosing many options and interacting with lots of other plugins
-Version:		1.29.7
+Version:		2.0
 Author:			codection
 Author URI: 	https://codection.com
 License:     	GPL2
@@ -15,7 +15,9 @@ Domain Path: /languages
 if ( ! defined( 'ABSPATH' ) ) 
 	exit;
 
-define( 'ACUI_VERSION', '1.29.7' );
+define( 'ACUI_VERSION', '2.0' );
+define( 'ACUI_IMPORT_BATCH_SIZE', 50 );
+define( 'ACUI_IMPORT_TIME_LIMIT', 29 );
 
 class ImportExportUsersCustomers{
 	var $file;
@@ -40,6 +42,7 @@ class ImportExportUsersCustomers{
 	}
 	
 	function loader(){
+		global $acui_import, $acui_exporter, $acui_frontend;
 		add_action( 'admin_menu', array( $this, 'menu' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ), 10, 1 );
 		add_filter( 'plugin_action_links', array( $this, 'action_links' ), 10, 2 );
@@ -87,18 +90,22 @@ class ImportExportUsersCustomers{
 	}
 
 	function menu() {
-		$acui_import = new ACUI_Import();
+		global $acui_import;
 		add_submenu_page( 'tools.php', __( 'Import and export users and customers', 'import-users-from-csv-with-meta' ), __( 'Import and export users and customers', 'import-users-from-csv-with-meta' ), apply_filters( 'acui_capability', 'create_users' ), 'acui', array( $acui_import, 'show' ) );
 	}
 	
 	function admin_enqueue_scripts( $hook ) {
 		if( 'tools_page_acui' == $hook ){
 			wp_enqueue_style( 'acui_css', plugins_url( 'assets/style.css', __FILE__ ), false, ACUI_VERSION );
-			wp_enqueue_style( 'datatable', '//cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css' );
-			wp_enqueue_script( 'datatable', '//cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js' );
+			wp_enqueue_style( 'datatable', '//cdn.datatables.net/2.2.2/css/dataTables.dataTables.min.css', false, '2.2.2' );
+			wp_enqueue_script( 'datatable', '//cdn.datatables.net/2.2.2/js/dataTables.min.js', array( 'jquery' ), '2.2.2' );
 
 			if( isset( $_GET['tab'] ) && $_GET['tab'] == 'export' ){
 				ACUI_Exporter::enqueue();
+			}
+
+			if( !isset( $_GET['tab'] ) || $_GET['tab'] == 'homepage' ){
+				ACUI_Import::enqueue();
 			}
 		}
 

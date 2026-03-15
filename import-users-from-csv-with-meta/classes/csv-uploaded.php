@@ -15,8 +15,16 @@ class ACUI_CSV_Uploaded{
 	    $args_old_csv = array( 'post_type'=> 'attachment', 'post_mime_type' => 'text/csv', 'post_status' => 'inherit', 'posts_per_page' => -1 );
 		$old_csv_files = new WP_Query( $args_old_csv );
 
+        echo '<div class="wrap" style="margin-top:20px;">';
+        echo '<h3>' . __( 'CSV uploaded', 'import-users-from-csv-with-meta' ) . '</h3>';
+
         if( $old_csv_files->found_posts == 0 ){
-            _e( 'All correct, there is no file in the attachment library that is a CSV and therefore may contain sensitive information and could be found illicitly.', 'import-users-from-csv-with-meta' );
+            ?>
+            <div class="notice notice-info">
+                <p><?php _e( 'All correct, there is no file in the attachment library that is a CSV and therefore may contain sensitive information and could be found illicitly.', 'import-users-from-csv-with-meta' ); ?></p>
+            </div>
+            </div>
+            <?php
             return;
         }
         ?>
@@ -78,6 +86,7 @@ class ACUI_CSV_Uploaded{
             });
         } )
         </script>
+        </div>
 		<?php
 	}
 

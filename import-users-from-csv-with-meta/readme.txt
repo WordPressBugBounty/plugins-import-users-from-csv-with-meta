@@ -3,8 +3,8 @@ Contributors: carazo
 Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: csv, import, export, importer, exporter
 Requires at least: 3.4
-Tested up to: 6.9
-Stable tag: 1.29.7
+Tested up to: 6.9.4
+Stable tag: 2.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -20,7 +20,7 @@ Clean and easy-to-use import and export users and customer plugin, for WordPress
 *	Import thousends of users or customers in only some seconds
 *   Export users or customers to a CSV file, filtering by role or registered date
 *	You can also import meta-data like data from WooCommerce customers
-*	You can assign roles while importing. To create new user roles or manage existing ones we recommend you using [Profile Builder - Roles Editor](https://wordpress.org/plugins/profile-builder/)
+*	You can assign roles while importing.
 *	Send a mail to every new user, this mails can be saved as templates and are fully customizable, before sending you can test it
 *	Use your own 
 *	You can also update users if the user is already in your WordPress
@@ -116,6 +116,14 @@ Plugin will automatically detect:
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.0 =
+*   Importing is now performed in steps, allowing files of any size to be processed.
+*   Datatables have been added to some tables to improve the UX.
+*   The Action Scheduler library has been updated to the latest version.
+*   Hooks that did not follow the acui_ naming pattern have been renamed to comply with it.
+*   When selecting columns to export, any extra spaces between column names are ignored to prevent issues when retrieving the meta key.
+*   Improved security.
 
 = 1.29.7 =
 *   Ready for WordPress 6.9
@@ -1290,7 +1298,7 @@ Michael Finkenberger
 *	Documentation fixed: if user id is present in the CSV but not in the database, it cannot be used to create a new user
 
 = 1.10.6.3 =
-*	New hook added do_action('post_acui_import_single_user', $headers, $data, $user_id );
+*	New hook added do_action('acui_post_import_single_user', $headers, $data, $user_id );
 
 = 1.10.6.2 =
 *	Added documentation about locale and BuddyPress Extendend Profile

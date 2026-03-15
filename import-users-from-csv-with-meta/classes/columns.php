@@ -21,14 +21,13 @@ class ACUI_Columns{
 		if( $hook != 'tools_page_acui' || !isset( $_GET['tab'] ) || $_GET['tab'] != 'columns' )
 			return;
 
-		wp_enqueue_script( 'acui-datatables', '//cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js', array( 'jquery' ), '1.10.20' );
-		wp_enqueue_style( 'acui-datatables', '//cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css', array(), '1.10.20' );
+		wp_enqueue_script( 'datatable', '//cdn.datatables.net/2.2.2/js/dataTables.min.js', array( 'jquery' ), '2.2.2' );
+		wp_enqueue_style( 'datatable', '//cdn.datatables.net/2.2.2/css/dataTables.dataTables.min.css', array(), '2.2.2' );
 	}
 
 	public static function admin_gui(){
 		$show_profile_fields = get_option( "acui_show_profile_fields");
 		$headers = get_option("acui_columns");
-		//$headers_extended = self::get_extended();
 	?>
 	<h3><?php _e( 'Extra profile fields', 'import-users-from-csv-with-meta' ); ?></h3>
 	<table class="form-table">
@@ -167,15 +166,17 @@ class ACUI_Columns{
 		$acui_restricted_fields = ACUIHelper()->get_restricted_fields();
 		$headers = get_option( "acui_columns" );
 	
-		if( is_array( $headers ) && !empty( array_diff( $headers, $acui_restricted_fields ) ) ):
+		$restricted_lower = array_map( 'strtolower', $acui_restricted_fields );
+		$visible_columns = is_array( $headers ) ? array_filter( $headers, function( $col ) use ( $restricted_lower ) {
+			return !in_array( strtolower( $col ), $restricted_lower );
+		} ) : array();
+
+		if( !empty( $visible_columns ) ):
 	?>
 		<h3>Extra profile information</h3>
-		
-		<table class="form-table"><?php
-		foreach ( $headers as $column ):
-			if( in_array( $column, $acui_restricted_fields ) )
-				continue;
 
+		<table class="form-table"><?php
+		foreach ( $visible_columns as $column ):
 			$column = esc_html( $column );
 			$value = is_a( $user, 'WP_User' ) ? esc_attr( ACUI_Helper::show_meta( $user->ID, $column ) ) : '';
 		?>
@@ -191,6 +192,9 @@ class ACUI_Columns{
 	}
 
 	function save_extra_user_profile_fields( $user_id ){
+		if( !current_user_can( 'edit_user', $user_id ) )
+			return;
+
 		$post_filtered = filter_input_array( INPUT_POST );
 		if( empty( $post_filtered ) || count( $post_filtered ) == 0 )
 			return;
@@ -203,7 +207,7 @@ class ACUI_Columns{
             $values = array();
 
 			foreach ( $headers as $column ){
-				if( in_array( $column, $acui_restricted_fields ) )
+				if( in_array( strtolower( $column ), array_map( 'strtolower', $acui_restricted_fields ) ) )
 					continue;
 	
 				$column_sanitized = str_replace(" ", "_", $column );

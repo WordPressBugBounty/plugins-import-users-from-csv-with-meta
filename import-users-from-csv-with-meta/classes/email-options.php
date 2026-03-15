@@ -223,7 +223,17 @@ class ACUI_Email_Options{
 		$headers_mail = apply_filters( 'acui_import_email_headers', array( 'Content-Type: text/html; charset=UTF-8' ), $headers, $data, $created, $user_id );
 		$attachments = apply_filters( 'acui_import_email_attachments', $attachments, $headers, $data, $created, $user_id );
 
-		wp_mail( $email_to, $subject, $body, $headers_mail, $attachments );
+		try {
+			wp_mail( $email_to, $subject, $body, $headers_mail, $attachments );
+		} catch ( Exception $e ) {
+			if( defined( 'WP_DEBUG' ) && WP_DEBUG ){
+				error_log( 'ACUI Error sending email: ' . $e->getMessage() );
+			}
+		} catch ( Error $er ) {
+			if( defined( 'WP_DEBUG' ) && WP_DEBUG ){
+				error_log( 'ACUI Fatal error sending email: ' . $er->getMessage() );
+			}
+		}
 	}
 
 	static function apply_wildcards( $string, $user_object, $created, $positions, $headers, $data, $password, $key ){

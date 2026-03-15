@@ -254,6 +254,9 @@ class ACUI_Batch_Exporter{
     }
 
     function set_filtered_columns( $filtered_columns ){
+        if ( ! is_array( $filtered_columns ) ) {
+            $filtered_columns = preg_replace( '/\s*,\s*/', ',', $filtered_columns );
+        }
         $filtered_columns = ( is_array( $filtered_columns ) ) ? array_map( 'sanitize_text_field', $filtered_columns ) : explode( ',', sanitize_text_field( $filtered_columns ) );
 
         if( empty( $filtered_columns[0] ) )
@@ -617,12 +620,12 @@ class ACUI_Batch_Exporter{
 	function prepare_data_to_export() {
 		$users = $this->get_user_id_list();
         $this->row_data = array();
-        
+
 		foreach ( $users as $user ) {
             $row = array();
 			$userdata = get_userdata( $user );
 
-            foreach ( $this->get_user_data( $this->get_filtered_columns() ) as $key ) {
+            foreach ( $this->get_user_data() as $key ) {
 				if( $key == 'source_user_id' )
 					$row[ $key ] = $this->prepare( $key, $userdata->ID, $this->get_datetime_format(), $user );
 				else
@@ -638,7 +641,7 @@ class ACUI_Batch_Exporter{
 
             if( count( $this->get_filtered_columns() ) == 0 || in_array( 'user_email', $this->get_filtered_columns() ) || in_array( 'user_login', $this->get_filtered_columns() ) )
 			    $row = $this->maybe_fill_empty_data( $row, $user, $this->get_filtered_columns() );
-
+			
 			$row = apply_filters( 'acui_export_data', $row, $user, array( 
 				'columns' => $this->get_columns_to_export(), 
 				'datetime_format' => $this->get_datetime_format(), 
@@ -746,13 +749,12 @@ class ACUI_Batch_Exporter{
 	    $meta_keys = array();
 
         $usermeta = get_transient( 'acui_export_user_meta_keys' );
-		$usermeta = '';
-
+		
         if( empty( $usermeta ) ){
-            $usermeta = $wpdb->get_results( "SELECT distinct $wpdb->usermeta.meta_key FROM $wpdb->usermeta", ARRAY_A );
+            $usermeta = $wpdb->get_results( "SELECT distinct BINARY($wpdb->usermeta.meta_key) as meta_key FROM $wpdb->usermeta", ARRAY_A );
             set_transient( 'acui_export_user_meta_keys', $usermeta, HOUR_IN_SECONDS );
         }
-	    
+
 	  	foreach( $usermeta as $key => $value) {
 			if( $value["meta_key"] == 'role' || $value["meta_key"] == 'source_user_id' )
 				continue;

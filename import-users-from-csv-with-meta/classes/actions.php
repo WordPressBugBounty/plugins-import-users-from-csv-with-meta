@@ -18,7 +18,7 @@ class ACUI_Actions{
 			add_action( 'acui_action_' . $registered_action, array( $this, $registered_action ), 10, 6 );
 		}
 
-		add_action( 'post_acui_import_single_user', array( $this, 'run' ), 10, 8 );
+		add_action( 'acui_post_import_single_user', array( $this, 'run' ), 10, 8 );
 	}
 
 	function check_prefix( $header ){

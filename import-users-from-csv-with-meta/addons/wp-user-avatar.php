@@ -17,7 +17,7 @@ class ACUI_WPUA{
     function hooks(){
         add_filter( 'acui_restricted_fields', array( $this, 'restricted_fields' ), 10, 1 );
         add_action( 'acui_documentation_after_plugins_activated', array( $this, 'documentation_after_plugins_activated' ) );
-        add_action( 'post_acui_import_single_user', array( $this, 'post_import_single_user' ), 10, 3 );
+        add_action( 'acui_post_import_single_user', array( $this, 'post_import_single_user' ), 10, 3 );
         add_filter( 'acui_export_columns', array( $this, 'export_columns' ), 10, 1 );
 		add_filter( 'acui_export_data', array( $this, 'export_data' ), 10, 2 );
     }

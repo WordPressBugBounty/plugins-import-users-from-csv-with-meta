@@ -14,7 +14,7 @@ class ACUI_WooCommerceSubscriptions{
 		add_action( 'acui_header_table_extra_rows', array( $this, 'header_table_extra_rows' ) );
 		add_action( 'acui_documentation_after_plugins_activated', array( $this, 'documentation' ) );
 		add_action( 'after_acui_import_users', array( $this, 'end' ) );		
-		add_action( 'post_acui_import_single_user', array( $this, 'import' ), 10, 3 );
+		add_action( 'acui_post_import_single_user', array( $this, 'import' ), 10, 3 );
 
 		$this->all_virtual = true;
 	}
