@@ -761,7 +761,8 @@ class ACUI_Import{
             if( !empty( $_FILES['uploadfile']['tmp_name'] ) ){
                 // Move uploaded file to a more permanent temporary location because tmp_name is deleted after request
                 $upload_dir = wp_upload_dir();
-                $file = $upload_dir['basedir'] . '/acui-import-' . uniqid() . '.csv';
+                $original_ext = strtolower( pathinfo( $_FILES['uploadfile']['name'], PATHINFO_EXTENSION ) );
+                $file = $upload_dir['basedir'] . '/acui-import-' . uniqid() . '.' . $original_ext;
                 move_uploaded_file( $_FILES['uploadfile']['tmp_name'], $file );
             }
             elseif( !empty( $_POST['path_to_file'] ) ){
@@ -913,7 +914,6 @@ class ACUI_Import{
         $settings = $this->prepare_settings( $form_data );
 
         @ini_set( 'auto_detect_line_endings', TRUE );
-        $delimiter = ACUIHelper()->detect_delimiter( $file );
 
         ACUIHelper()->maybe_disable_wordpress_core_emails();
 
@@ -970,6 +970,8 @@ class ACUI_Import{
             ACUIHelper()->print_table_header_footer( $headers, false );
         }
 
+        $file = apply_filters( 'acui_import_file_path', $file, $form_data );
+        $delimiter = ACUIHelper()->detect_delimiter( $file );
         $manager = new SplFileObject( $file );
         if( $initial_row != 0 )
             $manager->seek( $initial_row );
