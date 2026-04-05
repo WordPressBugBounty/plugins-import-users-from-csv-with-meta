@@ -2518,3 +2518,7 @@ msgstr ""
 #: import-users-from-csv-with-meta.php:144
 msgid "Premium addons and plugins"
 msgstr ""
+
+#: classes/homepage.php
+msgid "You can also import <strong>XLSX, XLS or ODS</strong> files with the <a href=\"%s\" target=\"_blank\">File Formats addon</a>."
+msgstr ""
