@@ -11,7 +11,7 @@ class ACUI_WPUM_Groups{
     }
 
     function hooks(){
-		add_action( 'post_acui_import_single_user', array( $this, 'assign_group' ), 10, 7 );
+		add_action( 'acui_post_import_single_user', array( $this, 'assign_group' ), 10, 7 );
 	}
 
 	function assign_group( $headers, $data, $user_id, $role, $positions, $form_data, $is_frontend ){

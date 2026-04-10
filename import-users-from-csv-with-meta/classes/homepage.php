@@ -145,9 +145,9 @@ class ACUI_Homepage{
 								<input placeholder="<?php printf( __( 'You have to enter the URL or the path to the file, i.e.: %s or %s' ,'import-users-from-csv-with-meta' ), $sample_path, $sample_url ); ?>" type="text" name="path_to_file" id="path_to_file" value="<?php echo $settings->get( 'path_to_file' ); ?>" style="width:70%;" />
 								<em><?php _e( 'or you can upload it directly from your computer', 'import-users-from-csv-with-meta' ); ?>, <a href="#" class="toggle_upload_path"><?php _e( 'click here', 'import-users-from-csv-with-meta' ); ?></a>.</em>
 							</div>
-							<?php /*if( !is_plugin_active( 'import-export-users-customers-file-formats/import-export-users-customers-file-formats.php' ) ): ?>
-							<p class="description"><?php printf( __( 'You can also import <strong>XLSX, XLS or ODS</strong> files with the <a href="%s" target="_blank">File Formats addon</a>.', 'import-users-from-csv-with-meta' ), 'https://import-wp.com/file-formats/' ); ?></p>
-							<?php endif;*/ ?>
+							<?php if( !is_plugin_active( 'import-export-users-customers-file-formats/import-export-users-customers-file-formats.php' ) ): ?>
+							<p class="description"><?php printf( __( 'You can also import <strong>XLSX, XLS or ODS</strong> files with the <a href="%s" target="_blank">File Formats addon</a>.', 'import-users-from-csv-with-meta' ), 'https://import-wp.com/plugins/file-formats-addon/' ); ?></p>
+							<?php endif; ?>
 						</td>
 					</tr>
 
@@ -413,13 +413,11 @@ class ACUI_Homepage{
 					</a>
 				</div>
 
-				<?php /*
 				<div class="sidebar_section premium_addons">
-					<a class="premium-addons" color="primary" type="button" name="premium-addons" data-tag="premium-addons" href="https://import-wp.com/file-formats/" role="button" target="_blank">
+					<a class="premium-addons" color="primary" type="button" name="premium-addons" data-tag="premium-addons" href="https://import-wp.com/plugins/file-formats-addon/" role="button" target="_blank">
 						<div><span><?php _e( 'File Formats (XLSX, XLS, ODS)', 'import-users-from-csv-with-meta'); ?></span></div>
 					</a>
 				</div>
-				*/ ?>
 
 				<div class="sidebar_section become_patreon">
 					<a class="patreon" color="primary" type="button" name="become-a-patron" data-tag="become-patron-button" href="https://www.patreon.com/carazo" role="button" target="_blank">

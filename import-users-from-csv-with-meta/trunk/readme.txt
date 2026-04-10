@@ -3,8 +3,8 @@ Contributors: carazo
 Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: csv, import, export, importer, exporter
 Requires at least: 3.4
-Tested up to: 6.7.2
-Stable tag: 1.28.4
+Tested up to: 6.9.4
+Stable tag: 2.0.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -20,7 +20,7 @@ Clean and easy-to-use import and export users and customer plugin, for WordPress
 *	Import thousends of users or customers in only some seconds
 *   Export users or customers to a CSV file, filtering by role or registered date
 *	You can also import meta-data like data from WooCommerce customers
-*	You can assign roles while importing. To create new user roles or manage existing ones we recommend you using [Profile Builder - Roles Editor](https://wordpress.org/plugins/profile-builder/)
+*	You can assign roles while importing.
 *	Send a mail to every new user, this mails can be saved as templates and are fully customizable, before sending you can test it
 *	Use your own 
 *	You can also update users if the user is already in your WordPress
@@ -116,6 +116,59 @@ Plugin will automatically detect:
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.0.3 =
+*   Fixed a problem showing errors, warnings and notices when the CSV file was small
+
+= 2.0.2 =
+*   Fixed a problem in cron import
+*   The plugin will now never change the password of the user uploading the file, to prevent the user from accidentally being logged out
+
+= 2.0.1 =
+*   Improved compatibility with PHP 8.x
+*   New hooks added
+
+= 2.0 =
+*   Importing is now performed in steps, allowing files of any size to be processed.
+*   Datatables have been added to some tables to improve the UX.
+*   The Action Scheduler library has been updated to the latest version.
+*   Hooks that did not follow the acui_ naming pattern have been renamed to comply with it.
+*   When selecting columns to export, any extra spaces between column names are ignored to prevent issues when retrieving the meta key.
+*   Improved security.
+
+= 1.29.7 =
+*   Ready for WordPress 6.9
+
+= 1.29.6 =
+*   Fixed a warning
+
+= 1.29.5 =
+*   New hooks added to allow to define users that should never be deleted or their role changed
+
+= 1.29.4 =
+*   Documentation improved
+
+= 1.29.3 =
+*   Fixed a problem when exporting in the frontend
+*   Fixed a problem when saving settings of the export in the backend
+
+= 1.29.2 =
+*   Fixed a problem when deleting users
+
+= 1.29.1 =
+*   Fixed a problem when exporting in the frontend
+
+= 1.29 =
+*   Fixed a problem when exporting a huge list of users when the process was stopped without finishing and an attempt was made to restart
+*   Improved the performance of the export
+*   Improved compatibility with latest versions of PHP
+
+= 1.28.6 =
+*   Bug fixed, included the new file in the repository
+
+= 1.28.5 =
+*   Ready for WordPress 6.8
+*   Improved GUI with a new tab with the old CSV uploaded info
 
 = 1.28.4 =
 *   Fixed the export when selecting alphabetical order
@@ -1256,7 +1309,7 @@ Michael Finkenberger
 *	Documentation fixed: if user id is present in the CSV but not in the database, it cannot be used to create a new user
 
 = 1.10.6.3 =
-*	New hook added do_action('post_acui_import_single_user', $headers, $data, $user_id );
+*	New hook added do_action('acui_post_import_single_user', $headers, $data, $user_id );
 
 = 1.10.6.2 =
 *	Added documentation about locale and BuddyPress Extendend Profile

@@ -11,7 +11,7 @@ class ACUI_MelapressLoginSecurity{
     
     function hooks(){
 		add_action( 'acui_documentation_after_plugins_activated', array( $this, 'documentation' ) );
-		add_action( 'post_acui_import_single_user', array( $this, 'import' ), PHP_INT_MAX, 10 );
+		add_action( 'acui_post_import_single_user', array( $this, 'import' ), PHP_INT_MAX, 10 );
 	}
 
 	function documentation(){

@@ -21,10 +21,23 @@ class ACUI_MetaKeys{
 			<div id="post-body-content">
 				<div class="meta-box-sortables ui-sortable">
 					<form method="post">
+						<div id="acui-meta-keys-container">
 						<?php
 						$meta_keys_obj->prepare_items();
 						$meta_keys_obj->display(); ?>
+						</div>
 					</form>
+					<script>
+						jQuery(document).ready(function($) {
+							$('#acui-meta-keys-container table').DataTable({
+								"order": [[ 0, "asc" ]],
+								"pageLength": 25,
+								"language": {
+									"emptyTable": "<?php _e( 'No meta keys available.', 'import-users-from-csv-with-meta' ); ?>"
+								}
+							});
+						});
+					</script>
 				</div>
 			</div>
 		</div>
@@ -89,7 +102,7 @@ class ACUI_MetaKeys_Table extends WP_List_Table {
 	function column_default( $item, $column_name ) {
 		switch ( $column_name ) {
 			case 'meta_key':
-				return $item['meta_key'];
+				return esc_html( $item['meta_key'] );
 
 			case 'type':
 				return $this->get_type( $item['meta_key'] );
@@ -109,7 +122,7 @@ class ACUI_MetaKeys_Table extends WP_List_Table {
 
 	    $usermeta = reset( $usermeta );
 
-	    return htmlspecialchars( $usermeta['meta_value'] );
+	    return esc_html( $usermeta['meta_value'] );
 	}
 
 	function get_type( $meta_key ){

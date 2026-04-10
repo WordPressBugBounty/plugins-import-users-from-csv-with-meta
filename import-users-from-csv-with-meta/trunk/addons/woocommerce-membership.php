@@ -8,7 +8,7 @@ if( !is_plugin_active( 'woocommerce-memberships/woocommerce-memberships.php' ) )
 
 add_filter( 'acui_restricted_fields', 'acui_wm_restricted_fields', 10, 1 );
 add_action( 'acui_documentation_after_plugins_activated', 'acui_wm_documentation_after_plugins_activated' );
-add_action( 'post_acui_import_single_user', 'acui_wm_post_import_single_user', 10, 3 );
+add_action( 'acui_post_import_single_user', 'acui_wm_post_import_single_user', 10, 3 );
 
 function acui_wm_restricted_fields( $acui_restricted_fields ){
 	return array_merge( $acui_restricted_fields, array( 'member_first_name', 'member_last_name', 'member_email', 'membership_plan_id', 'membership_plan_slug', 'membership_plan', 'membership_status', 'member_since', 'membership_expiration' ) );

@@ -10,7 +10,7 @@ class ACUI_IndeedMemberShipPro{
 	function __construct(){
 		add_filter( 'acui_restricted_fields', array( $this, 'restricted_fields' ), 10, 1 );
 		add_action( 'acui_documentation_after_plugins_activated', array( $this, 'documentation' ) );
-		add_action( 'post_acui_import_single_user', array( $this, 'import_single_user' ), 10, 3 );
+		add_action( 'acui_post_import_single_user', array( $this, 'import_single_user' ), 10, 3 );
 	}
 
 	function fields(){

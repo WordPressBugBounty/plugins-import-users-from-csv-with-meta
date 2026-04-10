@@ -1166,6 +1166,9 @@ class ACUI_Import{
                 if( !$is_frontend && !$is_cron )
                     ACUIHelper()->execute_datatable();
             }
+            else{
+                $this->save_transients( $columns, $headers, $headers_filtered, $positions, $errors, $errors_totals, $results, $users_created, $users_updated, $users_ignored, $roles_appeared, $users_deleted );
+            }
 
             @ini_set( 'auto_detect_line_endings', FALSE );
 

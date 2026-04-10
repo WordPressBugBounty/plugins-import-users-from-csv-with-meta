@@ -7,7 +7,7 @@ class ACUI_Force_Reset_Password{
     }
 
     function hooks(){
-        add_action( 'post_acui_import_single_user', array( $this, 'new_user' ), 10, 9 );
+        add_action( 'acui_post_import_single_user', array( $this, 'new_user' ), 10, 9 );
 		add_action( 'personal_options_update', array( $this, 'updated' ) );
 		add_action( 'template_redirect', array( $this, 'redirect' ) );
 		add_action( 'current_screen', array( $this, 'redirect' ) );

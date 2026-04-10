@@ -14,7 +14,7 @@ class ACUI_WooCommerceSubscriptions{
 		add_action( 'acui_header_table_extra_rows', array( $this, 'header_table_extra_rows' ) );
 		add_action( 'acui_documentation_after_plugins_activated', array( $this, 'documentation' ) );
 		add_action( 'after_acui_import_users', array( $this, 'end' ) );		
-		add_action( 'post_acui_import_single_user', array( $this, 'import' ), 10, 3 );
+		add_action( 'acui_post_import_single_user', array( $this, 'import' ), 10, 3 );
 
 		$this->all_virtual = true;
 	}
@@ -78,9 +78,9 @@ class ACUI_WooCommerceSubscriptions{
 			<td>
 				<ol>
 					<li><?php _e( 'You can import subscriptions with their info', 'import-users-from-csv-with-meta' ); ?>.</li>
-					<li><?php printf( __( 'Data format: use the column names <a href="%s">described here</a>, except the ones unused because we have our own:', 'import-users-from-csv-with-meta' ), "https://github.com/woocommerce/woocommerce-subscriptions-importer-exporter#csv-columns" ); ?> customer_id, customer_email and customer_username.</li>
-					<li><?php printf( __( 'Download <a href="%s">this sample file</a> to see how it works', 'import-users-from-csv-with-meta' ), esc_url( plugins_url( 'samples/wcs-import-sample.csv', dirname( __FILE__ ) ) ) ); ?>.</li>
-					<li><?php printf( __( 'This subscription importer is based in the official <a href="%s">WooCommerce Subscription Importer Exporter</a>.', 'import-users-from-csv-with-meta' ), "https://github.com/woocommerce/woocommerce-subscriptions-importer-exporter" ); ?></li>
+					<li><?php printf( __( 'Data format: use the column names <a href="%1$s">described here</a>, except the ones unused because we have our own:', 'import-users-from-csv-with-meta' ), "https://github.com/woocommerce/woocommerce-subscriptions-importer-exporter#csv-columns" ); ?> customer_id, customer_email and customer_username.</li>
+					<li><?php printf( __( 'Download <a href="%1$s">this sample file</a> to see how it works', 'import-users-from-csv-with-meta' ), esc_url( plugins_url( 'samples/wcs-import-sample.csv', dirname( __FILE__ ) ) ) ); ?>.</li>
+					<li><?php printf( __( 'This subscription importer is based in the official <a href="%1$s">WooCommerce Subscription Importer Exporter</a>.', 'import-users-from-csv-with-meta' ), "https://github.com/woocommerce/woocommerce-subscriptions-importer-exporter" ); ?></li>
 				</ol>
 			</td>
 		</tr>

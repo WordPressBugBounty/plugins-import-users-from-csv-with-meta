@@ -9,7 +9,7 @@ class ACUI_PaidMemberSubscriptions{
 	function __construct(){
 		add_filter( 'acui_restricted_fields', array( $this, 'restricted_fields' ), 10, 1 );
 		add_action( 'acui_documentation_after_plugins_activated', array( $this, 'documentation' ) );
-		add_action( 'post_acui_import_single_user', array( $this, 'assign' ), 10, 4 );
+		add_action( 'acui_post_import_single_user', array( $this, 'assign' ), 10, 4 );
     }
     
     function get_fields(){

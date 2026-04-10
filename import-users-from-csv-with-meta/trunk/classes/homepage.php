@@ -8,9 +8,6 @@ class ACUI_Homepage{
 
     function hooks(){
         add_action( 'admin_enqueue_scripts', array( $this, 'load_scripts' ), 10, 1 );
-		add_action( 'acui_homepage_start', array( $this, 'maybe_remove_old_csv' ) );
-        add_action( 'wp_ajax_acui_delete_attachment', array( $this, 'delete_attachment' ) );
-		add_action( 'wp_ajax_acui_bulk_delete_attachment', array( $this, 'bulk_delete_attachment' ) );
 		add_action( 'wp_ajax_acui_delete_users_assign_posts_data', array( $this, 'delete_users_assign_posts_data' ) );
     }
 
@@ -30,9 +27,16 @@ class ACUI_Homepage{
 		$sample_url = plugin_dir_url( dirname( __FILE__ ) ) . 'test.csv';
 
 		if( ctype_digit( $settings->get( 'delete_users_assign_posts' ) ) ){
-			$delete_users_assign_posts_user = get_user_by( 'id', $settings->get( 'delete_users_assign_posts' ) );
-			$delete_users_assign_posts_options = array( $settings->get( 'delete_users_assign_posts' ) => $delete_users_assign_posts_user->display_name );
-			$delete_users_assign_posts_option_selected = $settings->get( 'delete_users_assign_posts' );
+			$delete_users_assign_posts_user_id = $settings->get( 'delete_users_assign_posts' );
+			$delete_users_assign_posts_user = get_user_by( 'id', $delete_users_assign_posts_user_id );
+
+			if( $delete_users_assign_posts_user ) {
+				$delete_users_assign_posts_options = array( $delete_users_assign_posts_user_id => $delete_users_assign_posts_user->display_name);
+			} else {
+				$delete_users_assign_posts_options = array();
+			}
+
+			$delete_users_assign_posts_option_selected = $delete_users_assign_posts_user_id;
 		}
 		else{
 			$delete_users_assign_posts_options = array( 0 => __( 'No user selected', 'import-users-from-csv-with-meta' ) );
@@ -40,15 +44,68 @@ class ACUI_Homepage{
 		}
 ?>
 	<div class="wrap acui">	
+		<style>
+		#acui_import_results{
+			display: none;
+			background-color: #f0f0f1;
+			padding: 20px;
+			margin-top: 20px;
+			margin-bottom: 20px;
+			border-radius: 6px;
+			border: 1px solid #c3c4c7;
+		}
 
+		.user-importer-progress-wrapper{
+			padding: 20px;
+			background-color: white;
+			width: 100%;
+			margin: 0 0 20px 0;
+			text-align: center;
+			border-radius: 9px;
+			box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+			box-sizing: border-box;
+			display: none;
+		}
+
+		.user-importer-progress{
+			width: 100%;
+			height: 42px;
+			border: 0;
+			border-radius: 9px;
+		}
+
+		.user-importer-progress::-webkit-progress-bar {
+			background-color: #f3f3f3;
+			border-radius: 9px;
+		}
+
+		.user-importer-progress::-webkit-progress-value {
+			background: #2271b1;
+			border-radius: 9px;
+		}
+
+		.user-importer-progress::-moz-progress-bar {
+			background: #2271b1;
+			border-radius: 9px;
+		}
+
+		.acui-importing .acui-import-options,
+		.acui-importing .sidebar,
+		.acui-importing .header,
+		.acui-importing .acui-message{
+			display: none !important;
+		}
+
+		.acui-importing .user-importer-progress-wrapper{
+			display: block !important;
+		}
+		</style>
 		<div class="row">
 			<div class="header">
 				<?php do_action( 'acui_homepage_start' ); ?>
 
-				<div id='message' class='updated acui-message'><?php printf( __( 'File must contain at least <strong>2 columns: username and email</strong>. These should be the first two columns and it should be placed <strong>in this order: username and email</strong>. Both data are required unless you use <a href="%s">this addon to allow empty emails</a>. If there are more columns, this plugin will manage it automatically.', 'import-users-from-csv-with-meta' ), 'https://import-wp.com/allow-no-email-addon/' ); ?></div>
+				<div id='message' class='updated acui-message'><?php printf( __( 'File must contain at least <strong>2 columns: username and email</strong>. These should be the first two columns and it should be placed <strong>in this order: username and email</strong>. You can name these first two columns whatever you want; only the order matters. In the rest of the columns, the order doesn\'t matter, but what you name them is what matters. Both data are required unless you use <a href="%s">this addon to allow empty emails</a>. If there are more columns, this plugin will manage it automatically.', 'import-users-from-csv-with-meta' ), 'https://import-wp.com/allow-no-email-addon/' ); ?></div>
 				<div id='message-password' class='error acui-message'><?php _e( 'Please, read carefully how <strong>passwords are managed</strong> and also take note about capitalization, this plugin is <strong>case sensitive</strong>.', 'import-users-from-csv-with-meta' ); ?></div>
-
-				<h2><?php _e( 'Import users and customers from CSV','import-users-from-csv-with-meta' ); ?></h2>
 			</div>
 		</div>
 
@@ -56,6 +113,18 @@ class ACUI_Homepage{
 			<div class="main_bar">
 				<form method="POST" id="acui_form" enctype="multipart/form-data" action="" accept-charset="utf-8">
 
+				<div class="user-importer-progress-wrapper">
+					<progress class="user-importer-progress" value="0" max="100"></progress>
+					<div style="margin-top: 10px; font-weight: bold;">
+						<span class="user-importer-progress-value">0%</span>
+					</div>
+					<div class="user-importer-controls" style="margin-top: 20px;">
+						<button type="button" id="acui_pause_btn" class="button button-secondary"><?php _e( 'Pause', 'import-users-from-csv-with-meta' ); ?></button>
+						<button type="button" id="acui_stop_btn" class="button button-link-delete" style="color: #d63638;"><?php _e( 'Stop', 'import-users-from-csv-with-meta' ); ?></button>
+					</div>
+				</div>
+
+				<div class="acui-import-options">
 				<input class="button-primary" type="submit" name="uploadfile" id="uploadfile_btn_up" value="<?php _e( 'Start importing', 'import-users-from-csv-with-meta' ); ?>"/>
 				<input class="button-primary" type="submit" name="save_options" value="<?php _e( 'Save options without importing', 'import-users-from-csv-with-meta' ); ?>"/>
 
@@ -76,6 +145,9 @@ class ACUI_Homepage{
 								<input placeholder="<?php printf( __( 'You have to enter the URL or the path to the file, i.e.: %s or %s' ,'import-users-from-csv-with-meta' ), $sample_path, $sample_url ); ?>" type="text" name="path_to_file" id="path_to_file" value="<?php echo $settings->get( 'path_to_file' ); ?>" style="width:70%;" />
 								<em><?php _e( 'or you can upload it directly from your computer', 'import-users-from-csv-with-meta' ); ?>, <a href="#" class="toggle_upload_path"><?php _e( 'click here', 'import-users-from-csv-with-meta' ); ?></a>.</em>
 							</div>
+							<?php if( !is_plugin_active( 'import-export-users-customers-file-formats/import-export-users-customers-file-formats.php' ) ): ?>
+							<p class="description"><?php printf( __( 'You can also import <strong>XLSX, XLS or ODS</strong> files with the <a href="%s" target="_blank">File Formats addon</a>.', 'import-users-from-csv-with-meta' ), 'https://import-wp.com/plugins/file-formats-addon/' ); ?></p>
+							<?php endif; ?>
 						</td>
 					</tr>
 
@@ -83,7 +155,7 @@ class ACUI_Homepage{
 
 					</tbody>
 				</table>
-					
+
 				<h2 id="acui_roles_header"><?php _e( 'Roles', 'import-users-from-csv-with-meta'); ?></h2>
 				<table id="acui_roles_wrapper" class="form-table">
 					<tbody>
@@ -102,7 +174,7 @@ class ACUI_Homepage{
 							'selected' => is_array( $settings->get( 'role' ) ) ? $settings->get( 'role' ) : array( $settings->get( 'role' ) ),
 							'style' => 'width:100%;'
                         )); ?>
-						<p class="description"><?php _e( sprintf( 'You can also import roles from a CSV column. Please read documentation tab to see how it can be done. If you choose more than one role, the roles would be assigned correctly but you should use <a href="https://wordpress.org/plugins/profile-builder/">Profile Builder - Roles Editor</a> to manage them. <a href="%s">Click to Install & Activate</a>', esc_url( wp_nonce_url( self_admin_url('update.php?action=install-plugin&plugin=profile-builder'), 'install-plugin_profile-builder') ) ), 'import-users-from-csv-with-meta' ); ?></p>
+						<p class="description"><?php _e( 'You can also import roles from a CSV column. Please read the Documentation tab to see how this can be done. WordPress core allows assigning multiple roles to a user; however, the default interface only displays one role, although some plugins solve this limitation.', 'import-users-from-csv-with-meta' ); ?></p>						
 						
 						</td>
 					</tr>
@@ -287,11 +359,39 @@ class ACUI_Homepage{
 
 				<?php do_action( 'acui_tab_import_before_import_button' ); ?>
 					
-				<?php wp_nonce_field( 'codection-security', 'security' ); ?>
-
 				<input class="button-primary" type="submit" name="uploadfile" id="uploadfile_btn" value="<?php _e( 'Start importing', 'import-users-from-csv-with-meta' ); ?>"/>
 				<input class="button-primary" type="submit" name="save_options" value="<?php _e( 'Save options without importing', 'import-users-from-csv-with-meta' ); ?>"/>
+				</div>
+				<?php wp_nonce_field( 'codection-security', 'security' ); ?>
 				</form>
+				<div id="acui_import_log" style="margin-top: 20px;"></div>
+				<div id="acui_import_results">
+					<h3><?php _e( 'Results', 'import-users-from-csv-with-meta' ); ?></h3>
+					<table id="acui_import_summary" class="form-table">
+						<tbody>
+							<tr>
+								<th><?php _e( 'Users processed', 'import-users-from-csv-with-meta' ); ?></th>
+								<td><span id="acui_result_processed">0</span></td>
+							</tr>
+							<tr>
+								<th><?php _e( 'Users created', 'import-users-from-csv-with-meta' ); ?></th>
+								<td><span id="acui_result_created">0</span></td>
+							</tr>
+							<tr>
+								<th><?php _e( 'Users updated', 'import-users-from-csv-with-meta' ); ?></th>
+								<td><span id="acui_result_updated">0</span></td>
+							</tr>
+							<tr>
+								<th><?php _e( 'Users deleted', 'import-users-from-csv-with-meta' ); ?></th>
+								<td><span id="acui_result_deleted">0</span></td>
+							</tr>
+							<tr>
+								<th><?php _e( 'Errors, warnings and notices found', 'import-users-from-csv-with-meta' ); ?></th>
+								<td><span id="acui_result_errors">0</span></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
 			</div>
 
 			<div class="sidebar">
@@ -310,6 +410,12 @@ class ACUI_Homepage{
 				<div class="sidebar_section premium_addons">
 					<a class="premium-addons" color="primary" type="button" name="premium-addons" data-tag="premium-addons" href="https://import-wp.com/allow-no-email-addon/" role="button" target="_blank">
 						<div><span><?php _e( 'Allow No Email', 'import-users-from-csv-with-meta'); ?></span></div>
+					</a>
+				</div>
+
+				<div class="sidebar_section premium_addons">
+					<a class="premium-addons" color="primary" type="button" name="premium-addons" data-tag="premium-addons" href="https://import-wp.com/plugins/file-formats-addon/" role="button" target="_blank">
+						<div><span><?php _e( 'File Formats (XLSX, XLS, ODS)', 'import-users-from-csv-with-meta'); ?></span></div>
 					</a>
 				</div>
 
@@ -346,41 +452,6 @@ class ACUI_Homepage{
 				</div>
 			</div>
 		</div>
-
-		
-		<!--<div class="row">
-			<div class="batch-importer">
-				<h1><?php esc_html_e( 'Import Products', 'woocommerce' ); ?></h1>
-				<div class="wc-progress-form-content woocommerce-importer woocommerce-importer__importing">
-					<header>
-						<span class="spinner is-active"></span>
-						<h2><?php esc_html_e( 'Importing', 'woocommerce' ); ?></h2>
-						<p><?php esc_html_e( 'Your users are now being imported...', 'woocommerce' ); ?></p>
-					</header>
-					<section>
-						<progress class="acui-importer-progress" max="100" value="0"></progress>
-					</section>
-				</div>
-
-				<div class="woocommerce-progress-form-wrapper">
-					<ol class="wc-progress-steps">
-						<?php /*foreach ( $this->steps as $step_key => $step ) : ?>
-							<?php
-							$step_class = '';
-							if ( $step_key === $this->step ) {
-								$step_class = 'active';
-							} elseif ( array_search( $this->step, array_keys( $this->steps ), true ) > array_search( $step_key, array_keys( $this->steps ), true ) ) {
-								$step_class = 'done';
-							}
-							?>
-							<li class="<?php echo esc_attr( $step_class ); ?>">
-								<?php echo esc_html( $step['name'] ); ?>
-							</li>
-						<?php endforeach;*/ ?>
-					</ol>
-				</div>
-			</div>
-		</div> -->
 	</div>
 
 	<script type="text/javascript">
@@ -421,45 +492,6 @@ class ACUI_Homepage{
 
 		$( '#delete_users_not_present' ).on( 'click', function() {
 			check_delete_users_checked();
-		});
-
-		$( '.delete_attachment' ).click( function(){
-			var answer = confirm( "<?php _e( 'Are you sure you want to delete this file?', 'import-users-from-csv-with-meta' ); ?>" );
-			if( answer ){
-				var data = {
-					'action': 'acui_delete_attachment',
-					'attach_id': $( this ).attr( "attach_id" ),
-					'security': '<?php echo wp_create_nonce( "codection-security" ); ?>'
-				};
-
-				$.post(ajaxurl, data, function(response) {
-					if( response != 1 )
-						alert( response );
-					else{
-						alert( "<?php _e( 'File successfully deleted', 'import-users-from-csv-with-meta' ); ?>" );
-						document.location.reload();
-					}
-				});
-			}
-		});
-
-		$( '#bulk_delete_attachment' ).click( function(){
-			var answer = confirm( "<?php _e( 'Are you sure you want to delete ALL CSV files uploaded? There can be CSV files from other plugins.', 'import-users-from-csv-with-meta' ); ?>" );
-			if( answer ){
-				var data = {
-					'action': 'acui_bulk_delete_attachment',
-					'security': '<?php echo wp_create_nonce( "codection-security" ); ?>'
-				};
-
-				$.post(ajaxurl, data, function(response) {
-					if( response != 1 )
-						alert( "<?php _e( 'There were problems deleting the files, please check file permissions', 'import-users-from-csv-with-meta' ); ?>" );
-					else{
-						alert( "<?php _e( 'Files successfully deleted', 'import-users-from-csv-with-meta' ); ?>" );
-						document.location.reload();
-					}
-				});
-			}
 		});
 
 		$( '.toggle_upload_path' ).click( function( e ){
@@ -512,91 +544,7 @@ class ACUI_Homepage{
 	<?php 
 	}
 
-	function maybe_remove_old_csv(){
-		$args_old_csv = array( 'post_type'=> 'attachment', 'post_mime_type' => 'text/csv', 'post_status' => 'inherit', 'posts_per_page' => -1 );
-		$old_csv_files = new WP_Query( $args_old_csv );
-
-		if( $old_csv_files->found_posts > 0 ): ?>
-		<div class="postbox">
-		    <div title="<?php _e( 'Click to open/close', 'import-users-from-csv-with-meta' ); ?>" class="handlediv">
-		      <br>
-		    </div>
-
-		    <h3 class="hndle"><span>&nbsp;&nbsp;&nbsp;<?php _e( 'Old CSV files uploaded', 'import-users-from-csv-with-meta' ); ?></span></h3>
-
-		    <div class="inside" style="display: block;">
-		    	<p><?php _e( 'For security reasons you should delete these files, probably they would be visible on the Internet if a bot or someone discover the URL. You can delete each file or maybe you want to delete all CSV files you have uploaded:', 'import-users-from-csv-with-meta' ); ?></p>
-		    	<input type="button" value="<?php _e( 'Delete all CSV files uploaded', 'import-users-from-csv-with-meta' ); ?>" id="bulk_delete_attachment" style="float:right;" />
-		    	<ul>
-		    		<?php while($old_csv_files->have_posts()) : 
-		    			$old_csv_files->the_post(); 
-
-		    			if( get_the_date() == "" )
-		    				$date = "undefined";
-		    			else
-		    				$date = get_the_date();
-		    		?>
-		    		<li><a href="<?php echo wp_get_attachment_url( get_the_ID() ); ?>"><?php the_title(); ?></a> <?php _e( 'uploaded on', 'import-users-from-csv-with-meta' ) . ' ' . $date; ?> <input type="button" value="<?php _e( 'Delete', 'import-users-from-csv-with-meta' ); ?>" class="delete_attachment" attach_id="<?php the_ID(); ?>" /></li>
-		    		<?php endwhile; ?>
-		    		<?php wp_reset_postdata(); ?>
-		    	</ul>
-		        <div style="clear:both;"></div>
-		    </div>
-		</div>
-		<?php endif;
-	}
-
-    function delete_attachment() {
-		check_ajax_referer( 'codection-security', 'security' );
-	
-		if( ! current_user_can( apply_filters( 'acui_capability', 'create_users' ) ) )
-            wp_die( __( 'Only users who are allowed to create users can delete CSV attachments.', 'import-users-from-csv-with-meta' ) );
-	
-		$attach_id = absint( $_POST['attach_id'] );
-		$mime_type  = (string) get_post_mime_type( $attach_id );
-	
-		if( $mime_type != 'text/csv' )
-			_e('This plugin can only delete the type of file it manages, i.e. CSV files.', 'import-users-from-csv-with-meta' );
-	
-		$result = wp_delete_attachment( $attach_id, true );
-	
-		if( $result === false )
-			_e( 'There were problems deleting the file, please check file permissions', 'import-users-from-csv-with-meta' );
-		else
-			echo 1;
-	
-		wp_die();
-	}
-
-	function bulk_delete_attachment(){
-		check_ajax_referer( 'codection-security', 'security' );
-	
-		if( ! current_user_can( apply_filters( 'acui_capability', 'create_users' ) ) )
-        wp_die( __( 'Only users who are allowed to create users can bulk delete CSV attachments.', 'import-users-from-csv-with-meta' ) );
-	
-		$args_old_csv = array( 'post_type'=> 'attachment', 'post_mime_type' => 'text/csv', 'post_status' => 'inherit', 'posts_per_page' => -1 );
-		$old_csv_files = new WP_Query( $args_old_csv );
-		$result = 1;
-	
-		while($old_csv_files->have_posts()) : 
-			$old_csv_files->the_post();
-	
-			$mime_type  = (string) get_post_mime_type( get_the_ID() );
-			if( $mime_type != 'text/csv' )
-				wp_die( __('This plugin can only delete the type of file it manages, i.e. CSV files.', 'import-users-from-csv-with-meta' ) );
-	
-			if( wp_delete_attachment( get_the_ID(), true ) === false )
-				$result = 0;
-		endwhile;
-		
-		wp_reset_postdata();
-	
-		echo $result;
-	
-		wp_die();
-	}
-
-    function delete_users_assign_posts_data(){
+	function delete_users_assign_posts_data(){
         check_ajax_referer( 'codection-security', 'security' );
 	
 		if( ! current_user_can( apply_filters( 'acui_capability', 'create_users' ) ) )

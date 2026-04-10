@@ -13,7 +13,7 @@ class ACUI_WooCommerce{
 	function __construct(){
 		add_filter( 'acui_restricted_fields', array( $this, 'restricted_fields' ), 10, 1 );
 		add_action( 'acui_documentation_after_plugins_activated', array( $this, 'documentation' ) );
-		add_action( 'post_acui_import_single_user', array( $this, 'sync_wc_customer' ), 10, 4 );
+		add_action( 'acui_post_import_single_user', array( $this, 'sync_wc_customer' ), 10, 4 );
 		add_action( 'after_acui_import_users', array( $this, 'clear_transients' ) );
 		add_filter( 'acui_import_email_body_before_wpautop', array( $this, 'include_overrides_email' ), 10, 5 );
 		add_action( 'acui_email_wildcards_list_elements', array( $this, 'new_wildcards_email' ) );
