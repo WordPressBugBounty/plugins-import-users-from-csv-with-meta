@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: csv, import, export, importer, exporter
 Requires at least: 3.4
 Tested up to: 6.9.4
-Stable tag: 2.0.5
+Stable tag: 2.0.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -116,6 +116,9 @@ Plugin will automatically detect:
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.0.6 =
+*   Fixed an error, included a file in the trunk
 
 = 2.0.5 =
 *   Fixed an issue where Action Scheduler hooks interfered with automatic imports and plugin deactivation
