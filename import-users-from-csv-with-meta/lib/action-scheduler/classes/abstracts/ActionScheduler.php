@@ -188,6 +188,7 @@ abstract class ActionScheduler {
 		$logger                     = self::logger();
 		$runner                     = self::runner();
 		$admin_view                 = self::admin_view();
+		require_once self::plugin_path( 'classes/ActionScheduler_RecurringActionScheduler.php' );
 		$recurring_action_scheduler = new ActionScheduler_RecurringActionScheduler();
 
 		// Ensure initialization on plugin activation.

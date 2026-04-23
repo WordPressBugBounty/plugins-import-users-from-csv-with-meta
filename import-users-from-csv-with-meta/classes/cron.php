@@ -26,7 +26,7 @@ class ACUI_Cron{
 		}
 
 		if( !function_exists( 'as_unschedule_all_actions' ) )
-			include_once( plugin_dir_path( __FILE__ ) . "lib/action-scheduler/action-scheduler.php" );
+			include_once( plugin_dir_path( dirname( __FILE__ ) ) . "lib/action-scheduler/action-scheduler.php" );
 
 		$period = sanitize_text_field( $form_data[ "period" ] );
 
