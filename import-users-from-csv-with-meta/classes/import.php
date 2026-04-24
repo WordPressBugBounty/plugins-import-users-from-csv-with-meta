@@ -783,8 +783,6 @@ class ACUI_Import{
         else
             $form_data = $_POST;
 
-        $limit = ACUI_IMPORT_BATCH_SIZE; // Rows per batch
-        
         // If it's step 1, we also need to get total rows
         $total_rows = 0;
         if( $step == 1 ){
@@ -803,7 +801,7 @@ class ACUI_Import{
         }
 
         ob_start();
-        $import_status = $this->import_users( $file, $form_data, false, false, $step, $row, $limit, $total_rows, true );
+        $import_status = $this->import_users( $file, $form_data, false, false, $step, $row, ACUI_IMPORT_TIME_LIMIT, $total_rows, true );
         $log = ob_get_clean();
 
         // Accumulate log across batches for Log tab
@@ -912,7 +910,7 @@ class ACUI_Import{
         $is_cron = $_is_cron;
         $is_backend = !$is_frontend && !$is_cron;
         $row = $initial_row;
-        $limit = ($time_per_step > 0 && $time_per_step <= 100) ? $time_per_step : 0;
+        $limit = ($time_per_step > 0 && $time_per_step <= 100) ? ACUI_IMPORT_BATCH_SIZE : 0;
 
         $settings = $this->prepare_settings( $form_data );
 
