@@ -285,7 +285,9 @@ class ACUI_Import{
         $path_to_file = $this->manage_file_upload( $form_data["path_to_file"] );
 
         if( $path_to_file !== false )
-            $this->import_users( $path_to_file, $form_data, true, false, $step, $initial_row, ACUI_IMPORT_TIME_LIMIT );        
+            return $this->import_users( $path_to_file, $form_data, true, false, $step, $initial_row, ACUI_IMPORT_TIME_LIMIT );
+
+        return array( 'done' => true );
     }
 
     function read_first_row( $data, &$headers, &$positions, &$headers_filtered ){

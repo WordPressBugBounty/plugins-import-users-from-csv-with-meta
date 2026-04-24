@@ -80,13 +80,13 @@ class ACUI_Cron{
 
 		ob_start();
 		$acui_import = new ACUI_Import();
-		$acui_import->fileupload_process_batch_cron( $form_data );
+		$result = $acui_import->fileupload_process_batch_cron( $form_data );
 		$message .= "<br/>" . ob_get_contents() . "<br/>";
 		ob_end_clean();
 
 		$move_file_cron = get_option( "acui_move_file_cron");
-		
-		if( $move_file_cron ){
+
+		if( $move_file_cron && ( empty( $result ) || !empty( $result['done'] ) ) ){
 			$path_to_move = $this->clean_path_url_csv( get_option( "acui_cron_path_to_move") );
 			rename( $form_data[ "path_to_file" ], $path_to_move );
 			$this->auto_rename();
@@ -109,9 +109,15 @@ class ACUI_Cron{
 
 		ob_start();
 		$acui_import = new ACUI_Import();
-		$acui_import->fileupload_process_batch_cron( $form_data, $step, $initial_row );
+		$result = $acui_import->fileupload_process_batch_cron( $form_data, $step, $initial_row );
 		$message .= "<br/>" . ob_get_contents() . "<br/>";
 		ob_end_clean();
+
+		if( get_option( "acui_move_file_cron") && ( empty( $result ) || !empty( $result['done'] ) ) ){
+			$path_to_move = $this->clean_path_url_csv( get_option( "acui_cron_path_to_move") );
+			rename( $form_data[ "path_to_file" ], $path_to_move );
+			$this->auto_rename();
+		}
 
 		$message .= __( '--Finished at', 'import-users-from-csv-with-meta' ) . ' ' . date("Y-m-d H:i:s") . '<br/><br/>';
 
