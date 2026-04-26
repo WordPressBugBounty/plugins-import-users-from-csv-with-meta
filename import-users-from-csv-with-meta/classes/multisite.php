@@ -18,6 +18,12 @@ class ACUI_Multisite{
 	}
 
 	function restricted_fields( $acui_restricted_fields ){
+		global $wpdb;
+		foreach ( $this->sites as $site ) {
+			$prefix = $wpdb->get_blog_prefix( $site->blog_id );
+			$acui_restricted_fields[] = $prefix . 'capabilities';
+			$acui_restricted_fields[] = $prefix . 'user_level';
+		}
 		return array_merge( $acui_restricted_fields, array( 'blogs' ) );
 	}
 

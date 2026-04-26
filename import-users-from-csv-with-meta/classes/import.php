@@ -764,9 +764,12 @@ class ACUI_Import{
         // On first step, we might need to handle the upload if it's there
         if( $step == 1 && empty( $file ) ){
             if( !empty( $_FILES['uploadfile']['tmp_name'] ) ){
-                // Move uploaded file to a more permanent temporary location because tmp_name is deleted after request
-                $upload_dir = wp_upload_dir();
                 $original_ext = strtolower( pathinfo( $_FILES['uploadfile']['name'], PATHINFO_EXTENSION ) );
+                $allowed_extensions = apply_filters( 'acui_allowed_upload_extensions', array( 'csv' ) );
+                if( !in_array( $original_ext, $allowed_extensions, true ) ){
+                    wp_send_json_error( array( 'message' => __( 'Invalid file type.', 'import-users-from-csv-with-meta' ) ) );
+                }
+                $upload_dir = wp_upload_dir();
                 $file = $upload_dir['basedir'] . '/acui-import-' . uniqid() . '.' . $original_ext;
                 move_uploaded_file( $_FILES['uploadfile']['tmp_name'], $file );
             }
