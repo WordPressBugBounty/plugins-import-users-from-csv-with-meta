@@ -875,7 +875,7 @@ class ACUI_Import{
                 'step' => $step + 1,
                 'row' => $next_row,
                 'percentage' => $percentage,
-                'total_steps' => ceil( $total_rows / $limit ),
+                'total_steps' => ceil( $total_rows / ACUI_IMPORT_BATCH_SIZE ),
                 'log' => $log,
                 'results' => $results_data,
                 'errors_count' => $errors_count,
