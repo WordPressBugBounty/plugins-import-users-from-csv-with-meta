@@ -100,14 +100,7 @@ class ACUI_Homepage{
 			display: block !important;
 		}
 		</style>
-		<div class="row">
-			<div class="header">
-				<?php do_action( 'acui_homepage_start' ); ?>
-
-				<div id='message' class='updated acui-message'><?php printf( __( 'File must contain at least <strong>2 columns: username and email</strong>. These should be the first two columns and it should be placed <strong>in this order: username and email</strong>. You can name these first two columns whatever you want; only the order matters. In the rest of the columns, the order doesn\'t matter, but what you name them is what matters. Both data are required unless you use <a href="%s">this addon to allow empty emails</a>. If there are more columns, this plugin will manage it automatically.', 'import-users-from-csv-with-meta' ), 'https://import-wp.com/allow-no-email-addon/' ); ?></div>
-				<div id='message-password' class='error acui-message'><?php _e( 'Please, read carefully how <strong>passwords are managed</strong> and also take note about capitalization, this plugin is <strong>case sensitive</strong>.', 'import-users-from-csv-with-meta' ); ?></div>
-			</div>
-		</div>
+		<?php do_action( 'acui_homepage_start' ); ?>
 
 		<div class="row">
 			<div class="main_bar">
@@ -125,11 +118,11 @@ class ACUI_Homepage{
 				</div>
 
 				<div class="acui-import-options">
-				<input class="button-primary" type="submit" name="uploadfile" id="uploadfile_btn_up" value="<?php _e( 'Start importing', 'import-users-from-csv-with-meta' ); ?>"/>
-				<input class="button-primary" type="submit" name="save_options" value="<?php _e( 'Save options without importing', 'import-users-from-csv-with-meta' ); ?>"/>
+				<div class="acui-accordion">
 
-				<h2 id="acui_file_header"><?php _e( 'File', 'import-users-from-csv-with-meta'); ?></h2>
-				<table  id="acui_file_wrapper" class="form-table">
+				<details id="acui_file_header" open>
+				<summary><span class="acui-summary-label"><?php _e( 'File', 'import-users-from-csv-with-meta'); ?></span><span class="acui-summary-chevron">▼</span></summary>
+				<table id="acui_file_wrapper" class="form-table">
 					<tbody>
 
 					<?php do_action( 'acui_homepage_before_file_rows' ); ?>
@@ -155,8 +148,10 @@ class ACUI_Homepage{
 
 					</tbody>
 				</table>
+				</details>
 
-				<h2 id="acui_roles_header"><?php _e( 'Roles', 'import-users-from-csv-with-meta'); ?></h2>
+				<details id="acui_roles_header" open>
+				<summary><span class="acui-summary-label"><?php _e( 'Roles', 'import-users-from-csv-with-meta'); ?></span><span class="acui-summary-chevron">▼</span></summary>
 				<table id="acui_roles_wrapper" class="form-table">
 					<tbody>
 
@@ -174,8 +169,8 @@ class ACUI_Homepage{
 							'selected' => is_array( $settings->get( 'role' ) ) ? $settings->get( 'role' ) : array( $settings->get( 'role' ) ),
 							'style' => 'width:100%;'
                         )); ?>
-						<p class="description"><?php _e( 'You can also import roles from a CSV column. Please read the Documentation tab to see how this can be done. WordPress core allows assigning multiple roles to a user; however, the default interface only displays one role, although some plugins solve this limitation.', 'import-users-from-csv-with-meta' ); ?></p>						
-						
+						<p class="description"><?php _e( 'You can also import roles from a CSV column. Please read the Documentation tab to see how this can be done. WordPress core allows assigning multiple roles to a user; however, the default interface only displays one role, although some plugins solve this limitation.', 'import-users-from-csv-with-meta' ); ?></p>
+
 						</td>
 					</tr>
 
@@ -183,8 +178,10 @@ class ACUI_Homepage{
 
 					</tbody>
 				</table>
+				</details>
 
-				<h2 id="acui_options_header"><?php _e( 'Options', 'import-users-from-csv-with-meta'); ?></h2>
+				<details id="acui_options_header">
+				<summary><span class="acui-summary-label"><?php _e( 'Options', 'import-users-from-csv-with-meta'); ?></span><span class="acui-summary-chevron">▼</span></summary>
 				<table id="acui_options_wrapper" class="form-table">
 					<tbody>
 
@@ -227,9 +224,10 @@ class ACUI_Homepage{
 
 					</tbody>
 				</table>
+				</details>
 
-				<h2 id="acui_update_users_header"><?php _e( 'Update users', 'import-users-from-csv-with-meta'); ?></h2>
-
+				<details id="acui_update_users_header">
+				<summary><span class="acui-summary-label"><?php _e( 'Update users', 'import-users-from-csv-with-meta'); ?></span><span class="acui-summary-chevron">▼</span></summary>
 				<table id="acui_update_users_wrapper" class="form-table">
 					<tbody>
 
@@ -276,10 +274,10 @@ class ACUI_Homepage{
 					</tr>
 
 					<tr id="acui_update_allow_update_passwords_wrapper" class="form-field form-required">
-						<th scope="row"><label for="update_allow_update_passwords"><?php _e( 'Never update passwords?', 'import-users-from-csv-with-meta' ); ?></label></th>
+						<th scope="row"><label for="update_allow_update_passwords"><?php _e( 'Update passwords for existing users?', 'import-users-from-csv-with-meta' ); ?></label></th>
 						<td>
 							<?php ACUIHTML()->select( array(
-								'options' => array( 'no' => __( 'Never update passwords when updating a user', 'import-users-from-csv-with-meta' ), 'yes_no_override' => __( 'Yes, add new roles and do not override existing ones', 'import-users-from-csv-with-meta' ), 'yes' => __( 'Update passwords as it is described in documentation', 'import-users-from-csv-with-meta' ) ),
+								'options' => array( 'no' => __( 'No, never update passwords for existing users', 'import-users-from-csv-with-meta' ), 'yes' => __( 'Yes, update passwords as described in documentation', 'import-users-from-csv-with-meta' ) ),
 								'name' => 'update_allow_update_passwords',
 								'show_option_all' => false,
 								'show_option_none' => false,
@@ -292,14 +290,15 @@ class ACUI_Homepage{
 
 					</tbody>
 				</table>
+				</details>
 
-				<h2 id="acui_users_not_present_header"><?php _e( 'Users not present in CSV file', 'import-users-from-csv-with-meta'); ?></h2>
-
+				<details id="acui_users_not_present_header">
+				<summary><span class="acui-summary-label"><?php _e( 'Users not present in CSV file', 'import-users-from-csv-with-meta'); ?></span><span class="acui-summary-chevron">▼</span></summary>
 				<table id="acui_users_not_present_wrapper" class="form-table">
 					<tbody>
 
 					<?php do_action( 'acui_homepage_before_users_not_present_rows' ); ?>
-					
+
 					<tr id="acui_delete_users_wrapper" class="form-field form-required">
 						<th scope="row"><label for="delete_users_not_present"><?php _e( 'Delete users that are not present in the CSV?', 'import-users-from-csv-with-meta' ); ?></label></th>
 						<td>
@@ -342,7 +341,10 @@ class ACUI_Homepage{
 						<th scope="row"><label for="not_present_same_role"><?php _e( 'Apply only to users with the same role as imported users', 'import-users-from-csv-with-meta' ); ?></label></th>
 						<td>
 							<?php ACUIHTML()->select( array(
-								'options' => array( 'no' => __( 'No, apply to all users regardless of their role', 'import-users-from-csv-with-meta' ), 'yes' => __( 'Yes, delete or modify the role only for users who have the role(s) of the imported user(s).', 'import-users-from-csv-with-meta' ) ),
+								'options' => array(
+									'no'  => __( 'No, apply to all users regardless of their role', 'import-users-from-csv-with-meta' ),
+									'yes' => __( 'Yes, only users who have the role(s) of the imported users', 'import-users-from-csv-with-meta' ),
+								),
 								'name' => 'not_present_same_role',
 								'show_option_all' => false,
 								'show_option_none' => false,
@@ -352,13 +354,33 @@ class ACUI_Homepage{
 						</td>
 					</tr>
 
+					<tr id="acui_not_present_only_imported_wrapper" class="form-field form-required">
+						<th scope="row"><label for="not_present_only_imported"><?php _e( 'Apply only to users previously imported by this plugin?', 'import-users-from-csv-with-meta' ); ?></label></th>
+						<td>
+							<?php ACUIHTML()->select( array(
+								'options' => array(
+									'no'  => __( 'No, apply to all existing users', 'import-users-from-csv-with-meta' ),
+									'yes' => __( 'Yes, only affect users that were imported by this plugin', 'import-users-from-csv-with-meta' ),
+								),
+								'name' => 'not_present_only_imported',
+								'show_option_all' => false,
+								'show_option_none' => false,
+								'selected' => $settings->get( 'not_present_only_imported' ),
+							)); ?>
+							<p class="description"><?php _e( 'Users created manually in WordPress will not be affected.', 'import-users-from-csv-with-meta' ); ?></p>
+						</td>
+					</tr>
+
 					<?php do_action( 'acui_homepage_after_users_not_present_rows' ); ?>
 
 					</tbody>
 				</table>
+				</details>
+
+				</div><?php /* .acui-accordion */ ?>
 
 				<?php do_action( 'acui_tab_import_before_import_button' ); ?>
-					
+
 				<input class="button-primary" type="submit" name="uploadfile" id="uploadfile_btn" value="<?php _e( 'Start importing', 'import-users-from-csv-with-meta' ); ?>"/>
 				<input class="button-primary" type="submit" name="save_options" value="<?php _e( 'Save options without importing', 'import-users-from-csv-with-meta' ); ?>"/>
 				</div>
@@ -395,60 +417,28 @@ class ACUI_Homepage{
 			</div>
 
 			<div class="sidebar">
+				<div class="sidebar_section sidebar-info">
+					<p><?php printf( __( 'The CSV must have at least <strong>2 columns: username and email</strong>, in that order. Extra columns are matched by their header name. Both fields are required unless you use <a href="%s">the Allow No Email addon</a>.', 'import-users-from-csv-with-meta' ), 'https://import-wp.com/allow-no-email-addon/' ); ?></p>
+					<p><?php _e( 'Read the documentation on how <strong>passwords are managed</strong>. This plugin is <strong>case sensitive</strong>.', 'import-users-from-csv-with-meta' ); ?></p>
+				</div>
+
 				<div class="sidebar_section premium_addons">
 					<a class="premium-addons" color="primary" type="button" name="premium-addons" data-tag="premium-addons" href="https://www.import-wp.com/" role="button" target="_blank">
 						<div><span><?php _e( 'Premium Addons', 'import-users-from-csv-with-meta'); ?></span></div>
 					</a>
 				</div>
 
-				<div class="sidebar_section premium_addons">
-					<a class="premium-addons" color="primary" type="button" name="premium-addons" data-tag="premium-addons" href="https://import-wp.com/recurring-export-addon/" role="button" target="_blank">
-						<div><span><?php _e( 'Automatic Exports', 'import-users-from-csv-with-meta'); ?></span></div>
-					</a>
-				</div>
-
-				<div class="sidebar_section premium_addons">
-					<a class="premium-addons" color="primary" type="button" name="premium-addons" data-tag="premium-addons" href="https://import-wp.com/allow-no-email-addon/" role="button" target="_blank">
-						<div><span><?php _e( 'Allow No Email', 'import-users-from-csv-with-meta'); ?></span></div>
-					</a>
-				</div>
-
-				<div class="sidebar_section premium_addons">
-					<a class="premium-addons" color="primary" type="button" name="premium-addons" data-tag="premium-addons" href="https://import-wp.com/plugins/file-formats-addon/" role="button" target="_blank">
-						<div><span><?php _e( 'File Formats (XLSX, XLS, ODS)', 'import-users-from-csv-with-meta'); ?></span></div>
-					</a>
-				</div>
-
-				<div class="sidebar_section become_patreon">
-					<a class="patreon" color="primary" type="button" name="become-a-patron" data-tag="become-patron-button" href="https://www.patreon.com/carazo" role="button" target="_blank">
-						<div><span><?php _e( 'Become a patron', 'import-users-from-csv-with-meta'); ?></span></div>
-					</a>
-				</div>
-
-				<div class="sidebar_section buy_me_a_coffee">
-					<a class="ko-fi" color="primary" type="button" name="buy-me-a-coffee" data-tag="buy-me-a-button" href="https://ko-fi.com/codection" role="button" target="_blank">
-						<div><span><?php _e( 'Buy me a coffee', 'import-users-from-csv-with-meta'); ?></span></div>
-					</a>
-				</div>
-
-				<div class="sidebar_section vote_us">
-					<a class="vote-us" color="primary" type="button" name="vote-us" data-tag="vote_us" href="https://wordpress.org/support/plugin/import-users-from-csv-with-meta/reviews/" role="button" target="_blank">
-						<div><span><?php _e( 'If you like it', 'import-users-from-csv-with-meta'); ?> <?php _e( 'Please vote and support us', 'import-users-from-csv-with-meta'); ?></span></div>
-					</a>
-				</div>
-
-				<div class="sidebar_section donate">
-					<a class="donate-button" color="primary" type="button" name="donate-button" data-tag="donate" href="https://paypal.me/imalrod" role="button" target="_blank">
-						<div><span><?php _e( 'If you want to help us to continue developing it and give the best support, you can donate', 'import-users-from-csv-with-meta'); ?></span></div>
-					</a>
-				</div>
-				
 				<div class="sidebar_section">
 					<h3><?php _e( 'Having issues?', 'import-users-from-csv-with-meta'); ?></h3>
 					<ul>
 						<li><label><?php _e( 'You can create a ticket', 'import-users-from-csv-with-meta'); ?></label> <a target="_blank" href="http://wordpress.org/support/plugin/import-users-from-csv-with-meta"><label><?php _e( 'WordPress support forum', 'import-users-from-csv-with-meta'); ?></label></a></li>
 						<li><label><?php _e( 'You can ask for premium support', 'import-users-from-csv-with-meta'); ?></label> <a target="_blank" href="mailto:contacto@codection.com"><label>contacto@codection.com</label></a></li>
 					</ul>
+					<p style="margin-top:10px; font-size:11px;">
+						<a target="_blank" href="https://ko-fi.com/codection"><?php _e( '☕ Buy me a coffee', 'import-users-from-csv-with-meta'); ?></a>
+						&nbsp;·&nbsp;
+						<a target="_blank" href="https://www.patreon.com/carazo"><?php _e( 'Become a patron', 'import-users-from-csv-with-meta'); ?></a>
+					</p>
 				</div>
 			</div>
 		</div>
@@ -456,6 +446,16 @@ class ACUI_Homepage{
 
 	<script type="text/javascript">
 	jQuery( document ).ready( function( $ ){
+		document.querySelectorAll( '.acui-accordion details' ).forEach( function( el ){
+			var key = 'acui_acc_' + el.id;
+			var stored = localStorage.getItem( key );
+			if( stored === 'open' ) el.open = true;
+			if( stored === 'closed' ) el.open = false;
+			el.addEventListener( 'toggle', function(){
+				localStorage.setItem( key, el.open ? 'open' : 'closed' );
+			} );
+		} );
+
 		check_delete_users_checked();
 
         $( '#uploadfile_btn,#uploadfile_btn_up' ).click( function(){

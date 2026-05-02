@@ -1,14 +1,14 @@
 === Import and export users and customers ===
 Contributors: carazo
 Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
-Tags: csv, import, export, importer, exporter
+Tags: import users, export users, csv, woocommerce, customers
 Requires at least: 3.4
 Tested up to: 6.9.4
-Stable tag: 2.0.10
+Stable tag: 2.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Import and export users and customers including user meta, roles, and other. Compatible with many plugins. Do it from the front end or using cron.
+Bulk import and export WordPress users and WooCommerce customers from CSV, including roles, passwords and any custom meta.
 
 == Description ==
 
@@ -17,12 +17,11 @@ Import and export users and customers including user meta, roles, and other. Com
 Clean and easy-to-use import and export users and customer plugin, for WordPress and WooCommerce. It includes custom user meta to be included automatically from a CSV file and delimitation auto-detector. It also is able to send a mail to each user imported and all the meta data imported is ready to edit into user profile.
 
 *	Import CSV file with users directly to your WordPress or customers into WooCommerce
-*	Import thousends of users or customers in only some seconds
+*	Import thousands of users or customers in only some seconds
 *   Export users or customers to a CSV file, filtering by role or registered date
 *	You can also import meta-data like data from WooCommerce customers
 *	You can assign roles while importing.
 *	Send a mail to every new user, this mails can be saved as templates and are fully customizable, before sending you can test it
-*	Use your own 
 *	You can also update users if the user is already in your WordPress
 *	Create a cron task to import users periodically
 *	Edit the metadata (you will be able to edit the metadata imported using metakeys directly in the profile of each user)
@@ -116,6 +115,11 @@ Plugin will automatically detect:
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.1 =
+*   Redesigned admin UI: import and export tabs reorganised with secondary navigation, accordion-style import form, and improved sidebar
+*   New option to apply "users not present in CSV" actions only to users previously imported by this plugin
+*   New option to apply "users not present in CSV" actions only to users with the same role as those being imported
 
 = 2.0.10 =
 *   Fixed an error in standard import
@@ -1650,15 +1654,6 @@ Michael Finkenberger
 = 1.1.7 =
 *	Fixed problems with \n, \r and \n\r inside CSV fields. Thanks to Ted Stresen-Reuter for his help. We have changed our way to parse CSV files, now we use SplFileObject and we can solve this problem.
 
-= 1.2 =
-*	From this version, plugin can both insert new users and update new ones. Thanks to Nick Gallop from Weston Graphics.
-
-= 1.1.8 =
-*	Donation button added.
-
-= 1.1.7 =
-*	Fixed problems with \n, \r and \n\r inside CSV fields. Thanks to Ted Stresen-Reuter for his help. We have changed our way to parse CSV files, now we use SplFileObject and we can solve this problem.
-
 = 1.1.6 =
 *	You can import now user_registered but always in the correct format Y-m-d H:i:s
 
@@ -1780,6 +1775,22 @@ You can get:
 
 = Customizations, addons, develops... =
 [Write us directly to contacto@codection.com](mailto:contacto@codection.com).
+
+= Can I migrate users from another WordPress site? =
+
+Yes. Export users from your old site using the Export tab, then import the resulting CSV into your new site. Hashed passwords can be transferred using the user_pass column so users keep their existing passwords without needing to reset them.
+
+= Can I bulk create WooCommerce customers? =
+
+Yes. Add WooCommerce billing and shipping fields as columns in your CSV (e.g. billing_first_name, billing_email, shipping_address_1) and the plugin will populate them automatically when importing users with the customer role.
+
+= Can I import users with custom fields (ACF, BuddyPress, etc.)? =
+
+Yes. The plugin has addons for Advanced Custom Fields, BuddyPress/BuddyBoss, Paid Membership Pro, WooCommerce Memberships, WooCommerce Subscriptions and many others. Custom meta fields not covered by an addon can still be imported by using the meta key as the column header.
+
+= Can I update existing users without creating duplicates? =
+
+Yes. The plugin checks for existing users by username and email before inserting. If a match is found the user is updated instead of created. You can also control whether passwords and roles are overwritten on update.
 
 = How can I report security bugs? =
 
