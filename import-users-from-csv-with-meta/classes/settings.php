@@ -67,10 +67,14 @@ class ACUI_Settings{
                     'sanitization' => 'text',
                     'default' => 'subscriber'
                 ),
-                'not_present_same_role' => array( 
+                'not_present_same_role' => array(
                     'sanitization' => 'text',
                     'default' => 'no'
-                ),                
+                ),
+                'not_present_only_imported' => array(
+                    'sanitization' => 'text',
+                    'default' => 'no'
+                ),
             ),
             'import_backend' => array(),
             'import_frontend' => array(),

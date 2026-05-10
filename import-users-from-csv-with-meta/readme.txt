@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, woocommerce, customers
 Requires at least: 3.4
 Tested up to: 6.9.4
-Stable tag: 2.1
+Stable tag: 2.1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -116,10 +116,13 @@ Plugin will automatically detect:
 
 == Changelog ==
 
+= 2.1.1 =
+*   Fixed a bug that prevented the “Apply only to users previously imported by this plugin” option from being saved
+*   Fixed a problem with the width of a select field
+
 = 2.1 =
 *   Redesigned admin UI: import and export tabs reorganised with secondary navigation, accordion-style import form, and improved sidebar
 *   New option to apply "users not present in CSV" actions only to users previously imported by this plugin
-*   New option to apply "users not present in CSV" actions only to users with the same role as those being imported
 
 = 2.0.10 =
 *   Fixed an error in standard import

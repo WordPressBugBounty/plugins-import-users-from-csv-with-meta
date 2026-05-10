@@ -504,18 +504,19 @@ class ACUI_Homepage{
 			win.focus();
 		} );
 
-		$( '#role' ).select2();
+		$( '#role' ).select2({ width: '80%' });
 
-        $( '#change_role_not_present_role' ).select2();
+        $( '#change_role_not_present_role' ).select2({ width: '80%' });
 
         $( '#delete_users_assign_posts' ).select2({
+            allowClear: true,
+            placeholder: '<?php _e( 'Delete posts of deleted users without assigning to any user', 'import-users-from-csv-with-meta' )  ?>',
+            width: '80%',
             ajax: {
                 url: '<?php echo admin_url( 'admin-ajax.php' ) ?>',
                 cache: true,
                 dataType: 'json',
                 minimumInputLength: 3,
-                allowClear: true,
-                placeholder: { id: '', title: '<?php _e( 'Delete posts of deleted users without assigning to any user', 'import-users-from-csv-with-meta' )  ?>' },
                 data: function( params ) {
                     var query = {
                         search: params.term,
@@ -525,7 +526,7 @@ class ACUI_Homepage{
 
                     return query;
                 }
-            },	
+            },
         });
 
 		function check_delete_users_checked(){
