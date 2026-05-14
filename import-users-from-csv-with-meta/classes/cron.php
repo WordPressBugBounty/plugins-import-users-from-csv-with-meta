@@ -1,12 +1,13 @@
 <?php
 
-if ( ! defined( 'ABSPATH' ) ) exit; 
+if ( ! defined( 'ABSPATH' ) ) exit;
 
 class ACUI_Cron{
 	function __construct(){
 		add_action( 'acui_cron_save_settings', array( $this, 'save_settings' ) );
 		add_action( 'acui_cron_process', array( $this, 'process' ) );
-		add_action( 'acui_cron_process_step', array( $this, 'process_step' ), 10, 2 );
+		add_action( 'acui_cron_process_step', array( $this, 'process_step' ), 10, 3 );
+		add_action( 'acui_cron_log_action', array( $this, 'handle_log_action' ) );
 		add_action( 'wp_ajax_acui_fire_cron', array( $this, 'ajax_fire_cron' ) );
 	}
 
@@ -22,7 +23,7 @@ class ACUI_Cron{
 
 	function save_settings( $form_data ){
 		if ( !isset( $form_data['security'] ) || !wp_verify_nonce( $form_data['security'], 'codection-security' ) ) {
-			wp_die( __( 'Nonce check failed', 'import-users-from-csv-with-meta' ) ); 
+			wp_die( __( 'Nonce check failed', 'import-users-from-csv-with-meta' ) );
 		}
 
 		if( !function_exists( 'as_unschedule_all_actions' ) )
@@ -32,7 +33,7 @@ class ACUI_Cron{
 
 		if( isset( $form_data["cron-activated"] ) && $form_data["cron-activated"] == "1" ){
 			update_option( "acui_cron_activated", true );
-			
+
 			as_unschedule_all_actions( 'acui_cron_process');
 			as_schedule_recurring_action( time(), ACUIHelper()->get_seconds_by_period( $period ), 'acui_cron_process' );
 		}
@@ -40,11 +41,11 @@ class ACUI_Cron{
 			update_option( "acui_cron_activated", false );
 			as_unschedule_all_actions( 'acui_cron_process');
 		}
-		
+
 		update_option( "acui_cron_send_mail", isset( $form_data["send-mail-cron"] ) && $form_data["send-mail-cron"] == "1" );
 		update_option( "acui_cron_send_mail_updated", isset( $form_data["send-mail-updated"] ) && $form_data["send-mail-updated"] == "1" );
 		update_option( "acui_cron_delete_users", isset( $form_data["cron-delete-users"] ) && $form_data["cron-delete-users"] == "1" );
-		
+
         if( isset( $form_data["cron-delete-users-assign-posts"] ) )
             update_option( "acui_cron_delete_users_assign_posts", sanitize_text_field( $form_data["cron-delete-users-assign-posts"] ) );
 
@@ -57,7 +58,7 @@ class ACUI_Cron{
 		update_option( "acui_cron_role", sanitize_text_field( $form_data["role"] ) );
 		update_option( "acui_cron_update_roles_existing_users", isset( $form_data["update-roles-existing-users"] ) && $form_data["update-roles-existing-users"] == "1" );
 		update_option( "acui_cron_change_role_not_present", isset( $form_data["cron-change-role-not-present"] ) && $form_data["cron-change-role-not-present"] == "1" );
-		
+
         if( isset( $form_data["cron-change-role-not-present-role"] ) )
             update_option( "acui_cron_change_role_not_present_role", sanitize_text_field( $form_data["cron-change-role-not-present-role"] ) );
 		?>
@@ -68,14 +69,16 @@ class ACUI_Cron{
 	}
 
 	function process(){
+		$session_id = sanitize_key( uniqid( 'c' ) );
 		$message = __('Import cron task - Step #1 - starts at', 'import-users-from-csv-with-meta' ) . ' ' . date("Y-m-d H:i:s") . '<br/>';
 
 		$form_data = array();
+		$form_data[ "acui_session_id" ] = $session_id;
 		$form_data[ "path_to_file" ] = $this->clean_path_url_csv( get_option( "acui_cron_path_to_file") );
 		$form_data[ "role" ] = get_option( "acui_cron_role" );
 		$form_data[ "update_roles_existing_users" ] = ( get_option( "acui_cron_update_roles_existing_users" ) ) ? 'yes' : 'no';
+		$form_data[ "update_emails_existing_users" ] = "no";
 		$form_data[ "empty_cell_action" ] = "leave";
-		$form_data[ "allow_update_emails" ] = "disallow";
 		$form_data[ "security" ] = wp_create_nonce( "codection-security" );
 
 		ob_start();
@@ -94,17 +97,22 @@ class ACUI_Cron{
 		$message .= __( '--Finished at', 'import-users-from-csv-with-meta' ) . ' ' . date("Y-m-d H:i:s") . '<br/><br/>';
 
 		update_option( "acui_cron_log", $message );
+
+		if( !empty( $result['done'] ) ){
+			$this->save_execution_log( $result, 1 );
+		}
 	}
 
-	function process_step( $step, $initial_row ){
+	function process_step( $step, $initial_row, $session_id = '' ){
 		$message = __('Import cron task - Step #' . $step . ' - starts at', 'import-users-from-csv-with-meta' ) . ' ' . date("Y-m-d H:i:s") . '<br/>';
 
 		$form_data = array();
+		$form_data[ "acui_session_id" ] = $session_id;
 		$form_data[ "path_to_file" ] = $this->clean_path_url_csv( get_option( "acui_cron_path_to_file") );
 		$form_data[ "role" ] = get_option( "acui_cron_role");
 		$form_data[ "update_roles_existing_users" ] = ( get_option( "acui_cron_update_roles_existing_users" ) ) ? 'yes' : 'no';
+		$form_data[ "update_emails_existing_users" ] = "no";
 		$form_data[ "empty_cell_action" ] = "leave";
-		$form_data[ "allow_update_emails" ] = "disallow";
 		$form_data[ "security" ] = wp_create_nonce( "codection-security" );
 
 		ob_start();
@@ -122,23 +130,56 @@ class ACUI_Cron{
 		$message .= __( '--Finished at', 'import-users-from-csv-with-meta' ) . ' ' . date("Y-m-d H:i:s") . '<br/><br/>';
 
 		update_option( "acui_cron_log", get_option( "acui_cron_log" ) . $message );
+
+		if( !empty( $result['done'] ) ){
+			$this->save_execution_log( $result, $step );
+		}
 	}
 
-	function auto_rename() {
+	function save_execution_log( $result, $steps ){
+		$entry = array(
+			'date'    => current_time( 'mysql' ),
+			'created' => isset( $result['results']['created'] ) ? intval( $result['results']['created'] ) : 0,
+			'updated' => isset( $result['results']['updated'] ) ? intval( $result['results']['updated'] ) : 0,
+			'deleted' => isset( $result['results']['deleted'] ) ? intval( $result['results']['deleted'] ) : 0,
+			'ignored' => isset( $result['results']['ignored'] ) ? intval( $result['results']['ignored'] ) : 0,
+			'errors'  => isset( $result['errors_count'] ) ? intval( $result['errors_count'] ) : 0,
+			'file'    => basename( get_option( 'acui_cron_path_to_file' ) ),
+			'steps'   => intval( $steps ),
+		);
+
+		$log = get_option( 'acui_cron_execution_log', array() );
+		if( !is_array( $log ) ) $log = array();
+
+		array_unshift( $log, $entry );
+
+		if( count( $log ) > 100 )
+			$log = array_slice( $log, 0, 100 );
+
+		update_option( 'acui_cron_execution_log', $log, false );
+	}
+
+	function auto_rename(){
 		if( get_option( "acui_cron_path_to_move_auto_rename" ) != true )
 			return;
 
 		$movefile  = get_option( "acui_cron_path_to_move");
-		
+
 		if ( $movefile && file_exists( $movefile ) ) {
 			$parts = pathinfo( $movefile );
 			$filename = $parts['filename'];
-			
+
 			if ( $filename ){
-				$date = date( 'YmdHis' ); 
+				$date = date( 'YmdHis' );
 				$newfile = $parts['dirname'] . '/' . $filename .'_' . $date . '.' . $parts['extension'];
 				rename( $movefile , $newfile );
-			} 
+			}
+		}
+	}
+
+	function handle_log_action( $form_data ){
+		if( isset( $form_data['acui_clear_execution_log'] ) ){
+			delete_option( 'acui_cron_execution_log' );
 		}
 	}
 
@@ -201,7 +242,7 @@ class ACUI_Cron{
 
 		if( empty( $log ) )
 			$log = "No tasks done yet.";
-		
+
 		if( empty( $allow_multiple_accounts ) )
 			$allow_multiple_accounts = "not_allowed";
 		?>
@@ -324,7 +365,7 @@ class ACUI_Cron{
 
 			<table class="form-table">
 				<tbody>
-				
+
 				<tr class="form-field form-required">
 					<th scope="row"><label for="cron-delete-users"><?php _e( 'Delete users that are not present in the CSV?', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
@@ -376,7 +417,7 @@ class ACUI_Cron{
 						<?php _e( 'You can execute the cron process outside of your site using the next REST-API endpoint:', 'import-users-from-csv-with-meta' ); ?> <a href="<?php echo $rest_api_execute_cron_url; ?>"><?php echo $rest_api_execute_cron_url; ?></a>.<br/>
 						<p class="description"><?php _e( 'This endpoint does an administrative task, so in order to run it you must be authenticated as a user with privileges.', 'import-users-from-csv-with-meta' ); ?></p>
 					</td>
-				</tr>				
+				</tr>
 				</tbody>
 			</table>
 
@@ -395,7 +436,7 @@ class ACUI_Cron{
 						<?php echo ACUIHelper()->remove_specific_html_tags( $log, array( 'script', 'style' ) ); ?>
 					</td>
 				</tr>
-				
+
 				</tbody>
 			</table>
 
@@ -434,7 +475,7 @@ class ACUI_Cron{
 				if( $('#cron-delete-users').is(':checked') ){
                     $( '#cron-delete-users-assign-posts' ).prop( 'disabled', false );
 					$( '#cron-change-role-not-present-role' ).prop( 'disabled', true );
-					$( '#cron-change-role-not-present' ).prop( 'disabled', true );				
+					$( '#cron-change-role-not-present' ).prop( 'disabled', true );
 				} else {
                     $( '#cron-delete-users-assign-posts' ).prop( 'disabled', true );
 					$( '#cron-change-role-not-present-role' ).prop( 'disabled', false );
@@ -463,6 +504,65 @@ class ACUI_Cron{
 		    <?php endif; ?>
 		});
 		</script>
+	<?php
+	}
+
+	static function admin_gui_log(){
+		$log = get_option( 'acui_cron_execution_log', array() );
+		if( !is_array( $log ) ) $log = array();
+
+		if( isset( $_GET['acui_log_cleared'] ) ): ?>
+		<div class="updated"><p><?php _e( 'Execution log cleared.', 'import-users-from-csv-with-meta' ); ?></p></div>
+		<?php endif; ?>
+
+		<div style="margin-top:20px;">
+
+		<?php if( empty( $log ) ): ?>
+			<p><?php _e( 'No recurring executions recorded yet.', 'import-users-from-csv-with-meta' ); ?></p>
+		<?php else: ?>
+
+		<table class="widefat striped" style="margin-bottom:20px;">
+			<thead>
+				<tr>
+					<th><?php _e( 'Date', 'import-users-from-csv-with-meta' ); ?></th>
+					<th><?php _e( 'File', 'import-users-from-csv-with-meta' ); ?></th>
+					<th style="text-align:center;"><?php _e( 'Created', 'import-users-from-csv-with-meta' ); ?></th>
+					<th style="text-align:center;"><?php _e( 'Updated', 'import-users-from-csv-with-meta' ); ?></th>
+					<th style="text-align:center;"><?php _e( 'Deleted', 'import-users-from-csv-with-meta' ); ?></th>
+					<th style="text-align:center;"><?php _e( 'Ignored', 'import-users-from-csv-with-meta' ); ?></th>
+					<th style="text-align:center;"><?php _e( 'Errors', 'import-users-from-csv-with-meta' ); ?></th>
+					<th style="text-align:center;"><?php _e( 'Steps', 'import-users-from-csv-with-meta' ); ?></th>
+				</tr>
+			</thead>
+			<tbody>
+			<?php foreach( $log as $entry ): ?>
+				<tr>
+					<td><?php echo esc_html( $entry['date'] ); ?></td>
+					<td><?php echo esc_html( $entry['file'] ); ?></td>
+					<td style="text-align:center;"><?php echo intval( $entry['created'] ); ?></td>
+					<td style="text-align:center;"><?php echo intval( $entry['updated'] ); ?></td>
+					<td style="text-align:center;"><?php echo intval( $entry['deleted'] ); ?></td>
+					<td style="text-align:center;"><?php echo intval( $entry['ignored'] ); ?></td>
+					<td style="text-align:center;<?php echo intval( $entry['errors'] ) > 0 ? 'color:#d63638;font-weight:bold;' : ''; ?>">
+						<?php echo intval( $entry['errors'] ); ?>
+					</td>
+					<td style="text-align:center;"><?php echo intval( $entry['steps'] ); ?></td>
+				</tr>
+			<?php endforeach; ?>
+			</tbody>
+		</table>
+
+		<?php endif; ?>
+
+		<form method="POST" action="">
+			<?php wp_nonce_field( 'codection-security', 'security' ); ?>
+			<input type="hidden" name="acui_clear_execution_log" value="1" />
+			<button type="submit" class="button button-secondary" onclick="return confirm('<?php esc_attr_e( 'Are you sure you want to clear the execution log?', 'import-users-from-csv-with-meta' ); ?>');">
+				<?php _e( 'Clear log', 'import-users-from-csv-with-meta' ); ?>
+			</button>
+		</form>
+
+		</div>
 	<?php
 	}
 

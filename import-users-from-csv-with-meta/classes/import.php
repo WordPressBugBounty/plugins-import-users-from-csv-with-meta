@@ -1,5 +1,7 @@
 <?php
 class ACUI_Import{
+    var $session_id = '';
+
     function __construct(){
     }
 
@@ -74,6 +76,10 @@ class ACUI_Import{
                   case 'cron':
                       do_action( 'acui_cron_save_settings', $_POST );
                   break;
+
+                  case 'cron-log':
+                      do_action( 'acui_cron_log_action', $_POST );
+                  break;
               }
         endif;
         
@@ -100,6 +106,10 @@ class ACUI_Import{
     
             case 'cron':
                 ACUI_Cron::admin_gui();
+            break;
+
+            case 'cron-log':
+                ACUI_Cron::admin_gui_log();
             break;
             
             case 'columns':
@@ -137,7 +147,7 @@ class ACUI_Import{
     }
 
     function admin_tabs( $current = 'homepage' ){
-        $import_tab_ids   = apply_filters( 'acui_import_tab_ids', array( 'homepage', 'frontend', 'cron' ) );
+        $import_tab_ids   = apply_filters( 'acui_import_tab_ids', array( 'homepage', 'frontend', 'cron', 'cron-log' ) );
         $export_tab_ids   = apply_filters( 'acui_export_tab_ids', array( 'export', 'frontend-export', 'cron-export' ) );
         $settings_tab_ids = apply_filters( 'acui_settings_tab_ids', array( 'mail-options', 'columns', 'meta-keys', 'tools' ) );
 
@@ -147,6 +157,7 @@ class ACUI_Import{
             'frontend'        => __( 'Frontend', 'import-users-from-csv-with-meta' ),
             'frontend-export' => __( 'Frontend', 'import-users-from-csv-with-meta' ),
             'cron'            => __( 'Recurring import', 'import-users-from-csv-with-meta' ),
+            'cron-log'        => __( 'Execution log', 'import-users-from-csv-with-meta' ),
             'cron-export'     => __( 'Recurring export', 'import-users-from-csv-with-meta' ),
             'mail-options'    => __( 'Mail options', 'import-users-from-csv-with-meta' ),
             'columns'         => __( 'Extra profile fields', 'import-users-from-csv-with-meta' ),
@@ -202,6 +213,7 @@ class ACUI_Import{
                 'homepage' => __( 'Backend', 'import-users-from-csv-with-meta' ),
                 'frontend' => __( 'Frontend', 'import-users-from-csv-with-meta' ),
                 'cron'     => __( 'Recurring', 'import-users-from-csv-with-meta' ),
+                'cron-log' => __( 'Execution log', 'import-users-from-csv-with-meta' ),
             );
             echo '<div class="wp-clearfix"><ul class="acui-subsubsub">';
             foreach( $import_subtabs as $tab => $name ){
@@ -320,7 +332,7 @@ class ACUI_Import{
             $path_to_file = download_url( $path_to_file );
 
             if( is_wp_error( $path_to_file ) ){
-                echo "<p>" . sprintf( __( 'Error, problems downloading the file from the URL: %s', 'import-users-from-csv-with-meta' ), $tmp_file->get_error_message() ) . "</p>";
+                echo "<p>" . sprintf( __( 'Error, problems downloading the file from the URL: %s', 'import-users-from-csv-with-meta' ), $path_to_file->get_error_message() ) . "</p>";
                 return false;
             }
         }
@@ -362,6 +374,7 @@ class ACUI_Import{
     }
     
     function fileupload_process_batch_cron( $form_data, $step = 1, $initial_row = 0 ){
+        $this->session_id = isset( $form_data['acui_session_id'] ) ? sanitize_key( $form_data['acui_session_id'] ) : '';
         $path_to_file = $this->manage_file_upload( $form_data["path_to_file"] );
 
         if( $path_to_file !== false )
@@ -966,18 +979,20 @@ class ACUI_Import{
     }
 
     function save_transients( $columns, $headers, $headers_filtered, $positions, $errors, $errors_totals, $results, $users_created, $users_updated, $users_ignored, $roles_appeared, $users_deleted = array() ){
-        set_transient( 'acui_columns', $columns, 15 * MINUTE_IN_SECONDS );
-        set_transient( 'acui_headers', $headers, 15 * MINUTE_IN_SECONDS );
-        set_transient( 'acui_headers_filtered', $headers_filtered, 15 * MINUTE_IN_SECONDS );
-        set_transient( 'acui_positions', $positions, 15 * MINUTE_IN_SECONDS );
-        set_transient( 'acui_errors', $errors, 15 * MINUTE_IN_SECONDS );
-        set_transient( 'acui_errors_totals', $errors_totals, 15 * MINUTE_IN_SECONDS );
-        set_transient( 'acui_results', $results, 15 * MINUTE_IN_SECONDS );
-        set_transient( 'acui_users_created', $users_created, 15 * MINUTE_IN_SECONDS );
-        set_transient( 'acui_users_updated', $users_updated, 15 * MINUTE_IN_SECONDS );
-        set_transient( 'acui_users_ignored', $users_ignored, 15 * MINUTE_IN_SECONDS );
-        set_transient( 'acui_roles_appeared', $roles_appeared, 15 * MINUTE_IN_SECONDS );
-        set_transient( 'acui_users_deleted', $users_deleted, 15 * MINUTE_IN_SECONDS );
+        $pfx = 'acui' . ( $this->session_id ? '_' . $this->session_id : '' ) . '_';
+        $ttl = HOUR_IN_SECONDS;
+        set_transient( $pfx . 'columns', $columns, $ttl );
+        set_transient( $pfx . 'headers', $headers, $ttl );
+        set_transient( $pfx . 'headers_filtered', $headers_filtered, $ttl );
+        set_transient( $pfx . 'positions', $positions, $ttl );
+        set_transient( $pfx . 'errors', $errors, $ttl );
+        set_transient( $pfx . 'errors_totals', $errors_totals, $ttl );
+        set_transient( $pfx . 'results', $results, $ttl );
+        set_transient( $pfx . 'users_created', $users_created, $ttl );
+        set_transient( $pfx . 'users_updated', $users_updated, $ttl );
+        set_transient( $pfx . 'users_ignored', $users_ignored, $ttl );
+        set_transient( $pfx . 'roles_appeared', $roles_appeared, $ttl );
+        set_transient( $pfx . 'users_deleted', $users_deleted, $ttl );
     }
 
     function import_users( $file, $form_data, $_is_cron = false, $_is_frontend = false, $step = 1, $initial_row = 0, $time_per_step = -1, $total_rows = 0, $is_batch = false ){
@@ -1014,7 +1029,7 @@ class ACUI_Import{
             $errors = array();
             $errors_totals = array( 'notices' => 0, 'warnings' => 0, 'errors' => 0 );
             
-            $results = array( 'created' => 0, 'updated' => 0, 'deleted' => 0 );
+            $results = array( 'created' => 0, 'updated' => 0, 'deleted' => 0, 'ignored' => 0 );
 
             $users_created = array();
             $users_updated = array();
@@ -1024,23 +1039,29 @@ class ACUI_Import{
             $users_deleted = array();
         }
         else{
-            $columns = get_transient( 'acui_columns' );
-            
-            $headers = get_transient( 'acui_headers' );
-            $headers_filtered = get_transient( 'acui_headers_filtered' );
-            $positions = get_transient( 'acui_positions' );
+            $pfx = 'acui' . ( $this->session_id ? '_' . $this->session_id : '' ) . '_';
+            $columns = get_transient( $pfx . 'columns' );
 
-            $errors = get_transient( 'acui_errors' );
-            $errors_totals = get_transient( 'acui_errors_totals' );
-            
-            $results = get_transient( 'acui_results' );
+            $headers = get_transient( $pfx . 'headers' );
+            $headers_filtered = get_transient( $pfx . 'headers_filtered' );
+            $positions = get_transient( $pfx . 'positions' );
 
-            $users_created = get_transient( 'acui_users_created' );
-            $users_updated = get_transient( 'acui_users_updated' );
-            $users_ignored = get_transient( 'acui_users_ignored' );
+            $errors = get_transient( $pfx . 'errors' );
+            $errors_totals = get_transient( $pfx . 'errors_totals' );
 
-            $roles_appeared = get_transient( 'acui_roles_appeared' );
-            $users_deleted = get_transient( 'acui_users_deleted' );
+            $results = get_transient( $pfx . 'results' );
+            if( !is_array( $results ) ) $results = array( 'created' => 0, 'updated' => 0, 'deleted' => 0, 'ignored' => 0 );
+            if( !isset( $results['ignored'] ) ) $results['ignored'] = 0;
+
+            $users_created = get_transient( $pfx . 'users_created' );
+            $users_updated = get_transient( $pfx . 'users_updated' );
+            $users_ignored = get_transient( $pfx . 'users_ignored' );
+
+            $roles_appeared = get_transient( $pfx . 'roles_appeared' );
+            $users_deleted = get_transient( $pfx . 'users_deleted' );
+            if( !is_array( $users_created ) ) $users_created = array();
+            if( !is_array( $users_updated ) ) $users_updated = array();
+            if( !is_array( $users_ignored ) ) $users_ignored = array();
             if( !is_array( $users_deleted ) ) $users_deleted = array();
         }
 
@@ -1110,6 +1131,7 @@ class ACUI_Import{
                         break;
 
                     case 'ignored':
+                        $results['ignored']++;
                         if( !empty( $result['user_id'] ) )
                             array_push( $users_ignored, $result['user_id'] );
                         break;
@@ -1120,7 +1142,7 @@ class ACUI_Import{
                 $this->save_transients( $columns, $headers, $headers_filtered, $positions, $errors, $errors_totals, $results, $users_created, $users_updated, $users_ignored, $roles_appeared, $users_deleted );
 
                 if( $is_cron ){
-                    as_enqueue_async_action( 'acui_cron_process_step', array( 'step' => $step + 1, 'initial_row' => $row ) );
+                    as_enqueue_async_action( 'acui_cron_process_step', array( 'step' => $step + 1, 'initial_row' => $row, 'session_id' => $this->session_id ) );
                 }
 
                 ACUIHelper()->print_table_end( false );
@@ -1132,7 +1154,7 @@ class ACUI_Import{
                 $this->save_transients( $columns, $headers, $headers_filtered, $positions, $errors, $errors_totals, $results, $users_created, $users_updated, $users_ignored, $roles_appeared, $users_deleted );
 
                 if( $is_cron ){
-                    as_enqueue_async_action( 'acui_cron_process_step', array( 'step' => $step + 1, 'initial_row' => $row ) );
+                    as_enqueue_async_action( 'acui_cron_process_step', array( 'step' => $step + 1, 'initial_row' => $row, 'session_id' => $this->session_id ) );
                 }
                 ACUIHelper()->print_table_end( false );
                 echo '</div>';
@@ -1278,7 +1300,7 @@ class ACUI_Import{
         return array(
             'row' => $row,
             'done' => true,
-            'results' => isset( $results ) ? $results : array( 'created' => 0, 'updated' => 0, 'deleted' => 0 ),
+            'results' => isset( $results ) ? $results : array( 'created' => 0, 'updated' => 0, 'deleted' => 0, 'ignored' => 0 ),
             'errors_count' => isset( $errors ) ? count( $errors ) : 0,
         );
     }

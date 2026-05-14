@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, woocommerce, customers
 Requires at least: 3.4
 Tested up to: 6.9.4
-Stable tag: 2.1.1
+Stable tag: 2.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -115,6 +115,16 @@ Plugin will automatically detect:
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.2 =
+*   New "Execution log" sub-tab under Import → Recurring that shows the history of the last 100 recurring import executions (date, file, users created/updated/deleted/ignored, errors, steps)
+*   Fixed a bug where download errors from URL-based CSV files showed an undefined variable instead of the actual error message
+*   Fixed recurring import incorrectly allowing email updates on existing users due to a mismatched form key (`allow_update_emails` vs `update_emails_existing_users`)
+*   Fixed `maybe_enable_wordpress_core_emails` never actually re-enabling the filters, because anonymous closures cannot be removed with `remove_filter`
+*   Fixed batch transients being shared across concurrent imports (manual + cron running simultaneously could corrupt each other's data); each cron execution now uses an isolated session key
+*   Increased batch transient TTL from 15 to 60 minutes to reduce the risk of expiry on large imports
+*   Added null-safety guards when loading batch transients in step 2+, preventing fatal errors if a transient had expired
+*   The `ignored` user count is now tracked in the results array and propagated correctly across batch steps
 
 = 2.1.1 =
 *   Fixed a bug that prevented the “Apply only to users previously imported by this plugin” option from being saved

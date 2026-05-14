@@ -571,19 +571,22 @@ class ACUI_Helper{
         return is_array( $user_meta ) ? var_export( $user_meta, true ) : $user_meta;
     }
 
+    static function _suppress_email_change(){ return false; }
+    static function _suppress_password_change(){ return false; }
+
     function maybe_disable_wordpress_core_emails(){
         if( !get_option('acui_automatic_wordpress_email') ){
-            add_filter( 'send_email_change_email', function() { return false; }, PHP_INT_MAX );
-            add_filter( 'send_password_change_email', function() { return false; }, PHP_INT_MAX );
+            add_filter( 'send_email_change_email', array( 'ACUI_Helper', '_suppress_email_change' ), PHP_INT_MAX );
+            add_filter( 'send_password_change_email', array( 'ACUI_Helper', '_suppress_password_change' ), PHP_INT_MAX );
         }
     }
 
     function maybe_enable_wordpress_core_emails(){
         if( !get_option('acui_automatic_wordpress_email') ){
-            remove_filter( 'send_email_change_email', function() { return false; }, 999 );
-            remove_filter( 'send_password_change_email', function() { return false; }, 999 );
+            remove_filter( 'send_email_change_email', array( 'ACUI_Helper', '_suppress_email_change' ), PHP_INT_MAX );
+            remove_filter( 'send_password_change_email', array( 'ACUI_Helper', '_suppress_password_change' ), PHP_INT_MAX );
         }
-    }    
+    }
 
     // notices
     static function get_notices(){
