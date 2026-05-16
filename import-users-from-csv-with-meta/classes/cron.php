@@ -183,6 +183,35 @@ class ACUI_Cron{
 		}
 	}
 
+	static function get_health_status() {
+		if( !function_exists( 'as_next_scheduled_action' ) )
+			include_once( plugin_dir_path( dirname( __FILE__ ) ) . "lib/action-scheduler/action-scheduler.php" );
+
+		$next_timestamp = as_next_scheduled_action( 'acui_cron_process' );
+		$is_registered  = $next_timestamp !== false && $next_timestamp !== null;
+		$is_activated   = (bool) get_option( 'acui_cron_activated' );
+
+		$next_run_human = '';
+		$next_run_date  = '';
+		if ( $is_registered && $next_timestamp > 0 ) {
+			$next_run_date  = get_date_from_gmt( date( 'Y-m-d H:i:s', $next_timestamp ), get_option( 'date_format' ) . ' ' . get_option( 'time_format' ) );
+			$diff           = $next_timestamp - time();
+			if ( $diff > 0 ) {
+				$next_run_human = human_time_diff( time(), $next_timestamp );
+			}
+		}
+
+		$period          = get_option( 'acui_cron_period', 'hourly' );
+		$loaded_periods  = wp_get_schedules();
+		$period_label    = isset( $loaded_periods[ $period ]['display'] ) ? $loaded_periods[ $period ]['display'] : $period;
+		$period_seconds  = isset( $loaded_periods[ $period ]['interval'] ) ? (int) $loaded_periods[ $period ]['interval'] : 0;
+		$period_human    = $period_seconds > 0 ? human_time_diff( 0, $period_seconds ) : '';
+		$log      = get_option( 'acui_cron_execution_log', array() );
+		$last_run = ( is_array( $log ) && !empty( $log ) ) ? $log[0] : null;
+
+		return compact( 'is_activated', 'is_registered', 'next_run_date', 'next_run_human', 'period', 'period_label', 'period_human', 'last_run' );
+	}
+
 	static function admin_gui(){
 		$upload_dir = wp_upload_dir();
 		$sample_path = $upload_dir["path"] . '/test.csv';
@@ -245,13 +274,87 @@ class ACUI_Cron{
 
 		if( empty( $allow_multiple_accounts ) )
 			$allow_multiple_accounts = "not_allowed";
+		$health = self::get_health_status();
 		?>
 		<style>
 		tr.log div.error,
 		tr.log div.notice{
 			display: none;
 		}
+		.acui-cron-layout {
+			display: flex;
+			gap: 24px;
+			align-items: flex-start;
+		}
+		.acui-cron-main {
+			flex: 1;
+			min-width: 0;
+		}
+		.acui-cron-sidebar {
+			width: 280px;
+			flex-shrink: 0;
+		}
+		.acui-health-card {
+			background: #fff;
+			border: 1px solid #c3c4c7;
+			border-radius: 4px;
+			box-shadow: 0 1px 3px rgba(0,0,0,.07);
+			overflow: hidden;
+			position: sticky;
+			top: 32px;
+		}
+		.acui-health-card h3 {
+			margin: 0;
+			padding: 12px 16px;
+			font-size: 13px;
+			font-weight: 600;
+			border-bottom: 1px solid #c3c4c7;
+			background: #f6f7f7;
+		}
+		.acui-health-rows {
+			padding: 0;
+			margin: 0;
+		}
+		.acui-health-row {
+			display: flex;
+			justify-content: space-between;
+			align-items: flex-start;
+			padding: 10px 16px;
+			border-bottom: 1px solid #f0f0f1;
+			font-size: 12px;
+			gap: 8px;
+		}
+		.acui-health-row:last-child {
+			border-bottom: 0;
+		}
+		.acui-health-label {
+			color: #787c82;
+			flex-shrink: 0;
+		}
+		.acui-health-value {
+			text-align: right;
+			font-weight: 500;
+			word-break: break-word;
+		}
+		.acui-status-dot {
+			display: inline-block;
+			width: 8px;
+			height: 8px;
+			border-radius: 50%;
+			margin-right: 4px;
+			vertical-align: middle;
+		}
+		.acui-status-ok   { background: #00a32a; }
+		.acui-status-warn { background: #dba617; }
+		.acui-status-err  { background: #d63638; }
+		@media (max-width: 960px) {
+			.acui-cron-layout { flex-direction: column; }
+			.acui-cron-sidebar { width: 100%; }
+		}
 		</style>
+
+		<div class="acui-cron-layout">
+		<div class="acui-cron-main">
 
 		<?php if( !function_exists( 'acui_ic_check_active' ) ): ?>
 		<div style="display:flex;align-items:center;justify-content:space-between;background:#fff;border-left:4px solid #2271b1;border-radius:3px;box-shadow:0 1px 3px rgba(0,0,0,.1);padding:16px 20px;margin:16px 0 24px;gap:20px;">
@@ -504,6 +607,94 @@ class ACUI_Cron{
 		    <?php endif; ?>
 		});
 		</script>
+
+		</div><!-- .acui-cron-main -->
+
+		<div class="acui-cron-sidebar">
+			<div class="acui-health-card">
+				<h3><?php _e( 'Cron Health Status', 'import-users-from-csv-with-meta' ); ?></h3>
+				<div class="acui-health-rows">
+
+					<div class="acui-health-row">
+						<span class="acui-health-label"><?php _e( 'Activated', 'import-users-from-csv-with-meta' ); ?></span>
+						<span class="acui-health-value">
+							<?php if ( $health['is_activated'] ): ?>
+								<span class="acui-status-dot acui-status-ok"></span><?php _e( 'Yes', 'import-users-from-csv-with-meta' ); ?>
+							<?php else: ?>
+								<span class="acui-status-dot acui-status-err"></span><?php _e( 'No', 'import-users-from-csv-with-meta' ); ?>
+							<?php endif; ?>
+						</span>
+					</div>
+
+					<div class="acui-health-row">
+						<span class="acui-health-label"><?php _e( 'Scheduled in Action Scheduler', 'import-users-from-csv-with-meta' ); ?></span>
+						<span class="acui-health-value">
+							<?php if ( $health['is_registered'] ): ?>
+								<span class="acui-status-dot acui-status-ok"></span><?php _e( 'Yes', 'import-users-from-csv-with-meta' ); ?>
+							<?php elseif ( $health['is_activated'] ): ?>
+								<span class="acui-status-dot acui-status-err"></span><?php _e( 'No', 'import-users-from-csv-with-meta' ); ?>
+							<?php else: ?>
+								<span class="acui-status-dot acui-status-warn"></span><?php _e( 'Not active', 'import-users-from-csv-with-meta' ); ?>
+							<?php endif; ?>
+						</span>
+					</div>
+
+					<?php if ( $health['is_registered'] && $health['next_run_date'] ): ?>
+					<div class="acui-health-row">
+						<span class="acui-health-label"><?php _e( 'Next run', 'import-users-from-csv-with-meta' ); ?></span>
+						<span class="acui-health-value">
+							<?php echo esc_html( $health['next_run_date'] ); ?>
+							<?php if ( $health['next_run_human'] ): ?>
+								<br><span style="color:#787c82;font-weight:400;"><?php printf( __( 'in %s', 'import-users-from-csv-with-meta' ), esc_html( $health['next_run_human'] ) ); ?></span>
+							<?php endif; ?>
+						</span>
+					</div>
+					<?php endif; ?>
+
+					<div class="acui-health-row">
+						<span class="acui-health-label"><?php _e( 'Period', 'import-users-from-csv-with-meta' ); ?></span>
+						<span class="acui-health-value">
+							<?php echo esc_html( $health['period_label'] ); ?>
+							<?php if ( $health['period_human'] ): ?>
+								<br><span style="color:#787c82;font-weight:400;"><?php echo esc_html( $health['period_human'] ); ?></span>
+							<?php endif; ?>
+						</span>
+					</div>
+
+					<?php if ( $health['last_run'] ): ?>
+					<div class="acui-health-row">
+						<span class="acui-health-label"><?php _e( 'Last execution', 'import-users-from-csv-with-meta' ); ?></span>
+						<span class="acui-health-value">
+							<?php echo esc_html( $health['last_run']['date'] ); ?>
+							<?php if ( intval( $health['last_run']['errors'] ) > 0 ): ?>
+								<br><span style="color:#d63638;font-weight:400;">
+									<?php printf( _n( '%d error', '%d errors', intval( $health['last_run']['errors'] ), 'import-users-from-csv-with-meta' ), intval( $health['last_run']['errors'] ) ); ?>
+								</span>
+							<?php else: ?>
+								<br><span style="color:#00a32a;font-weight:400;"><?php _e( 'No errors', 'import-users-from-csv-with-meta' ); ?></span>
+							<?php endif; ?>
+						</span>
+					</div>
+					<?php else: ?>
+					<div class="acui-health-row">
+						<span class="acui-health-label"><?php _e( 'Last execution', 'import-users-from-csv-with-meta' ); ?></span>
+						<span class="acui-health-value" style="color:#787c82;"><?php _e( 'Never', 'import-users-from-csv-with-meta' ); ?></span>
+					</div>
+					<?php endif; ?>
+
+					<?php if ( $health['is_activated'] && !$health['is_registered'] ): ?>
+					<div class="acui-health-row" style="background:#fff8e5;">
+						<span style="color:#996800;font-size:12px;">
+							<?php _e( 'The cron is marked as active but is not found in Action Scheduler. Try saving the settings again.', 'import-users-from-csv-with-meta' ); ?>
+						</span>
+					</div>
+					<?php endif; ?>
+
+				</div>
+			</div>
+		</div><!-- .acui-cron-sidebar -->
+
+		</div><!-- .acui-cron-layout -->
 	<?php
 	}
 
