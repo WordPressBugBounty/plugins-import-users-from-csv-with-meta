@@ -485,7 +485,7 @@ class ACUI_Import{
                 return array( 'result' => 'ignored', 'user_id' => $user_id );
             }
 
-            if ( ( !empty( $role ) || is_array( $role ) && empty( $role[0] ) ) && !empty( array_diff( $role, array_keys( ACUIHelper()->get_editable_roles() ) ) && $settings['update_roles_existing_users'] != 'no' ) ){ // users only are able to import users with a role they are allowed to edit
+            if ( ( !empty( $role ) || is_array( $role ) && empty( $role[0] ) ) && !empty( array_diff( $role, array_keys( ACUIHelper()->get_editable_roles() ) ) ) ){ // users only are able to import users with a role they are allowed to edit
                 $errors[] = ACUIHelper()->new_error( $row, sprintf( __( 'You do not have permission to assign some of the next roles "%s"', 'import-users-from-csv-with-meta' ), implode( ', ', $role ) ) );
                 return array( 'result' => 'ignored', 'user_id' => $user_id );
             }
@@ -940,7 +940,6 @@ class ACUI_Import{
             ACUIHelper()->print_errors( $errors_for_log );
             ACUIHelper()->print_results( $results_data, $errors_for_log );
             ACUIHelper()->print_end_of_process();
-            ACUIHelper()->execute_datatable();
             $results_log_html = ob_get_clean();
 
             // Save full log (rows + results) for the Log tab

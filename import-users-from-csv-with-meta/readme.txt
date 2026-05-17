@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, woocommerce, customers
 Requires at least: 3.4
 Tested up to: 6.9.4
-Stable tag: 2.2.1
+Stable tag: 2.2.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -115,6 +115,9 @@ Plugin will automatically detect:
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.2.2 =
+*   Security issues fixed
 
 = 2.2.1 =
 *   Added a health status sidebar to the Cron tab showing whether the task is registered in Action Scheduler, the next scheduled run time, and the outcome of the last execution

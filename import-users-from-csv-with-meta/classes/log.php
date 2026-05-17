@@ -12,7 +12,7 @@ class ACUI_Log {
             <p><?php _e( 'No import has been executed yet.', 'import-users-from-csv-with-meta' ); ?></p>
         <?php else : ?>
             <h3><?php printf( __( 'Last import: %s', 'import-users-from-csv-with-meta' ), esc_html( $log['date'] ) ); ?></h3>
-            <?php echo $log['html']; ?>
+            <?php echo wp_kses_post( $log['html'] ); ?>
             <?php ACUIHelper()->execute_datatable(); ?>
             <p style="margin-top: 16px;">
                 <a href="<?php echo esc_url( admin_url( 'tools.php?page=acui&tab=homepage' ) ); ?>" class="button button-primary">

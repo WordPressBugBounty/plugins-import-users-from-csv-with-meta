@@ -67,16 +67,21 @@ class ACUI_Multisite{
 		}
 		
 		foreach ( $user_blogs_csv as $blog_id ) {
+			$blog_id = (int) $blog_id;
+
+			if ( ! is_super_admin() && ! current_user_can_for_blog( $blog_id, 'promote_users' ) )
+				continue;
+
 			switch_to_blog( $blog_id );
 
 			foreach( $role as $current_role ){
 				$this->add_user_to_blog_modified( $blog_id, $user_id, $current_role );
 				do_action( 'add_user_to_blog', $user_id, $role, $blog_id );
-			}			
-	
+			}
+
 			clean_user_cache( $user_id );
 			wp_cache_delete( $blog_id . '_user_count', 'blog-details' );
-		
+
 			restore_current_blog();
 		}
 	}
