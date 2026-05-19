@@ -52,6 +52,7 @@ class ACUI_Cron{
 		update_option( "acui_move_file_cron", isset( $form_data["move-file-cron"] ) && $form_data["move-file-cron"] == "1" );
 		update_option( "acui_cron_path_to_move_auto_rename", isset( $form_data["path_to_move_auto_rename"] ) && $form_data["path_to_move_auto_rename"] == "1" );
 		update_option( "acui_cron_allow_multiple_accounts", ( isset( $form_data["allow_multiple_accounts"] ) && $form_data["allow_multiple_accounts"] == "1" ) ? "allowed" : "not_allowed" );
+		update_option( "acui_cron_user_id", get_current_user_id() );
 		update_option( "acui_cron_path_to_file", $this->clean_path_url_csv( sanitize_text_field( $form_data["path_to_file"] ) ) );
 		update_option( "acui_cron_path_to_move", $this->clean_path_url_csv( sanitize_text_field( $form_data["path_to_move"] ) ) );
 		update_option( "acui_cron_period", sanitize_text_field( $form_data["period"] ) );
@@ -71,6 +72,10 @@ class ACUI_Cron{
 	function process(){
 		$session_id = sanitize_key( uniqid( 'c' ) );
 		$message = __('Import cron task - Step #1 - starts at', 'import-users-from-csv-with-meta' ) . ' ' . date("Y-m-d H:i:s") . '<br/>';
+
+		$cron_user_id = absint( get_option( "acui_cron_user_id" ) );
+		if( $cron_user_id && !is_user_logged_in() )
+			wp_set_current_user( $cron_user_id );
 
 		$form_data = array();
 		$form_data[ "acui_session_id" ] = $session_id;
@@ -105,6 +110,10 @@ class ACUI_Cron{
 
 	function process_step( $step, $initial_row, $session_id = '' ){
 		$message = __('Import cron task - Step #' . $step . ' - starts at', 'import-users-from-csv-with-meta' ) . ' ' . date("Y-m-d H:i:s") . '<br/>';
+
+		$cron_user_id = absint( get_option( "acui_cron_user_id" ) );
+		if( $cron_user_id && !is_user_logged_in() )
+			wp_set_current_user( $cron_user_id );
 
 		$form_data = array();
 		$form_data[ "acui_session_id" ] = $session_id;
