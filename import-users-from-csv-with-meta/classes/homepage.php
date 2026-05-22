@@ -381,8 +381,6 @@ class ACUI_Homepage{
 
 				<?php do_action( 'acui_tab_import_before_import_button' ); ?>
 
-				<input class="button-primary" type="submit" name="uploadfile" id="uploadfile_btn" value="<?php _e( 'Start importing', 'import-users-from-csv-with-meta' ); ?>"/>
-				<input class="button-primary" type="submit" name="save_options" value="<?php _e( 'Save options without importing', 'import-users-from-csv-with-meta' ); ?>"/>
 				</div>
 				<?php wp_nonce_field( 'codection-security', 'security' ); ?>
 				</form>
@@ -416,7 +414,19 @@ class ACUI_Homepage{
 				</div>
 			</div>
 
-			<div class="sidebar">
+			<div class="sidebar" style="position:sticky;top:32px;align-self:flex-start;">
+				<div class="sidebar_section" style="background:#fff;border:1px solid #c3c4c7;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.07);overflow:hidden;padding:0;margin-bottom:16px;">
+					<h3 style="margin:0;padding:12px 16px;font-size:13px;font-weight:600;border-bottom:1px solid #c3c4c7;background:#f6f7f7;"><?php _e( 'Actions', 'import-users-from-csv-with-meta' ); ?></h3>
+					<div style="padding:12px 16px;display:flex;flex-direction:column;gap:8px;">
+						<button type="submit" name="uploadfile" id="uploadfile_btn" form="acui_form" class="button button-primary" style="width:100%;">
+							<?php _e( 'Start importing', 'import-users-from-csv-with-meta' ); ?>
+						</button>
+						<button type="submit" name="save_options" form="acui_form" class="button button-secondary" style="width:100%;">
+							<?php _e( 'Save Settings', 'import-users-from-csv-with-meta' ); ?>
+						</button>
+					</div>
+				</div>
+
 				<div class="sidebar_section sidebar-info">
 					<p><?php printf( __( 'The CSV must have at least <strong>2 columns: username and email</strong>, in that order. Extra columns are matched by their header name. Both fields are required unless you use <a href="%s">the Allow No Email addon</a>.', 'import-users-from-csv-with-meta' ), 'https://import-wp.com/allow-no-email-addon/' ); ?></p>
 					<p><?php _e( 'Read the documentation on how <strong>passwords are managed</strong>. This plugin is <strong>case sensitive</strong>.', 'import-users-from-csv-with-meta' ); ?></p>

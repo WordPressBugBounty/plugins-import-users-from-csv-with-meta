@@ -20,7 +20,51 @@ class ACUI_Email_Options{
 		$enable_email_templates = get_option( "acui_enable_email_templates" );
 		$disable_wp_editor = get_option( "acui_mail_disable_wp_editor" );
 	?>
-		<form method="POST" enctype="multipart/form-data" action="" accept-charset="utf-8">
+		<style>
+		.acui-mail-layout {
+			display: flex;
+			gap: 24px;
+			align-items: flex-start;
+		}
+		.acui-mail-main { flex: 1; min-width: 0; }
+		.acui-mail-sidebar {
+			width: 280px;
+			flex-shrink: 0;
+			position: sticky;
+			top: 32px;
+			align-self: flex-start;
+		}
+		.acui-mail-card {
+			background: #fff;
+			border: 1px solid #c3c4c7;
+			border-radius: 4px;
+			box-shadow: 0 1px 3px rgba(0,0,0,.07);
+			overflow: hidden;
+		}
+		.acui-mail-card h3 {
+			margin: 0;
+			padding: 12px 16px;
+			font-size: 13px;
+			font-weight: 600;
+			border-bottom: 1px solid #c3c4c7;
+			background: #f6f7f7;
+		}
+		.acui-mail-card-body {
+			padding: 12px 16px;
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+		}
+		@media (max-width: 960px) {
+			.acui-mail-layout { flex-direction: column; }
+			.acui-mail-sidebar { width: 100%; position: static; }
+		}
+		</style>
+
+		<div class="acui-mail-layout">
+		<div class="acui-mail-main">
+
+		<form id="acui-mail-options-form" method="POST" enctype="multipart/form-data" action="" accept-charset="utf-8">
 		<h3><?php _e('WordPress automatic emails','import-users-from-csv-with-meta'); ?></h3>
 		
 		<table class="optiontable form-table">
@@ -135,16 +179,29 @@ class ACUI_Email_Options{
 			</div>
 		</fieldset>
 
-		<br/>
-		<input class="button-primary" type="submit" value="<?php _e( 'Save email template and options', 'import-users-from-csv-with-meta'); ?>" id="save_mail_template_options"/>
-		<input class="button-primary" type="button" value="<?php _e( 'Send test email', 'import-users-from-csv-with-meta'); ?>" id="send_test_email" title="<?php _e( 'This test email will be sent to the current user', 'import-users-from-csv-with-meta'); ?>"/>
-        <?php _e( 'If you send a test email, no wildcards will be replaced because there is no data to replace when testing.', 'import-users-from-csv-with-meta' ); ?>
-
 		<?php wp_nonce_field( 'codection-security', 'security' ); ?>
-		
+
 		<?php do_action( 'acui_email_options_after_editor' ); ?>
 
 		</form>
+		</div><!-- .acui-mail-main -->
+
+		<div class="acui-mail-sidebar">
+			<div class="acui-mail-card">
+				<h3><?php _e( 'Actions', 'import-users-from-csv-with-meta' ); ?></h3>
+				<div class="acui-mail-card-body">
+					<button type="submit" form="acui-mail-options-form" class="button button-primary" id="save_mail_template_options" style="width:100%;">
+						<?php _e( 'Save Settings', 'import-users-from-csv-with-meta' ); ?>
+					</button>
+					<button type="button" class="button button-secondary" id="send_test_email" title="<?php esc_attr_e( 'This test email will be sent to the current user', 'import-users-from-csv-with-meta' ); ?>" style="width:100%;">
+						<?php _e( 'Send test email', 'import-users-from-csv-with-meta' ); ?>
+					</button>
+					<p class="description" style="font-size:11px;margin:0;"><?php _e( 'If you send a test email, no wildcards will be replaced because there is no data to replace when testing.', 'import-users-from-csv-with-meta' ); ?></p>
+				</div>
+			</div>
+		</div><!-- .acui-mail-sidebar -->
+
+		</div><!-- .acui-mail-layout -->
 		<?php
 	}
 

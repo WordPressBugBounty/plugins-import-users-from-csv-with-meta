@@ -89,9 +89,53 @@ class ACUI_Exporter{
 	static function admin_gui(){
 		$settings = new ACUI_Settings( 'export_backend' );
 	?>
+	<style>
+	.acui-export-layout {
+		display: flex;
+		gap: 24px;
+		align-items: flex-start;
+	}
+	.acui-export-main { flex: 1; min-width: 0; }
+	.acui-export-sidebar {
+		width: 280px;
+		flex-shrink: 0;
+		position: sticky;
+		top: 32px;
+		align-self: flex-start;
+	}
+	.acui-export-card {
+		background: #fff;
+		border: 1px solid #c3c4c7;
+		border-radius: 4px;
+		box-shadow: 0 1px 3px rgba(0,0,0,.07);
+		overflow: hidden;
+	}
+	.acui-export-card h3 {
+		margin: 0;
+		padding: 12px 16px;
+		font-size: 13px;
+		font-weight: 600;
+		border-bottom: 1px solid #c3c4c7;
+		background: #f6f7f7;
+	}
+	.acui-export-card-body {
+		padding: 12px 16px;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+	@media (max-width: 960px) {
+		.acui-export-layout { flex-direction: column; }
+		.acui-export-sidebar { width: 100%; position: static; }
+	}
+	</style>
+
+	<div class="acui-export-layout">
+	<div class="acui-export-main">
+
 	<div id="acui_export_results"></div>
 
-	<form class="acui_exporter">
+	<form id="acui-export-form" class="acui_exporter">
 		<table class="form-table">
 			<tbody>
 				<tr id="acui_role_wrapper" valign="top">
@@ -167,13 +211,6 @@ class ACUI_Exporter{
 						<span class="description"><?php _e( "This data cannot then be imported back into the database as an array if the exported file is imported.", 'import-users-from-csv-with-meta' ); ?></span>
 					</td>
 				</tr>
-				<tr id="acui_download_csv_wrapper" valign="top">
-					<th scope="row"><?php _e( 'Download CSV file with users', 'import-users-from-csv-with-meta' ); ?></th>
-					<td>
-						<input class="button-primary" type="submit" value="<?php _e( 'Download', 'import-users-from-csv-with-meta'); ?>"/>
-						<input class="button-primary" type="button" id="save-without-exporting" value="<?php _e( 'Save without exporting', 'import-users-from-csv-with-meta'); ?>"/>
-					</td>
-				</tr>
 			</tbody>
 		</table>
 
@@ -184,6 +221,23 @@ class ACUI_Exporter{
             <span class="user-exporter-progress-value">0%</span>
         </div>
 	</form>
+	</div><!-- .acui-export-main -->
+
+	<div class="acui-export-sidebar">
+		<div class="acui-export-card">
+			<h3><?php _e( 'Actions', 'import-users-from-csv-with-meta' ); ?></h3>
+			<div class="acui-export-card-body">
+				<button type="submit" form="acui-export-form" class="button button-primary" style="width:100%;">
+					<?php _e( 'Download', 'import-users-from-csv-with-meta' ); ?>
+				</button>
+				<button type="button" id="save-without-exporting" class="button button-secondary" style="width:100%;">
+					<?php _e( 'Save Settings', 'import-users-from-csv-with-meta' ); ?>
+				</button>
+			</div>
+		</div>
+	</div><!-- .acui-export-sidebar -->
+
+	</div><!-- .acui-export-layout -->
 
 	<script type="text/javascript">
 	jQuery( document ).ready( function( $ ){

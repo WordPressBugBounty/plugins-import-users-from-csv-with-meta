@@ -46,7 +46,54 @@ class ACUI_Frontend{
 			$update_roles_existing_users = 'no';
 		?>
 
-		<form method="POST" enctype="multipart/form-data" action="" accept-charset="utf-8">
+		<style>
+		.acui-frontend-layout {
+			display: flex;
+			gap: 24px;
+			align-items: flex-start;
+		}
+		.acui-frontend-main {
+			flex: 1;
+			min-width: 0;
+		}
+		.acui-frontend-sidebar {
+			width: 280px;
+			flex-shrink: 0;
+			position: sticky;
+			top: 32px;
+			align-self: flex-start;
+		}
+		.acui-frontend-card {
+			background: #fff;
+			border: 1px solid #c3c4c7;
+			border-radius: 4px;
+			box-shadow: 0 1px 3px rgba(0,0,0,.07);
+			overflow: hidden;
+		}
+		.acui-frontend-card h3 {
+			margin: 0;
+			padding: 12px 16px;
+			font-size: 13px;
+			font-weight: 600;
+			border-bottom: 1px solid #c3c4c7;
+			background: #f6f7f7;
+		}
+		.acui-frontend-card-body {
+			padding: 12px 16px;
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+		}
+		@media (max-width: 960px) {
+			.acui-frontend-layout { flex-direction: column; }
+			.acui-frontend-sidebar { width: 100%; position: static; }
+		}
+		</style>
+
+		<div class="acui-frontend-layout">
+		<div class="acui-frontend-main">
+
+		<form id="acui-frontend-form" method="POST" enctype="multipart/form-data" action="" accept-charset="utf-8">
 			<table class="form-table">
 				<tbody>
 
@@ -207,8 +254,22 @@ class ACUI_Frontend{
 			</table>
 
 			<?php wp_nonce_field( 'codection-security', 'security' ); ?>
-			<input class="button-primary" type="submit" value="<?php _e( 'Save frontend import options', 'import-users-from-csv-with-meta'); ?>"/>
 		</form>
+
+		</div><!-- .acui-frontend-main -->
+
+		<div class="acui-frontend-sidebar">
+			<div class="acui-frontend-card">
+				<h3><?php _e( 'Actions', 'import-users-from-csv-with-meta' ); ?></h3>
+				<div class="acui-frontend-card-body">
+					<button type="submit" form="acui-frontend-form" class="button button-primary" style="width:100%;">
+						<?php _e( 'Save Settings', 'import-users-from-csv-with-meta' ); ?>
+					</button>
+				</div>
+			</div>
+		</div><!-- .acui-frontend-sidebar -->
+
+		</div><!-- .acui-frontend-layout -->
 
 		<script>
 		jQuery( document ).ready( function( $ ){

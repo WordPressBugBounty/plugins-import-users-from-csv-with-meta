@@ -9,6 +9,7 @@ class ACUI_Cron{
 		add_action( 'acui_cron_process_step', array( $this, 'process_step' ), 10, 3 );
 		add_action( 'acui_cron_log_action', array( $this, 'handle_log_action' ) );
 		add_action( 'wp_ajax_acui_fire_cron', array( $this, 'ajax_fire_cron' ) );
+		add_action( 'wp_ajax_acui_fire_cron_no_session', array( $this, 'ajax_fire_cron_no_session' ) );
 	}
 
 	function clean_path_url_csv( $path_url ){
@@ -52,7 +53,9 @@ class ACUI_Cron{
 		update_option( "acui_move_file_cron", isset( $form_data["move-file-cron"] ) && $form_data["move-file-cron"] == "1" );
 		update_option( "acui_cron_path_to_move_auto_rename", isset( $form_data["path_to_move_auto_rename"] ) && $form_data["path_to_move_auto_rename"] == "1" );
 		update_option( "acui_cron_allow_multiple_accounts", ( isset( $form_data["allow_multiple_accounts"] ) && $form_data["allow_multiple_accounts"] == "1" ) ? "allowed" : "not_allowed" );
-		update_option( "acui_cron_user_id", get_current_user_id() );
+		$submitted_user_id = isset( $form_data['cron_user_id'] ) ? absint( $form_data['cron_user_id'] ) : 0;
+		if( $submitted_user_id && user_can( $submitted_user_id, apply_filters( 'acui_capability', 'create_users' ) ) )
+			update_option( "acui_cron_user_id", $submitted_user_id );
 		update_option( "acui_cron_path_to_file", $this->clean_path_url_csv( sanitize_text_field( $form_data["path_to_file"] ) ) );
 		update_option( "acui_cron_path_to_move", $this->clean_path_url_csv( sanitize_text_field( $form_data["path_to_move"] ) ) );
 		update_option( "acui_cron_period", sanitize_text_field( $form_data["period"] ) );
@@ -76,6 +79,7 @@ class ACUI_Cron{
 		$cron_user_id = absint( get_option( "acui_cron_user_id" ) );
 		if( $cron_user_id && !is_user_logged_in() )
 			wp_set_current_user( $cron_user_id );
+
 
 		$form_data = array();
 		$form_data[ "acui_session_id" ] = $session_id;
@@ -218,7 +222,11 @@ class ACUI_Cron{
 		$log      = get_option( 'acui_cron_execution_log', array() );
 		$last_run = ( is_array( $log ) && !empty( $log ) ) ? $log[0] : null;
 
-		return compact( 'is_activated', 'is_registered', 'next_run_date', 'next_run_human', 'period', 'period_label', 'period_human', 'last_run' );
+		$cron_user_id   = absint( get_option( 'acui_cron_user_id' ) );
+		$cron_user_data = $cron_user_id ? get_userdata( $cron_user_id ) : false;
+		$cron_user_label = $cron_user_data ? $cron_user_data->user_login . ' (#' . $cron_user_id . ')' : '';
+
+		return compact( 'is_activated', 'is_registered', 'next_run_date', 'next_run_human', 'period', 'period_label', 'period_human', 'last_run', 'cron_user_label' );
 	}
 
 	static function admin_gui(){
@@ -302,6 +310,9 @@ class ACUI_Cron{
 		.acui-cron-sidebar {
 			width: 280px;
 			flex-shrink: 0;
+			position: sticky;
+			top: 32px;
+			align-self: flex-start;
 		}
 		.acui-health-card {
 			background: #fff;
@@ -309,8 +320,6 @@ class ACUI_Cron{
 			border-radius: 4px;
 			box-shadow: 0 1px 3px rgba(0,0,0,.07);
 			overflow: hidden;
-			position: sticky;
-			top: 32px;
 		}
 		.acui-health-card h3 {
 			margin: 0;
@@ -375,7 +384,7 @@ class ACUI_Cron{
 		</div>
 		<?php endif; ?>
 
-		<form method="POST" enctype="multipart/form-data" action="" accept-charset="utf-8">
+		<form id="acui-cron-form" method="POST" enctype="multipart/form-data" action="" accept-charset="utf-8">
 			<table class="form-table">
 				<tbody>
 
@@ -383,6 +392,29 @@ class ACUI_Cron{
 					<th scope="row"><label for="cron-activated"><?php _e( 'Activate periodic import?', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
                         <?php ACUIHTML()->checkbox( array( 'name' => 'cron-activated', 'compare_value' => $cron_activated ) ); ?>
+					</td>
+				</tr>
+
+				<tr class="form-field form-required">
+					<th scope="row"><label for="cron_user_id"><?php _e( 'User that runs the cron', 'import-users-from-csv-with-meta' ); ?></label></th>
+					<td>
+						<?php
+						$capable_users = get_users( array(
+							'capability' => apply_filters( 'acui_capability', 'create_users' ),
+							'fields'     => array( 'ID', 'user_login', 'display_name' ),
+							'orderby'    => 'display_name',
+						) );
+						$cron_user_id_saved = absint( get_option( 'acui_cron_user_id' ) );
+						?>
+						<select name="cron_user_id" id="cron_user_id">
+							<option value=""><?php _e( '— Select a user —', 'import-users-from-csv-with-meta' ); ?></option>
+							<?php foreach ( $capable_users as $u ): ?>
+								<option value="<?php echo esc_attr( $u->ID ); ?>" <?php selected( $cron_user_id_saved, $u->ID ); ?>>
+									<?php echo esc_html( $u->display_name . ' (' . $u->user_login . ')' ); ?>
+								</option>
+							<?php endforeach; ?>
+						</select>
+						<p class="description"><?php _e( 'This user will be set as the active user during the cron execution. Only users with the required capability are listed.', 'import-users-from-csv-with-meta' ); ?></p>
 					</td>
 				</tr>
 
@@ -533,9 +565,6 @@ class ACUI_Cron{
 				</tbody>
 			</table>
 
-			<input class="button-primary" type="submit" value="<?php _e( 'Save schedule options', 'import-users-from-csv-with-meta'); ?>"/>
-			<input id="cron-execute-cron-task-now" class="button-primary" type="button" value="<?php _e( 'Execute cron task now', 'import-users-from-csv-with-meta'); ?>"/>
-
 			<?php do_action( 'acui_tab_cron_before_log' ); ?>
 
 			<h2><?php _e( 'Log', 'import-users-from-csv-with-meta'); ?></h2>
@@ -614,12 +643,44 @@ class ACUI_Cron{
 		    <?php if( !$move_file_cron ): ?>
 		    $( '.move-file-cron-cell' ).hide();
 		    <?php endif; ?>
+
+			$( '#acui-health-run-now' ).on( 'click', function() {
+				var $btn = $( this );
+				$btn.prop( 'disabled', true ).text( '<?php esc_attr_e( 'Running...', 'import-users-from-csv-with-meta' ); ?>' );
+
+				$.post( ajaxurl, {
+					action:   'acui_fire_cron_no_session',
+					security: '<?php echo wp_create_nonce( "codection-security" ); ?>'
+				}, function( response ) {
+					if ( response !== 'OK' ) {
+						alert( '<?php esc_attr_e( 'Problems executing cron task: ', 'import-users-from-csv-with-meta' ); ?>' + response );
+						$btn.prop( 'disabled', false ).text( '<?php esc_attr_e( 'Run now', 'import-users-from-csv-with-meta' ); ?>' );
+					} else {
+						alert( '<?php esc_attr_e( 'Cron task successfully executed', 'import-users-from-csv-with-meta' ); ?>' );
+						document.location.reload();
+					}
+				} );
+			} );
 		});
 		</script>
 
 		</div><!-- .acui-cron-main -->
 
 		<div class="acui-cron-sidebar">
+			<div class="acui-health-card" style="margin-bottom:16px;">
+				<h3><?php _e( 'Actions', 'import-users-from-csv-with-meta' ); ?></h3>
+				<div class="acui-health-rows">
+					<div class="acui-health-row" style="flex-direction:column;gap:8px;padding:12px 16px;">
+						<button type="submit" form="acui-cron-form" class="button button-primary" style="width:100%;">
+							<?php _e( 'Save Settings', 'import-users-from-csv-with-meta' ); ?>
+						</button>
+						<button id="acui-health-run-now" class="button button-secondary" style="width:100%;">
+							<?php _e( 'Execute cron task now', 'import-users-from-csv-with-meta' ); ?>
+						</button>
+					</div>
+				</div>
+			</div>
+
 			<div class="acui-health-card">
 				<h3><?php _e( 'Cron Health Status', 'import-users-from-csv-with-meta' ); ?></h3>
 				<div class="acui-health-rows">
@@ -690,6 +751,17 @@ class ACUI_Cron{
 						<span class="acui-health-value" style="color:#787c82;"><?php _e( 'Never', 'import-users-from-csv-with-meta' ); ?></span>
 					</div>
 					<?php endif; ?>
+
+					<div class="acui-health-row">
+						<span class="acui-health-label"><?php _e( 'Runs as user', 'import-users-from-csv-with-meta' ); ?></span>
+						<span class="acui-health-value">
+							<?php if ( $health['cron_user_label'] ): ?>
+								<?php echo esc_html( $health['cron_user_label'] ); ?>
+							<?php else: ?>
+								<span style="color:#787c82;"><?php _e( 'Not set', 'import-users-from-csv-with-meta' ); ?></span>
+							<?php endif; ?>
+						</span>
+					</div>
 
 					<?php if ( $health['is_activated'] && !$health['is_registered'] ): ?>
 					<div class="acui-health-row" style="background:#fff8e5;">
@@ -769,6 +841,15 @@ class ACUI_Cron{
 	function ajax_fire_cron(){
 		check_ajax_referer( 'codection-security', 'security' );
 
+		do_action( 'acui_cron_process' );
+		echo "OK";
+		wp_die();
+	}
+
+	function ajax_fire_cron_no_session(){
+		check_ajax_referer( 'codection-security', 'security' );
+
+		wp_set_current_user( 0 );
 		do_action( 'acui_cron_process' );
 		echo "OK";
 		wp_die();
