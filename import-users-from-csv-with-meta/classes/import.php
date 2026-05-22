@@ -814,6 +814,7 @@ class ACUI_Import{
         if( !is_array( $role_default ) )
             $role_default = array( $role_default );
         array_walk( $role_default, 'sanitize_text_field' );
+        $role_default = array_values( array_filter( $role_default ) );
         $settings['role_default'] = $role_default;
         
         $settings['update_emails_existing_users'] = isset( $form_data["update_emails_existing_users"] ) ? sanitize_text_field( $form_data["update_emails_existing_users"] ) : 'yes';

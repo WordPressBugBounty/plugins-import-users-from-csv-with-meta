@@ -72,13 +72,23 @@ class ACUI_Cron{
 	    <?php
 	}
 
+	function set_cron_user(){
+		$cron_user_id = absint( get_option( "acui_cron_user_id" ) );
+
+		if( !$cron_user_id || !user_can( $cron_user_id, apply_filters( 'acui_capability', 'create_users' ) ) ){
+			$admins = get_users( array( 'role' => 'administrator', 'number' => 1, 'fields' => 'ID' ) );
+			$cron_user_id = !empty( $admins ) ? $admins[0] : 0;
+		}
+
+		if( $cron_user_id && !is_user_logged_in() )
+			wp_set_current_user( $cron_user_id );
+	}
+
 	function process(){
 		$session_id = sanitize_key( uniqid( 'c' ) );
 		$message = __('Import cron task - Step #1 - starts at', 'import-users-from-csv-with-meta' ) . ' ' . date("Y-m-d H:i:s") . '<br/>';
 
-		$cron_user_id = absint( get_option( "acui_cron_user_id" ) );
-		if( $cron_user_id && !is_user_logged_in() )
-			wp_set_current_user( $cron_user_id );
+		$this->set_cron_user();
 
 
 		$form_data = array();
@@ -115,9 +125,7 @@ class ACUI_Cron{
 	function process_step( $step, $initial_row, $session_id = '' ){
 		$message = __('Import cron task - Step #' . $step . ' - starts at', 'import-users-from-csv-with-meta' ) . ' ' . date("Y-m-d H:i:s") . '<br/>';
 
-		$cron_user_id = absint( get_option( "acui_cron_user_id" ) );
-		if( $cron_user_id && !is_user_logged_in() )
-			wp_set_current_user( $cron_user_id );
+		$this->set_cron_user();
 
 		$form_data = array();
 		$form_data[ "acui_session_id" ] = $session_id;
