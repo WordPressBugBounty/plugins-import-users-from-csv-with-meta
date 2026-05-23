@@ -86,7 +86,7 @@ class ACUI_Cron{
 
 	function process(){
 		$session_id = sanitize_key( uniqid( 'c' ) );
-		$message = __('Import cron task - Step #1 - starts at', 'import-users-from-csv-with-meta' ) . ' ' . date("Y-m-d H:i:s") . '<br/>';
+		$message = __('Import cron task - Step #1 - starts at', 'import-users-from-csv-with-meta' ) . ' ' . current_time('mysql') . '<br/>';
 
 		$this->set_cron_user();
 
@@ -113,7 +113,7 @@ class ACUI_Cron{
 			rename( $form_data[ "path_to_file" ], $path_to_move );
 			$this->auto_rename();
 		}
-		$message .= __( '--Finished at', 'import-users-from-csv-with-meta' ) . ' ' . date("Y-m-d H:i:s") . '<br/><br/>';
+		$message .= __( '--Finished at', 'import-users-from-csv-with-meta' ) . ' ' . current_time('mysql') . '<br/><br/>';
 
 		update_option( "acui_cron_log", $message );
 
@@ -123,7 +123,7 @@ class ACUI_Cron{
 	}
 
 	function process_step( $step, $initial_row, $session_id = '' ){
-		$message = __('Import cron task - Step #' . $step . ' - starts at', 'import-users-from-csv-with-meta' ) . ' ' . date("Y-m-d H:i:s") . '<br/>';
+		$message = __('Import cron task - Step #' . $step . ' - starts at', 'import-users-from-csv-with-meta' ) . ' ' . current_time('mysql') . '<br/>';
 
 		$this->set_cron_user();
 
@@ -148,7 +148,7 @@ class ACUI_Cron{
 			$this->auto_rename();
 		}
 
-		$message .= __( '--Finished at', 'import-users-from-csv-with-meta' ) . ' ' . date("Y-m-d H:i:s") . '<br/><br/>';
+		$message .= __( '--Finished at', 'import-users-from-csv-with-meta' ) . ' ' . current_time('mysql') . '<br/><br/>';
 
 		update_option( "acui_cron_log", get_option( "acui_cron_log" ) . $message );
 
@@ -234,7 +234,14 @@ class ACUI_Cron{
 		$cron_user_data = $cron_user_id ? get_userdata( $cron_user_id ) : false;
 		$cron_user_label = $cron_user_data ? $cron_user_data->user_login . ' (#' . $cron_user_id . ')' : '';
 
-		return compact( 'is_activated', 'is_registered', 'next_run_date', 'next_run_human', 'period', 'period_label', 'period_human', 'last_run', 'cron_user_label' );
+		$is_running = false;
+		if ( function_exists( 'as_get_scheduled_actions' ) ) {
+			$running_main  = as_get_scheduled_actions( array( 'hook' => 'acui_cron_process',      'status' => 'in-progress', 'limit' => 1 ) );
+			$running_steps = as_get_scheduled_actions( array( 'hook' => 'acui_cron_process_step', 'status' => 'in-progress', 'limit' => 1 ) );
+			$is_running    = ! empty( $running_main ) || ! empty( $running_steps );
+		}
+
+		return compact( 'is_activated', 'is_registered', 'next_run_date', 'next_run_human', 'period', 'period_label', 'period_human', 'last_run', 'cron_user_label', 'is_running' );
 	}
 
 	static function admin_gui(){
@@ -713,6 +720,17 @@ class ACUI_Cron{
 								<span class="acui-status-dot acui-status-err"></span><?php _e( 'No', 'import-users-from-csv-with-meta' ); ?>
 							<?php else: ?>
 								<span class="acui-status-dot acui-status-warn"></span><?php _e( 'Not active', 'import-users-from-csv-with-meta' ); ?>
+							<?php endif; ?>
+						</span>
+					</div>
+
+					<div class="acui-health-row">
+						<span class="acui-health-label"><?php _e( 'Running now', 'import-users-from-csv-with-meta' ); ?></span>
+						<span class="acui-health-value">
+							<?php if ( $health['is_running'] ): ?>
+								<span class="acui-status-dot acui-status-warn"></span><?php _e( 'Yes — import in progress', 'import-users-from-csv-with-meta' ); ?>
+							<?php else: ?>
+								<span class="acui-status-dot acui-status-ok"></span><?php _e( 'No', 'import-users-from-csv-with-meta' ); ?>
 							<?php endif; ?>
 						</span>
 					</div>

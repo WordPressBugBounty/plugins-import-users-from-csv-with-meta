@@ -1,10 +1,10 @@
 === Import and export users and customers ===
 Contributors: carazo
 Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
-Tags: import users, export users, csv, woocommerce, customers
-Requires at least: 3.4
+Tags: import users, export users, csv, migrate users, bulk import
+Requires at least: 5.5
 Tested up to: 7.0
-Stable tag: 2.3.1
+Stable tag: 2.3.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -14,7 +14,7 @@ Bulk import and export WordPress users and WooCommerce customers from CSV, inclu
 
 **Try it out on your free dummy site: Click here => [https://demo.tastewp.com/import-users-from-csv-with-meta](https://demo.tastewp.com/import-users-from-csv-with-meta)**
 
-Clean and easy-to-use import and export users and customer plugin, for WordPress and WooCommerce. It includes custom user meta to be included automatically from a CSV file and delimitation auto-detector. It also is able to send a mail to each user imported and all the meta data imported is ready to edit into user profile.
+Import, export and migrate WordPress users and WooCommerce customers from a CSV file. Bulk-create or update thousands of users in seconds, schedule automatic recurring imports from a local file or URL, and carry over roles, passwords and any custom meta field. Works with WooCommerce, BuddyPress, Advanced Custom Fields, Paid Membership Pro, WooCommerce Memberships, WooCommerce Subscriptions and many more.
 
 *	Import CSV file with users directly to your WordPress or customers into WooCommerce
 *	Import thousands of users or customers in only some seconds
@@ -53,40 +53,14 @@ If you have some problem or doubt:
 *	Read our documentation
 *	Ask anything in support forum, we try to give the best support
 
-In Codection we have more plugins, please take a look to them. 
+### **Common use cases**
 
-*	[RedSys Gateway for WooCommerce Pro a plugin to connect your WooCommerce to RedSys](https://codection.com/producto/redsys-gateway-for-woocommerce) (premium)
-*	[Ceca Gateway for WooCommerce Pro a plugin to connect your WooCommerce to Ceca](https://codection.com/producto/ceca-gateway-for-woocommerce-pro/) (premium)
-
-*	[RedSys Gateway for Contact Form 7 a plugin to receive payments using RedSys in WordPress using the popular contact plugin Contact Form 7](https://codection.com/producto/redsys-gateway-for-contact-form-7/) (premium)
-*	[Ceca Gateway for Contact Form 7 a plugin to receive payments using Ceca in WordPress using the popular contact plugin Contact Form 7](https://codection.com/producto/ceca-gateway-for-contact-form-7/) (premium)
-*	[RedSys & Bizum Gateway for Gravity Forms a plugin to receive payments using RedSys in Gravity Forms](https://codection.com/plugin/redsys-bizum-gateway-for-gravity-forms/) (premium)
-*	[RedSys & Bizum Gateway for WPForms a plugin to receive payments using RedSys WP Forms](https://codection.com/plugin/redsys-gateway-for-wpforms/) (premium)
-
-*	[RedSys & Bizum for GiveWP a plugin to receive payments using RedSys in Give WP the most popular donation plugin and fundraising platform for WordPress](https://codection.com/plugin/redsys-bizum-for-givewp/) (premium)
-
-*	[RedSys Link Generator a plugin to receive payments using payment links like PayGold but better](https://codection.com/plugin/redsys-link-generator/) (premium)
-*	[RedSys & Bizum Gateway for EDD Pro a plugin to receive payments using RedSys with Easy Digital Downloads](https://codection.com/plugin/redsys-gateway-for-edd-pro/) (premium)
-
-*	[RedSys Gateway for WP Booking Calendar Pro a plugin to receive payments using RedSys in WordPress using WP Booking Calendar Pro](https://codection.com/producto/redsys-gateway-for-wp-booking-calendar-pro/) (premium)
-
-*	[Clean Login a plugin to create your own register, log in, lost password and update profile forms](https://wordpress.org/plugins/clean-login/) (free)
-*   [Products Restricted Users for WooCommerce a plugin to restrict product visibility by user](https://wordpress.org/plugins/woo-products-restricted-users/) (free)
-
-*   [First payment date for WooCommerce Subscriptions a plugin to set a first payment date in membership sites with WooCommerce Subscriptions](https://wordpress.org/plugins/first-payment-date-for-woocommerce-subscriptions/) (free)
-*   [Payment Schedule for WooCommerce Subscriptions](https://import-wp.com/payment-schedule-for-woocommerce-subscriptions) (premium)
-
-### **Basics**
-
-*   Import users and customers from a CSV easily
-*   And also extra profile information with the user meta data (included in the CSV with your custom fields)
-*   Just upload the CSV file (one included as example)
-*   All your users will be created/updated with the updated information, and of course including the user meta
-*   Autodetect delimiter compatible with `comma , `, `semicolon ; ` and `bar | `
-*	Export users and customers choosing delimiters and using some filters
-*	Create a cron task to do the import periodically in order to integrate WordPress with an external system
-*	Interaction with lots of other plugins like WooCommerce, BuddyPress, Paid Membership Pro, WooCommerce Memebership, WooCommerce Subscriptions and many others
-*	Import users from frontend using a shortcode
+*   Migrate users from one WordPress site to another
+*   Bulk create or update WooCommerce customers from a spreadsheet
+*   Sync users automatically from an external CRM or ERP via CSV
+*   Onboard members to a membership site (Paid Membership Pro, WooCommerce Memberships)
+*   Periodically import subscribers or students from an external list
+*   Import users from the frontend using a shortcode
 
 ### **Usage**
 
@@ -108,13 +82,17 @@ Plugin will automatically detect:
 
 == Screenshots ==
 
-1. Plugin link from dashboard
-2. Plugin page
-3. CSV file structure
-4. Users imported
+1. Import dialog
+2. Recurring import dialog
+3. Export dialog
+4. File sample
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.3.2 =
+*   Improved date visualization
+*   Recurring import health status now shows whether an import task is currently running in the background
 
 = 2.3.1 =
 *   Fixed an error in cron execution
@@ -1733,13 +1711,17 @@ Michael Finkenberger
 
 == Frequently Asked Questions ==
 
-= Columns position =
+= Can I import users from an Excel or LibreOffice file? =
+
+The plugin natively supports CSV files. If you need to import directly from Excel (XLSX, XLS) or LibreOffice (ODS) files without converting them first, the [File Formats Addon](https://import-wp.com/plugins/file-formats-addon/) adds support for those formats.
+
+= What format should my CSV file be? =
 
 You should fill the first two columns with the next values: Username, Email.
 
 The next columns are totally customizable and you can use whatever you want. All rows must contains same columns. User profile will be adapted to the kind of data you have selected. If you want to disable the extra profile information, please deactivate this plugin after make the import.
 
-= id column =
+= Can I import users by their WordPress ID? =
 
 You can use a column called id in order to make inserts or updates of an user using the ID used by WordPress in the wp_users table. We have two different cases:
 
@@ -1818,9 +1800,27 @@ Yes. Add WooCommerce billing and shipping fields as columns in your CSV (e.g. bi
 
 Yes. The plugin has addons for Advanced Custom Fields, BuddyPress/BuddyBoss, Paid Membership Pro, WooCommerce Memberships, WooCommerce Subscriptions and many others. Custom meta fields not covered by an addon can still be imported by using the meta key as the column header.
 
+= Can I import users without an email address? =
+
+By default WordPress requires an email for every user. If you need to import users without one, the [Allow No Email Addon](https://import-wp.com/plugins/allow-no-email-addon/) removes that requirement.
+
 = Can I update existing users without creating duplicates? =
 
 Yes. The plugin checks for existing users by username and email before inserting. If a match is found the user is updated instead of created. You can also control whether passwords and roles are overwritten on update.
+
+= Can I schedule automatic exports? =
+
+Scheduled exports are available via the [Recurring Export Addon](https://import-wp.com/plugins/recurring-export-addon/). It lets you configure periodic CSV exports of your users or WooCommerce customers and send them to a file path or remote destination automatically.
+
+= Can I schedule automatic imports? =
+
+Yes. The Recurring Import tab lets you configure a periodic import from a file path or URL. The plugin will fetch and process the CSV automatically at the chosen interval (hourly, daily, weekly, etc.) without any manual action.
+
+The free version supports one recurring import task. If you need multiple simultaneous scheduled imports — each with its own file, interval, role and settings — the [Recurring Import Addon](https://import-wp.com/plugins/recurring-import-addon/) removes that limitation.
+
+= Can I sync users from an external system or CRM? =
+
+Yes. Point the recurring import at a URL that your external system generates and the plugin will pull and process it on every scheduled run, keeping your WordPress users in sync automatically.
 
 = How can I report security bugs? =
 
@@ -1835,8 +1835,23 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 
 Now going through the points above, you should now see a new&nbsp;_Import users from CSV_&nbsp;menu item under Tool menu in the sidebar of the admin panel, see figure below of how it looks like.
 
-[Plugin link from dashboard](http://ps.w.org/import-users-from-csv-with-meta/assets/screenshot-1.png)
-
 If you get any error after following through the steps above please contact us through item support comments so we can get back to you with possible helps in installing the plugin and more.
 
 Please read documentation before start using this plugin.
+
+== Other plugins by Codection ==
+
+*	[RedSys Gateway for WooCommerce Pro](https://codection.com/producto/redsys-gateway-for-woocommerce) (premium)
+*	[Ceca Gateway for WooCommerce Pro](https://codection.com/producto/ceca-gateway-for-woocommerce-pro/) (premium)
+*	[RedSys Gateway for Contact Form 7](https://codection.com/producto/redsys-gateway-for-contact-form-7/) (premium)
+*	[Ceca Gateway for Contact Form 7](https://codection.com/producto/ceca-gateway-for-contact-form-7/) (premium)
+*	[RedSys & Bizum Gateway for Gravity Forms](https://codection.com/plugin/redsys-bizum-gateway-for-gravity-forms/) (premium)
+*	[RedSys & Bizum Gateway for WPForms](https://codection.com/plugin/redsys-gateway-for-wpforms/) (premium)
+*	[RedSys & Bizum for GiveWP](https://codection.com/plugin/redsys-bizum-for-givewp/) (premium)
+*	[RedSys Link Generator](https://codection.com/plugin/redsys-link-generator/) (premium)
+*	[RedSys & Bizum Gateway for EDD Pro](https://codection.com/plugin/redsys-gateway-for-edd-pro/) (premium)
+*	[RedSys Gateway for WP Booking Calendar Pro](https://codection.com/producto/redsys-gateway-for-wp-booking-calendar-pro/) (premium)
+*	[Clean Login](https://wordpress.org/plugins/clean-login/) (free)
+*	[Products Restricted Users for WooCommerce](https://wordpress.org/plugins/woo-products-restricted-users/) (free)
+*	[First payment date for WooCommerce Subscriptions](https://wordpress.org/plugins/first-payment-date-for-woocommerce-subscriptions/) (free)
+*	[Payment Schedule for WooCommerce Subscriptions](https://import-wp.com/payment-schedule-for-woocommerce-subscriptions) (premium)
