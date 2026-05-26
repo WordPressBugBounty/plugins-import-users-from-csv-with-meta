@@ -86,6 +86,7 @@ class ACUI_WooCommerce{
 	}
 
 	function sync_wc_customer( $headers, $data, $user_id, $role ){
+		if( !is_array( $role ) ) $role = array( $role );
 		if( !in_array( 'customer', $role ) || !class_exists( 'WC_Customer' ) )
 			return;
 

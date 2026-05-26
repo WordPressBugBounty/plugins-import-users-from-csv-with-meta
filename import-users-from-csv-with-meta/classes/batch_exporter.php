@@ -603,6 +603,12 @@ class ACUI_Batch_Exporter{
             }
 		}
 
+		$args['meta_query'] = array(
+			'relation' => 'OR',
+			array( 'key' => '_acui_exclude_from_export', 'compare' => 'NOT EXISTS' ),
+			array( 'key' => '_acui_exclude_from_export', 'value' => '1', 'compare' => '!=' ),
+		);
+
 		$users = get_users( $args );
 
         if( $calculate_total )
