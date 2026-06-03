@@ -10,6 +10,21 @@ class ACUI_Cron{
 		add_action( 'acui_cron_log_action', array( $this, 'handle_log_action' ) );
 		add_action( 'wp_ajax_acui_fire_cron', array( $this, 'ajax_fire_cron' ) );
 		add_action( 'wp_ajax_acui_fire_cron_no_session', array( $this, 'ajax_fire_cron_no_session' ) );
+		add_action( 'admin_init', array( $this, 'maybe_reschedule' ) );
+	}
+
+	function maybe_reschedule(){
+		if( !get_option( 'acui_cron_activated' ) )
+			return;
+
+		if( !function_exists( 'as_next_scheduled_action' ) )
+			return;
+
+		if( as_next_scheduled_action( 'acui_cron_process' ) !== false )
+			return;
+
+		$period = get_option( 'acui_cron_period', 'hourly' );
+		as_schedule_recurring_action( time(), ACUIHelper()->get_seconds_by_period( $period ), 'acui_cron_process' );
 	}
 
 	function clean_path_url_csv( $path_url ){
@@ -115,7 +130,7 @@ class ACUI_Cron{
 		}
 		$message .= __( '--Finished at', 'import-users-from-csv-with-meta' ) . ' ' . current_time('mysql') . '<br/><br/>';
 
-		update_option( "acui_cron_log", $message );
+		update_option( "acui_cron_log", $message, false );
 
 		if( !empty( $result['done'] ) ){
 			$this->save_execution_log( $result, 1 );
@@ -178,6 +193,13 @@ class ACUI_Cron{
 			$log = array_slice( $log, 0, 100 );
 
 		update_option( 'acui_cron_execution_log', $log, false );
+
+		// Save the HTML output of this run for the Log > Recurring sub-tab
+		update_option( 'acui_last_cron_import_log', array(
+			'date'   => current_time( 'mysql' ),
+			'html'   => get_option( 'acui_cron_log', '' ),
+			'source' => 'cron',
+		), false );
 	}
 
 	function auto_rename(){

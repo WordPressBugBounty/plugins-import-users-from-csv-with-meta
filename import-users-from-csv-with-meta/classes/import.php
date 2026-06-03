@@ -136,6 +136,10 @@ class ACUI_Import{
                 ACUI_Log::admin_gui();
             break;
 
+            case 'log-cron':
+                ACUI_Log::admin_gui_cron();
+            break;
+
             case 'help':
                 ACUI_Help::message();
             break;
@@ -150,6 +154,7 @@ class ACUI_Import{
         $import_tab_ids   = apply_filters( 'acui_import_tab_ids', array( 'homepage', 'frontend', 'cron', 'cron-log' ) );
         $export_tab_ids   = apply_filters( 'acui_export_tab_ids', array( 'export', 'frontend-export', 'cron-export' ) );
         $settings_tab_ids = apply_filters( 'acui_settings_tab_ids', array( 'mail-options', 'columns', 'meta-keys', 'tools' ) );
+        $log_tab_ids      = apply_filters( 'acui_log_tab_ids', array( 'log', 'log-cron' ) );
 
         $all_tabs = array(
             'homepage'        => __( 'Import', 'import-users-from-csv-with-meta' ),
@@ -165,6 +170,7 @@ class ACUI_Import{
             'doc'             => __( 'Documentation', 'import-users-from-csv-with-meta' ),
             'tools'           => __( 'Tools', 'import-users-from-csv-with-meta' ),
             'log'             => __( 'Log', 'import-users-from-csv-with-meta' ),
+            'log-cron'        => __( 'Log recurring', 'import-users-from-csv-with-meta' ),
             'help'            => __( 'More...', 'import-users-from-csv-with-meta' ),
         );
 
@@ -173,8 +179,9 @@ class ACUI_Import{
         $in_import   = in_array( $current, $import_tab_ids );
         $in_export   = in_array( $current, $export_tab_ids );
         $in_settings = in_array( $current, $settings_tab_ids );
+        $in_log      = in_array( $current, $log_tab_ids );
 
-        $grouped = array_merge( $import_tab_ids, $export_tab_ids, $settings_tab_ids );
+        $grouped = array_merge( $import_tab_ids, $export_tab_ids, $settings_tab_ids, $log_tab_ids );
 
         echo '<div id="icon-themes" class="icon32"><br></div>';
         echo '<h2 class="nav-tab-wrapper">';
@@ -188,7 +195,11 @@ class ACUI_Import{
         $settings_class = $in_settings ? ' nav-tab-active' : '';
         echo "<a class='nav-tab$settings_class' href='?page=acui&tab=mail-options'>" . __( 'Settings', 'import-users-from-csv-with-meta' ) . "</a>";
 
-        foreach( array( 'log', 'doc', 'help' ) as $tab ){
+        $log_class = $in_log ? ' nav-tab-active' : '';
+        $log_class = apply_filters( 'acui_tab_class', $log_class, 'log' );
+        echo "<a class='nav-tab$log_class' href='?page=acui&tab=log'>" . esc_html( $all_tabs['log'] ) . "</a>";
+
+        foreach( array( 'doc', 'help' ) as $tab ){
             if( !isset( $all_tabs[$tab] ) ) continue;
             $name   = $all_tabs[$tab];
             $class  = ( $tab === $current ) ? ' nav-tab-active' : '';
@@ -199,7 +210,7 @@ class ACUI_Import{
         }
 
         foreach( $all_tabs as $tab => $name ){
-            if( in_array( $tab, $grouped ) || in_array( $tab, array( 'log', 'doc', 'help' ) ) ) continue;
+            if( in_array( $tab, $grouped ) || in_array( $tab, array( 'log', 'log-cron', 'doc', 'help' ) ) ) continue;
             $class  = ( $tab === $current ) ? ' nav-tab-active' : '';
             $href   = apply_filters( 'acui_tab_href', '?page=acui&tab=' . $tab, $tab );
             $target = apply_filters( 'acui_tab_target', '_self', $tab );
@@ -248,6 +259,19 @@ class ACUI_Import{
             echo '<div class="wp-clearfix"><ul class="acui-subsubsub">';
             foreach( $all_tabs as $tab => $name ){
                 if( !in_array( $tab, $settings_tab_ids ) ) continue;
+                $class = ( $tab === $current ) ? 'current' : '';
+                echo '<li><a class="' . esc_attr( $class ) . '" href="' . esc_url( '?page=acui&tab=' . $tab ) . '">' . esc_html( $name ) . '</a></li>';
+            }
+            echo '</ul></div>';
+        }
+
+        if( $in_log ){
+            $log_subtabs = array(
+                'log'     => __( 'Backend', 'import-users-from-csv-with-meta' ),
+                'log-cron' => __( 'Recurring', 'import-users-from-csv-with-meta' ),
+            );
+            echo '<div class="wp-clearfix"><ul class="acui-subsubsub">';
+            foreach( $log_subtabs as $tab => $name ){
                 $class = ( $tab === $current ) ? 'current' : '';
                 echo '<li><a class="' . esc_attr( $class ) . '" href="' . esc_url( '?page=acui&tab=' . $tab ) . '">' . esc_html( $name ) . '</a></li>';
             }
@@ -943,11 +967,12 @@ class ACUI_Import{
             ACUIHelper()->print_end_of_process();
             $results_log_html = ob_get_clean();
 
-            // Save full log (rows + results) for the Log tab
+            // Save full log (rows + results) for the Log tab (manual imports only)
             $full_log = get_transient( 'acui_import_log_accumulate' );
             update_option( 'acui_last_import_log', array(
-                'date' => current_time( 'mysql' ),
-                'html' => ( $full_log !== false ? $full_log : $log ) . $results_log_html,
+                'date'   => current_time( 'mysql' ),
+                'html'   => ( $full_log !== false ? $full_log : $log ) . $results_log_html,
+                'source' => 'manual',
             ), false );
             delete_transient( 'acui_import_log_accumulate' );
 
