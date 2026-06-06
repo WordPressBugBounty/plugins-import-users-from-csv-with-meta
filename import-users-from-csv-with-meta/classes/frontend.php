@@ -550,7 +550,7 @@ class ACUI_Frontend{
 				return strtolower( $value ) == 'yes' ? 1 : 0;
 
 			case 'columns':
-				return ( preg_match('/^[,a-zA-Z0-9_-]+$/', $value ) ) ? $value : '';
+				return ( preg_match('/^[,a-zA-Z0-9_ -]+$/', $value ) ) ? $value : '';
 			
 			case 'orderby':
 				return ( preg_match('/^[a-zA-Z0-9_-]+$/', $value ) ) ? $value : '';
