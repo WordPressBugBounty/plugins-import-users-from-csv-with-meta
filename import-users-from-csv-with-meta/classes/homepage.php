@@ -47,12 +47,8 @@ class ACUI_Homepage{
 		<style>
 		#acui_import_results{
 			display: none;
-			background-color: #f0f0f1;
-			padding: 20px;
 			margin-top: 20px;
 			margin-bottom: 20px;
-			border-radius: 6px;
-			border: 1px solid #c3c4c7;
 		}
 
 		.user-importer-progress-wrapper{
@@ -384,34 +380,34 @@ class ACUI_Homepage{
 				</div>
 				<?php wp_nonce_field( 'codection-security', 'security' ); ?>
 				</form>
-				<div id="acui_import_log" style="margin-top: 20px;"></div>
 				<div id="acui_import_results">
-					<h3><?php _e( 'Results', 'import-users-from-csv-with-meta' ); ?></h3>
-					<table id="acui_import_summary" class="form-table">
-						<tbody>
-							<tr>
-								<th><?php _e( 'Users processed', 'import-users-from-csv-with-meta' ); ?></th>
-								<td><span id="acui_result_processed">0</span></td>
-							</tr>
-							<tr>
-								<th><?php _e( 'Users created', 'import-users-from-csv-with-meta' ); ?></th>
-								<td><span id="acui_result_created">0</span></td>
-							</tr>
-							<tr>
-								<th><?php _e( 'Users updated', 'import-users-from-csv-with-meta' ); ?></th>
-								<td><span id="acui_result_updated">0</span></td>
-							</tr>
-							<tr>
-								<th><?php _e( 'Users deleted', 'import-users-from-csv-with-meta' ); ?></th>
-								<td><span id="acui_result_deleted">0</span></td>
-							</tr>
-							<tr>
-								<th><?php _e( 'Errors, warnings and notices found', 'import-users-from-csv-with-meta' ); ?></th>
-								<td><span id="acui_result_errors">0</span></td>
-							</tr>
-						</tbody>
-					</table>
+					<div class="acui-log-summary">
+						<h3><?php _e( 'Results', 'import-users-from-csv-with-meta' ); ?></h3>
+						<div class="acui-log-cards">
+							<div class="acui-log-card acui-log-card--processed">
+								<span class="acui-log-card__number" id="acui_result_processed">0</span>
+								<span class="acui-log-card__label"><?php _e( 'Processed', 'import-users-from-csv-with-meta' ); ?></span>
+							</div>
+							<div class="acui-log-card acui-log-card--created">
+								<span class="acui-log-card__number" id="acui_result_created">0</span>
+								<span class="acui-log-card__label"><?php _e( 'Created', 'import-users-from-csv-with-meta' ); ?></span>
+							</div>
+							<div class="acui-log-card acui-log-card--updated">
+								<span class="acui-log-card__number" id="acui_result_updated">0</span>
+								<span class="acui-log-card__label"><?php _e( 'Updated', 'import-users-from-csv-with-meta' ); ?></span>
+							</div>
+							<div class="acui-log-card acui-log-card--deleted">
+								<span class="acui-log-card__number" id="acui_result_deleted">0</span>
+								<span class="acui-log-card__label"><?php _e( 'Deleted', 'import-users-from-csv-with-meta' ); ?></span>
+							</div>
+							<div class="acui-log-card acui-log-card--no-errors" id="acui_issues_card">
+								<span class="acui-log-card__number" id="acui_result_errors">0</span>
+								<span class="acui-log-card__label"><?php _e( 'Issues', 'import-users-from-csv-with-meta' ); ?></span>
+							</div>
+						</div>
+					</div>
 				</div>
+				<div id="acui_import_log" style="margin-top: 20px;"></div>
 			</div>
 
 			<div class="sidebar" style="position:sticky;top:32px;align-self:flex-start;">

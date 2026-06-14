@@ -241,6 +241,155 @@ input[type=checkbox].acui-checkbox{
     margin-left: 2px;
 }
 
+/* log - summary cards */
+.acui-log-summary {
+    margin: 20px 0 16px;
+}
+
+.acui-log-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 12px;
+}
+
+.acui-log-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 120px;
+    padding: 20px 24px;
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-top: 4px solid #c3c4c7;
+    border-radius: 4px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.acui-log-card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,.12);
+    transform: translateY(-2px);
+}
+
+.acui-log-card__number {
+    display: block;
+    font-size: 40px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: #1d2327;
+}
+
+.acui-log-card__label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #787c82;
+    margin-top: 8px;
+}
+
+.acui-log-card--processed  { border-top-color: #72aee6; background: #f0f6fc; }
+.acui-log-card--processed  .acui-log-card__number { color: #2271b1; }
+.acui-log-card--created    { border-top-color: #00a32a; background: #f0fdf0; }
+.acui-log-card--created    .acui-log-card__number { color: #00a32a; }
+.acui-log-card--updated    { border-top-color: #2271b1; background: #f0f6fc; }
+.acui-log-card--updated    .acui-log-card__number { color: #2271b1; }
+.acui-log-card--deleted    { border-top-color: #d63638; background: #fdf0f0; }
+.acui-log-card--deleted    .acui-log-card__number { color: #d63638; }
+.acui-log-card--errors     { border-top-color: #dba617; background: #fdf8ee; }
+.acui-log-card--errors     .acui-log-card__number { color: #996800; }
+.acui-log-card--no-errors  { border-top-color: #00a32a; background: #f0fdf0; }
+.acui-log-card--no-errors  .acui-log-card__number { color: #00a32a; }
+
+/* log - collapsible sections */
+.acui-log-section {
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    margin-top: 16px;
+    background: #fff;
+}
+
+.acui-log-section__summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 14px;
+    cursor: pointer;
+    list-style: none;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1d2327;
+    user-select: none;
+    gap: 10px;
+}
+
+.acui-log-section__summary::-webkit-details-marker { display: none; }
+
+.acui-log-section__summary:hover {
+    background: #f6f7f7;
+    border-radius: 4px;
+}
+
+details.acui-log-section[open] > .acui-log-section__summary {
+    border-bottom: 1px solid #dcdcde;
+    border-radius: 4px 4px 0 0;
+}
+
+.acui-log-section__chevron {
+    font-size: 10px;
+    color: #787c82;
+    flex-shrink: 0;
+    transition: transform 0.15s ease;
+}
+
+details.acui-log-section[open] > .acui-log-section__summary .acui-log-section__chevron {
+    transform: rotate(180deg);
+}
+
+.acui-log-section__body {
+    padding: 12px 16px;
+    overflow-x: auto;
+}
+
+/* log - error type badges */
+.acui-log-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.acui-log-badge--error   { background: #fcf0f1; color: #d63638; border: 1px solid #f8c8c9; }
+.acui-log-badge--warning { background: #fcf9e8; color: #8a6914; border: 1px solid #f5e6ab; }
+.acui-log-badge--notice  { background: #f0f6fc; color: #2271b1; border: 1px solid #c5d9ed; }
+
+/* import log table */
+#acui_import_log {
+    overflow-x: auto !important;
+}
+
+.acui-import-rows,
+#acui_errors {
+    min-width: 800px;
+}
+
+.acui-import-rows th,
+.acui-import-rows td,
+#acui_errors th,
+#acui_errors td {
+    min-width: 150px;
+    text-align: left;
+    white-space: nowrap;
+}
+
 /* dataTables */
 .dataTables_wrapper .dataTables_length select{
     font-size: 13px;

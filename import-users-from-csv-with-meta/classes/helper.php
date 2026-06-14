@@ -417,8 +417,13 @@ class ACUI_Helper{
     function print_errors( $errors ){
         if( empty( $errors ) )
             return;
+
+        $type_labels = array(
+            'error'   => __( 'Error',   'import-users-from-csv-with-meta' ),
+            'warning' => __( 'Warning', 'import-users-from-csv-with-meta' ),
+            'notice'  => __( 'Notice',  'import-users-from-csv-with-meta' ),
+        );
         ?>
-        <h3><?php _e( 'Errors, warnings and notices', 'import-users-from-csv-with-meta' ); ?></h3>
         <table id="acui_errors">
             <thead>
                 <tr>
@@ -435,11 +440,14 @@ class ACUI_Helper{
                 </tr>
             </tfoot>
             <tbody>
-                <?php foreach( $errors as $error ): ?>
+                <?php foreach( $errors as $error ):
+                    $type  = isset( $error['type'] ) ? $error['type'] : 'error';
+                    $label = isset( $type_labels[ $type ] ) ? $type_labels[ $type ] : esc_html( $type );
+                ?>
                 <tr>
-                    <td><?php echo $error['row']; ?></td>
+                    <td><?php echo intval( $error['row'] ); ?></td>
                     <td><?php echo esc_html( $error['message'] ); ?></td>
-                    <td><?php echo $error['type']; ?></td>
+                    <td><span class="acui-log-badge acui-log-badge--<?php echo esc_attr( $type ); ?>"><?php echo esc_html( $label ); ?></span></td>
                 </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -448,32 +456,37 @@ class ACUI_Helper{
     }
 
     function print_results( $results, $errors ){
+        $processed   = intval( $results['created'] ) + intval( $results['updated'] );
+        $created     = intval( $results['created'] );
+        $updated     = intval( $results['updated'] );
+        $deleted     = intval( $results['deleted'] );
+        $issue_count = count( $errors );
         ?>
-        <h3><?php _e( 'Results', 'import-users-from-csv-with-meta' ); ?></h3>
-        <table id="acui_import_summary" class="form-table">
-            <tbody>
-                <tr>
-                    <th><?php _e( 'Users processed', 'import-users-from-csv-with-meta' ); ?></th>
-                    <td><?php echo $results['created'] + $results['updated']; ?></td>
-                </tr>
-                <tr>
-                    <th><?php _e( 'Users created', 'import-users-from-csv-with-meta' ); ?></th>
-                    <td><?php echo $results['created']; ?></td>
-                </tr>
-                <tr>
-                    <th><?php _e( 'Users updated', 'import-users-from-csv-with-meta' ); ?></th>
-                    <td><?php echo $results['updated']; ?></td>
-                </tr>
-                <tr>
-                    <th><?php _e( 'Users deleted', 'import-users-from-csv-with-meta' ); ?></th>
-                    <td><?php echo $results['deleted']; ?></td>
-                </tr>
-                <tr>
-                    <th><?php _e( 'Errors, warnings and notices found', 'import-users-from-csv-with-meta' ); ?></td>
-                    <td><?php echo count( $errors ); ?></td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="acui-log-summary">
+            <h3><?php _e( 'Results', 'import-users-from-csv-with-meta' ); ?></h3>
+            <div class="acui-log-cards">
+                <div class="acui-log-card acui-log-card--processed">
+                    <span class="acui-log-card__number"><?php echo $processed; ?></span>
+                    <span class="acui-log-card__label"><?php _e( 'Processed', 'import-users-from-csv-with-meta' ); ?></span>
+                </div>
+                <div class="acui-log-card acui-log-card--created">
+                    <span class="acui-log-card__number"><?php echo $created; ?></span>
+                    <span class="acui-log-card__label"><?php _e( 'Created', 'import-users-from-csv-with-meta' ); ?></span>
+                </div>
+                <div class="acui-log-card acui-log-card--updated">
+                    <span class="acui-log-card__number"><?php echo $updated; ?></span>
+                    <span class="acui-log-card__label"><?php _e( 'Updated', 'import-users-from-csv-with-meta' ); ?></span>
+                </div>
+                <div class="acui-log-card acui-log-card--deleted">
+                    <span class="acui-log-card__number"><?php echo $deleted; ?></span>
+                    <span class="acui-log-card__label"><?php _e( 'Deleted', 'import-users-from-csv-with-meta' ); ?></span>
+                </div>
+                <div class="acui-log-card <?php echo $issue_count > 0 ? 'acui-log-card--errors' : 'acui-log-card--no-errors'; ?>">
+                    <span class="acui-log-card__number"><?php echo $issue_count; ?></span>
+                    <span class="acui-log-card__label"><?php _e( 'Issues', 'import-users-from-csv-with-meta' ); ?></span>
+                </div>
+            </div>
+        </div>
         <?php
     }
 
@@ -504,30 +517,6 @@ class ACUI_Helper{
             }
         } )
         </script>
-        <?php
-    }
-    
-    function basic_css(){
-        ?>
-        <style type="text/css">
-            #acui_import_log{
-                overflow-x:auto!important;
-            }
-
-            .acui-import-rows,
-            #acui_errors{
-                min-width:800px;
-            }
-
-            .acui-import-rows th,
-            .acui-import-rows td,
-            #acui_errors th,
-            #acui_errors td{
-                min-width:150px;
-                text-align:left;
-                white-space:nowrap;
-            }
-        </style>
         <?php
     }
     

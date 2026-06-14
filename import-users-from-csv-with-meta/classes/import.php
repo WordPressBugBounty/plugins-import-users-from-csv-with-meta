@@ -437,7 +437,6 @@ class ACUI_Import{
 
         update_option( "acui_columns", $headers_filtered );
 
-        ACUIHelper()->basic_css();                        
         ACUIHelper()->print_table_header_footer( $headers );
 
         return true;
@@ -963,16 +962,23 @@ class ACUI_Import{
 
             ob_start();
             ACUIHelper()->print_errors( $errors_for_log );
-            ACUIHelper()->print_results( $results_data, $errors_for_log );
-            ACUIHelper()->print_end_of_process();
-            $results_log_html = ob_get_clean();
+            $html_errors = ob_get_clean();
 
-            // Save full log (rows + results) for the Log tab (manual imports only)
-            $full_log = get_transient( 'acui_import_log_accumulate' );
+            ob_start();
+            ACUIHelper()->print_results( $results_data, $errors_for_log );
+            $html_summary = ob_get_clean();
+
+            $full_log  = get_transient( 'acui_import_log_accumulate' );
+            $html_rows = $full_log !== false ? $full_log : $log;
+
+            // Save structured log for the Log tab (manual imports only)
             update_option( 'acui_last_import_log', array(
-                'date'   => current_time( 'mysql' ),
-                'html'   => ( $full_log !== false ? $full_log : $log ) . $results_log_html,
-                'source' => 'manual',
+                'date'         => current_time( 'mysql' ),
+                'html'         => $html_summary . $html_errors . $html_rows, // legacy fallback
+                'html_rows'    => $html_rows,
+                'html_errors'  => $html_errors,
+                'html_summary' => $html_summary,
+                'source'       => 'manual',
             ), false );
             delete_transient( 'acui_import_log_accumulate' );
 

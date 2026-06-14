@@ -117,7 +117,14 @@
                         $('#acui_import_results').show();
                     }
                     if (response.data.errors_count !== undefined) {
-                        $('#acui_result_errors').text(response.data.errors_count);
+                        var errCount = response.data.errors_count;
+                        $('#acui_result_errors').text(errCount);
+                        var $issueCard = $('#acui_issues_card');
+                        if (errCount > 0) {
+                            $issueCard.removeClass('acui-log-card--no-errors').addClass('acui-log-card--errors');
+                        } else {
+                            $issueCard.removeClass('acui-log-card--errors').addClass('acui-log-card--no-errors');
+                        }
                     }
 
                     if ('done' === response.data.step) {
