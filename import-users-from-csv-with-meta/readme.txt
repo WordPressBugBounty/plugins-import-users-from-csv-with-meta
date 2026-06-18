@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.0
-Stable tag: 2.3.6
+Stable tag: 2.3.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -89,6 +89,9 @@ Plugin will automatically detect:
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.3.7 =
+*   Fixed fatal error in Advanced Custom Fields addon when a multiple-value field already arrives as an array instead of a string (explode() type error)
 
 = 2.3.6 =
 *   Redesigned the Log tab: import results are now shown as visual summary cards (Processed / Created / Updated / Deleted / Issues) at the top of the page

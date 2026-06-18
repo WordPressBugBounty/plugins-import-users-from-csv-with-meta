@@ -70,7 +70,7 @@ class ACUI_ACF{
 				$data = media_sideload_image( $row[ $pos ], 0, $key . ' of user ' . $user_id, 'id' );
 			}
 			elseif( $types[ $key ][ 'multiple' ] ){
-				$data = explode( ',', $row[ $pos ] );
+				$data = is_array( $row[ $pos ] ) ? $row[ $pos ] : explode( ',', $row[ $pos ] );
 				array_filter( $data, function( $value ){ return $value !== ''; } );
 			}
 			else{
