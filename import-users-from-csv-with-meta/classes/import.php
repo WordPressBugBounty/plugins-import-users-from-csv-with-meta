@@ -1074,11 +1074,14 @@ class ACUI_Import{
             $columns = get_transient( $pfx . 'columns' );
 
             $headers = get_transient( $pfx . 'headers' );
+            if( !is_array( $headers ) ) $headers = array();
             $headers_filtered = get_transient( $pfx . 'headers_filtered' );
             $positions = get_transient( $pfx . 'positions' );
 
             $errors = get_transient( $pfx . 'errors' );
+            if( !is_array( $errors ) ) $errors = array();
             $errors_totals = get_transient( $pfx . 'errors_totals' );
+            if( !is_array( $errors_totals ) ) $errors_totals = array( 'notices' => 0, 'warnings' => 0, 'errors' => 0 );
 
             $results = get_transient( $pfx . 'results' );
             if( !is_array( $results ) ) $results = array( 'created' => 0, 'updated' => 0, 'deleted' => 0, 'ignored' => 0 );
@@ -1114,6 +1117,19 @@ class ACUI_Import{
         $manager = new SplFileObject( $file );
         if( $initial_row != 0 )
             $manager->seek( $initial_row );
+
+        if( $initial_row != 0 && !$columns ){
+            $header_manager = new SplFileObject( $file );
+            $header_data = $header_manager->fgetcsv( $delimiter );
+            if( is_array( $header_data ) && count( $header_data ) > 1 ){
+                $headers = array();
+                $headers_filtered = array();
+                $positions = array();
+                $this->read_first_row( $header_data, $headers, $positions, $headers_filtered );
+                $columns = count( $header_data );
+            }
+            unset( $header_manager );
+        }
 
         while( $data = $manager->fgetcsv( $delimiter ) ):
             $row++;
@@ -1169,7 +1185,7 @@ class ACUI_Import{
                 }
             }
 
-            if( $limit > 0 && ($row - $initial_row) >= $limit ){
+            if( $limit > 0 && ($row - $initial_row) >= $limit + ($initial_row == 0 ? 1 : 0) ){
                 $this->save_transients( $columns, $headers, $headers_filtered, $positions, $errors, $errors_totals, $results, $users_created, $users_updated, $users_ignored, $roles_appeared, $users_deleted );
 
                 if( $is_cron ){

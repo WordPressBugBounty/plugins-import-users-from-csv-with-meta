@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.0
-Stable tag: 2.3.7
+Stable tag: 2.3.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -89,6 +89,11 @@ Plugin will automatically detect:
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.3.8 =
+*   Fixed batch import stopping after 99 users instead of 100 in the first step (header row was counted against the batch limit)
+*   Fixed "Row does not have the same columns as the header" errors in steps 2+ when transient data was lost (cache flush, plugin conflict): header is now re-read from the CSV file as a fallback
+*   Fixed PHP warnings for undefined array keys "errors" in helper.php (line 211) and foreach on bool in helper.php (line 362) caused by expired transients returning false
 
 = 2.3.7 =
 *   Fixed fatal error in Advanced Custom Fields addon when a multiple-value field already arrives as an array instead of a string (explode() type error)
