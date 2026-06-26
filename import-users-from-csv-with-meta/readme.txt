@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.0
-Stable tag: 2.3.8
+Stable tag: 2.3.9
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -89,6 +89,9 @@ Plugin will automatically detect:
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.3.9 =
+*   Fixed fatal error "array_intersect(): Argument #1 must be of type array, bool given" in async cron step 2+ when the roles_appeared transient had expired
 
 = 2.3.8 =
 *   Fixed batch import stopping after 99 users instead of 100 in the first step (header row was counted against the batch limit)

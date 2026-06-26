@@ -1097,6 +1097,7 @@ class ACUI_Import{
             if( !is_array( $users_updated ) ) $users_updated = array();
             if( !is_array( $users_ignored ) ) $users_ignored = array();
             if( !is_array( $users_deleted ) ) $users_deleted = array();
+            if( !is_array( $roles_appeared ) ) $roles_appeared = array();
         }
 
         echo '<div class="wrap">';
