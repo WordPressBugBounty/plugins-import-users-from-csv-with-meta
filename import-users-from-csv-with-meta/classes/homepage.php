@@ -15,8 +15,8 @@ class ACUI_Homepage{
         if( $hook != 'tools_page_acui' )
             return;
 
-        wp_enqueue_style( 'select2-css', '//cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css' );
-        wp_enqueue_script( 'select2-js', '//cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js' );
+        wp_enqueue_style( 'select2-css', plugin_dir_url( dirname( __FILE__ ) ) . 'assets/select2.min.css' );
+        wp_enqueue_script( 'select2-js', plugin_dir_url( dirname( __FILE__ ) ) . 'assets/select2.min.js' );
     }
 
 	static function admin_gui(){

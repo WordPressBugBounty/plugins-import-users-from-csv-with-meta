@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.0
-Stable tag: 2.3.9
+Stable tag: 2.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -89,6 +89,10 @@ Plugin will automatically detect:
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.4 =
+*   Security fix: added `current_user_can('edit_user', $user_id)` check before every `wp_set_password()` call during import, preventing a user with `create_users` access from resetting passwords of accounts they are not authorised to edit
+*   Security fix: DataTables (2.2.2) and Select2 (4.1.0-rc.0) are now bundled locally in the plugin's assets directory instead of being loaded from external CDNs, eliminating the dependency on cdn.datatables.net and cdn.jsdelivr.net in wp-admin
 
 = 2.3.9 =
 *   Fixed fatal error "array_intersect(): Argument #1 must be of type array, bool given" in async cron step 2+ when the roles_appeared transient had expired

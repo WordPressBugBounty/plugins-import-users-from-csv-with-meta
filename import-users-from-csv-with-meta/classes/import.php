@@ -538,7 +538,7 @@ class ACUI_Import{
                 if( $user->user_login == $username ){
                     $user_id = $id;
                     
-                    if( $password !== "" && $settings['update_allow_update_passwords'] == 'yes' && $user_id != get_current_user_id() ){
+                    if( $password !== "" && $settings['update_allow_update_passwords'] == 'yes' && $user_id != get_current_user_id() && current_user_can( 'edit_user', $user_id ) ){
                         wp_set_password( $password, $user_id );
                         $password_changed = true;
                     }
@@ -590,7 +590,7 @@ class ACUI_Import{
                 return array( 'result' => 'ignored', 'user_id' => $user_id );
             }
             
-            if( $password !== "" && $settings['update_allow_update_passwords'] == 'yes' && $user_id != get_current_user_id() ){
+            if( $password !== "" && $settings['update_allow_update_passwords'] == 'yes' && $user_id != get_current_user_id() && current_user_can( 'edit_user', $user_id ) ){
                 wp_set_password( $password, $user_id );
                 $password_changed = true;
             }
@@ -628,7 +628,7 @@ class ACUI_Import{
             $data[0] = sprintf( __( 'User already exists as: %s (in this CSV file, it is called: %s)', 'import-users-from-csv-with-meta' ), $user_object->user_login, $username );
             $errors[] = ACUIHelper()->new_error( $row, $data[0], 'warning' );
 
-            if( $password !== "" && $settings['update_allow_update_passwords'] == 'yes' && $user_id != get_current_user_id() ){
+            if( $password !== "" && $settings['update_allow_update_passwords'] == 'yes' && $user_id != get_current_user_id() && current_user_can( 'edit_user', $user_id ) ){
                 wp_set_password( $password, $user_id );
                 $password_changed = true;
             }

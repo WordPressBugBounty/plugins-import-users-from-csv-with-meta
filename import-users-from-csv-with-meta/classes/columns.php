@@ -21,8 +21,8 @@ class ACUI_Columns{
 		if( $hook != 'tools_page_acui' || !isset( $_GET['tab'] ) || $_GET['tab'] != 'columns' )
 			return;
 
-		wp_enqueue_script( 'datatable', '//cdn.datatables.net/2.2.2/js/dataTables.min.js', array( 'jquery' ), '2.2.2' );
-		wp_enqueue_style( 'datatable', '//cdn.datatables.net/2.2.2/css/dataTables.dataTables.min.css', array(), '2.2.2' );
+		wp_enqueue_script( 'datatable', plugin_dir_url( dirname( __FILE__ ) ) . 'assets/dataTables.min.js', array( 'jquery' ), '2.3.7' );
+		wp_enqueue_style( 'datatable', plugin_dir_url( dirname( __FILE__ ) ) . 'assets/dataTables.dataTables.min.css', array(), '2.3.7' );
 	}
 
 	public static function admin_gui(){

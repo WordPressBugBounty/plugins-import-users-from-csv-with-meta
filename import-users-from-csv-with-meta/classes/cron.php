@@ -841,7 +841,7 @@ class ACUI_Cron{
 			<p><?php _e( 'No recurring executions recorded yet.', 'import-users-from-csv-with-meta' ); ?></p>
 		<?php else: ?>
 
-		<table class="widefat striped" style="margin-bottom:20px;">
+		<table id="acui-cron-log-table" style="margin-bottom:20px;">
 			<thead>
 				<tr>
 					<th><?php _e( 'Date', 'import-users-from-csv-with-meta' ); ?></th>
@@ -873,6 +873,14 @@ class ACUI_Cron{
 		</table>
 
 		<?php endif; ?>
+
+		<script>
+		jQuery( document ).ready( function( $ ){
+			if ( $( '#acui-cron-log-table' ).length && ! $.fn.DataTable.isDataTable( '#acui-cron-log-table' ) ) {
+				$( '#acui-cron-log-table' ).DataTable({ "scrollX": true, "order": [] });
+			}
+		} );
+		</script>
 
 		<form method="POST" action="">
 			<?php wp_nonce_field( 'codection-security', 'security' ); ?>
