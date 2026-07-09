@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.0
-Stable tag: 2.4
+Stable tag: 2.4.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -89,6 +89,11 @@ Plugin will automatically detect:
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.4.1 =
+*   Security fix: the `acui_email_template_selected` AJAX handler now requires `edit_others_posts` (filterable via `acui_capability`) and verifies the requested post's `post_type` is `acui_email_template`, preventing a low-privilege authenticated user (e.g. Subscriber) from using the endpoint to read the title/content of arbitrary posts, including drafts and private posts, by ID
+*   Security fix: added the same capability check to `acui_refresh_enable_email_templates` AJAX handler
+*   Security fix: the `codection-security` AJAX nonce is no longer generated on admin screens the current user isn't allowed to act on
 
 = 2.4 =
 *   Security fix: added `current_user_can('edit_user', $user_id)` check before every `wp_set_password()` call during import, preventing a user with `create_users` access from resetting passwords of accounts they are not authorised to edit

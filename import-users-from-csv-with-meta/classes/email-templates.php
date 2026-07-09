@@ -89,18 +89,30 @@ class ACUI_Email_Template{
 	
 	function refresh_enable_email_templates(){
         check_ajax_referer( 'codection-security', 'security' );
+
+        if( !current_user_can( apply_filters( 'acui_capability', 'edit_others_posts' ) ) )
+            wp_die( -1 );
+
         update_option( 'acui_enable_email_templates', ( $_POST[ 'enable' ] == "true" ) );
 		wp_die();
 	}
-	
+
 	function email_template_selected(){
 		check_ajax_referer( 'codection-security', 'security' );
+
+		if( !current_user_can( apply_filters( 'acui_capability', 'edit_others_posts' ) ) )
+			wp_die( -1 );
+
 		$email_template = get_post( intval( $_POST['email_template_selected'] ) );
+
+		if( !$email_template || $email_template->post_type !== 'acui_email_template' )
+			wp_die( -1 );
+
 		$attachment_id = get_post_meta( $email_template->ID, 'email_template_attachment_id', true );
 
-		echo json_encode( array( 
-			'id' => $email_template->ID, 
-			'title' => $email_template->post_title, 
+		echo json_encode( array(
+			'id' => $email_template->ID,
+			'title' => $email_template->post_title,
 			'content' => wpautop( $email_template->post_content ),
 			'attachment_id' => $attachment_id,
 			'attachment_url' => wp_get_attachment_url( $attachment_id ),

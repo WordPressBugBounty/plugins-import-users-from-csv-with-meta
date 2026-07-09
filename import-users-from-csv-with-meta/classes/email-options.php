@@ -356,7 +356,10 @@ class ACUI_Email_Options{
 
 	function load_scripts( $hook ) {
 		global $typenow;
-		
+
+		if( !current_user_can( apply_filters( 'acui_capability', 'edit_others_posts' ) ) )
+			return;
+
 		if( $typenow == 'acui_email_template' || $hook == 'tools_page_acui' ) {
 			wp_enqueue_media();
 			wp_register_script( 'acui-email-template-attachment-admin', esc_url( plugins_url( 'assets/email-template-attachment-admin.js', dirname( __FILE__ ) ) ), array( 'jquery' ) );
