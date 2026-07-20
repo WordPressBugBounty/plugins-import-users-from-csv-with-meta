@@ -230,6 +230,9 @@ class ACUI_Helper{
 
         switch( $update_emails_existing_users ){
             case 'yes':
+                if( !current_user_can( 'edit_user', $user_id ) )
+                    break;
+
                 $user_id = wp_update_user( array( 'ID' => $user_id, 'user_email' => $email ) );
             break;
 

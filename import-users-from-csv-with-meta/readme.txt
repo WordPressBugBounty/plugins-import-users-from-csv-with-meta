@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.0
-Stable tag: 2.4.1
+Stable tag: 2.4.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -89,6 +89,11 @@ Plugin will automatically detect:
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.4.2 =
+*   Security fix: added `current_user_can('promote_users')` check (plus filtering against the actor's editable roles) before applying any role during import, preventing a user with only `create_users` from creating or promoting an account to Administrator
+*   Security fix: added `current_user_can('edit_user', $user_id)` check before the raw `user_pass` hash and any other `wp_users` core field (e.g. `user_email`) reach the database for an existing user during import
+*   Security fix: added `current_user_can('edit_user', $user_id)` check before an existing user's email is changed via `wp_update_user()` when updating users by matching username
 
 = 2.4.1 =
 *   Security fix: the `acui_email_template_selected` AJAX handler now requires `edit_others_posts` (filterable via `acui_capability`) and verifies the requested post's `post_type` is `acui_email_template`, preventing a low-privilege authenticated user (e.g. Subscriber) from using the endpoint to read the title/content of arbitrary posts, including drafts and private posts, by ID

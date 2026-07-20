@@ -674,6 +674,18 @@ class ACUI_Import{
                 }
 
                 if( !$no_role && ( $settings['update_roles_existing_users'] == 'yes' || $settings['update_roles_existing_users'] == 'yes_no_override' || $created ) ){
+                    if( !empty( $role ) && !current_user_can( 'promote_users' ) ){
+                        $errors[] = ACUIHelper()->new_error( $row, __( 'You are not allowed to assign roles, the requested role was ignored.', 'import-users-from-csv-with-meta' ), 'warning' );
+                        $role = array();
+                    }
+
+                    if( !empty( $role ) ){
+                        $editable_roles = ACUIHelper()->get_editable_roles();
+                        $role = array_filter( (array) $role, function( $single_role ) use ( $editable_roles ) {
+                            return array_key_exists( strtolower( trim( $single_role ) ), $editable_roles );
+                        } );
+                    }
+
                     if( !empty( $role ) ){
                         if( is_array( $role ) ){
                             foreach( $role as $single_role ){
@@ -692,7 +704,7 @@ class ACUI_Import{
                             $role = array();
                             $role[] = $role_tmp;
                         }
-                        
+
                         foreach ($role as $single_role) {
                             $single_role = strtolower($single_role);
                             if( get_role( $single_role ) ){
@@ -751,19 +763,25 @@ class ACUI_Import{
                         if( !$created && $user_id == get_current_user_id() )
                             continue;
 
+                        if( !$created && !current_user_can( 'edit_user', $user_id ) )
+                            continue;
+
                         global $wpdb;
                         $wpdb->update( $wpdb->users, array( 'user_pass' => wp_slash( $data[ $i ] ) ), array( 'ID' => $user_id ) );
                         wp_cache_delete( $user_id, 'users' );
                         continue;
                     }
-                    elseif( in_array( $headers[ $i ], ACUIHelper()->get_wp_users_fields() ) ){ // wp_user data									
+                    elseif( in_array( $headers[ $i ], ACUIHelper()->get_wp_users_fields() ) ){ // wp_user data
                         if( $data[ $i ] === '' && $settings['empty_cell_action'] == "leave" ){
+                            continue;
+                        }
+                        elseif( !$created && !current_user_can( 'edit_user', $user_id ) ){
                             continue;
                         }
                         else{
                             wp_update_user( array( 'ID' => $user_id, $headers[ $i ] => $data[ $i ] ) );
                             continue;
-                        }										
+                        }
                     }
                     elseif( in_array( $headers[ $i ], ACUIHelper()->get_not_meta_fields() ) ){
                         continue;
