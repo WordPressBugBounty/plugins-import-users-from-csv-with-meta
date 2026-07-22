@@ -366,20 +366,43 @@ class ACUI_Import{
 
     function manage_file_upload( $path_to_file ){
         $path_to_file = wp_normalize_path( $path_to_file );
+        $is_url = ( wp_http_validate_url( $path_to_file ) !== false );
         $path_to_file = $this->try_download_file( $path_to_file );
-        
+
         if( validate_file( $path_to_file ) !== 0 ){
             echo "<p>" . sprintf( __( 'Error, path to file is not well written: %s', 'import-users-from-csv-with-meta' ), $path_to_file ) . "</p>";
             echo sprintf( __( 'Reload or try <a href="%s">a new import here</a>', 'import-users-from-csv-with-meta' ), get_admin_url( null, 'tools.php?page=acui&tab=homepage' ) );
             return false;
-        } 
+        }
         elseif( empty( $path_to_file ) || !file_exists ( $path_to_file ) ){
             echo "<p>" . __( 'Error, the file cannot be found', 'import-users-from-csv-with-meta' ) . ": $path_to_file</p>";
             echo sprintf( __( 'Reload or try <a href="%s">a new import here</a>', 'import-users-from-csv-with-meta' ), get_admin_url( null, 'tools.php?page=acui&tab=homepage' ) );
             return false;
         }
+        elseif( !$is_url && !$this->is_allowed_local_csv( $path_to_file ) ){
+            echo "<p>" . __( 'Error, the local path must point to a .csv file located inside the WordPress uploads directory', 'import-users-from-csv-with-meta' ) . "</p>";
+            echo sprintf( __( 'Reload or try <a href="%s">a new import here</a>', 'import-users-from-csv-with-meta' ), get_admin_url( null, 'tools.php?page=acui&tab=homepage' ) );
+            return false;
+        }
 
         return $path_to_file;
+    }
+
+    function is_allowed_local_csv( $path_to_file ){
+        if( strtolower( pathinfo( $path_to_file, PATHINFO_EXTENSION ) ) !== 'csv' )
+            return false;
+
+        $upload_dir = wp_upload_dir();
+        $real_base = realpath( $upload_dir['basedir'] );
+        $real_path = realpath( $path_to_file );
+
+        if( $real_base === false || $real_path === false )
+            return false;
+
+        $real_base = wp_normalize_path( $real_base );
+        $real_path = wp_normalize_path( $real_path );
+
+        return strpos( $real_path, trailingslashit( $real_base ) ) === 0;
     }
 
     function fileupload_process( $form_data, $is_cron = false, $is_frontend  = false ) {

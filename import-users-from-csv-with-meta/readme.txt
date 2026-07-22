@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.0
-Stable tag: 2.4.2
+Stable tag: 2.4.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -89,6 +89,10 @@ Plugin will automatically detect:
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.4.3 =
+*   Security fix: the BuddyPress/BuddyBoss `bp_avatar` CSV import now fetches remote URLs with `wp_safe_remote_get()` instead of `file_get_contents()`, preventing a Server-Side Request Forgery that let an admin-supplied URL make the server request internal hosts, cloud metadata endpoints, or scan internal ports (reported by Binesh Madharapu)
+*   Security fix: the manual importer's `path_to_file` field (Tools > Import and export users and customers) now requires a local path to have a `.csv` extension and to resolve inside the WordPress uploads directory, closing an arbitrary file read that allowed reading server files such as `/etc/hosts`, logs or config files (reported by Centesiman)
 
 = 2.4.2 =
 *   Security fix: added `current_user_can('promote_users')` check (plus filtering against the actor's editable roles) before applying any role during import, preventing a user with only `create_users` from creating or promoting an account to Administrator

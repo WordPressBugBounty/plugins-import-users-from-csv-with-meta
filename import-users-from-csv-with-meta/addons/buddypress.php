@@ -316,8 +316,25 @@ class ACUI_Buddypress{
 		}
 
 		$original_file = $avatar_folder_dir . '/import-export-users-customers-bp-avatar-' . $user_id . '.png';
-		$data = ( (string)(int)$source == $source ) ? file_get_contents( get_attached_file( $source ) ) : file_get_contents( $source );
-		
+
+		if ( (string)(int)$source == $source ) {
+			$data = file_get_contents( get_attached_file( $source ) );
+		} elseif ( preg_match( '#^https?://#i', $source ) ) {
+			$response = wp_safe_remote_get( $source );
+
+			if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) !== 200 ) {
+				return false;
+			}
+
+			$data = wp_remote_retrieve_body( $response );
+		} else {
+			$data = file_get_contents( $source );
+		}
+
+		if ( empty( $data ) ) {
+			return false;
+		}
+
 		if ( file_put_contents( $original_file, $data ) ) {
 			$avatar_to_crop = str_replace( bp_core_avatar_upload_path(), '', $original_file );
 
