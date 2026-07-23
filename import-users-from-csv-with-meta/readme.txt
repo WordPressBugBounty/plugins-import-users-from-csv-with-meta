@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.0
-Stable tag: 2.4.4
+Stable tag: 2.4.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -89,6 +89,10 @@ Plugin will automatically detect:
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.4.5 =
+*   Security fix: the BuddyPress/BuddyBoss `bp_avatar` CSV import no longer falls back to a raw `file_get_contents()` call for values that are neither a numeric attachment ID nor an `http(s)` URL, closing an arbitrary local file read / PHP stream wrapper vector (e.g. `file:///etc/passwd`, `php://filter`) (reported by Binesh Madharapu)
+*   Security fix: the `bp_avatar` remote URL fetch now disables automatic redirect following and re-validates every redirect hop against the same SSRF blocklist used for the initial URL, preventing an attacker-hosted URL from bypassing the gate via a 3xx redirect to an internal or cloud metadata address (reported by Binesh Madharapu)
 
 = 2.4.4 =
 *   Security fix: the BuddyPress/BuddyBoss `bp_avatar` CSV import now also rejects link-local (`169.254.0.0/16`), carrier-grade NAT (`100.64.0.0/10`, `198.18.0.0/15`) and other private IP ranges after resolving the URL's host, closing the remaining part of the SSRF where `wp_safe_remote_get()` alone still allowed requests to the cloud metadata endpoint `169.254.169.254` (reported by Binesh Madharapu)

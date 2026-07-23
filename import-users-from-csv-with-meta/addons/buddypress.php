@@ -333,6 +333,37 @@ class ACUI_Buddypress{
 		return true;
 	}
 
+	function fetch_avatar_url_safely( $url, $max_redirects = 3 ){
+		for( $i = 0; $i <= $max_redirects; $i++ ){
+			if ( ! $this->is_safe_avatar_url( $url ) )
+				return false;
+
+			$response = wp_safe_remote_get( $url, array( 'redirection' => 0 ) );
+
+			if ( is_wp_error( $response ) )
+				return false;
+
+			$code = wp_remote_retrieve_response_code( $response );
+
+			if ( in_array( $code, array( 301, 302, 303, 307, 308 ), true ) ) {
+				$location = wp_remote_retrieve_header( $response, 'location' );
+
+				if ( empty( $location ) )
+					return false;
+
+				$url = WP_Http::make_absolute_url( $location, $url );
+				continue;
+			}
+
+			if ( $code !== 200 )
+				return false;
+
+			return wp_remote_retrieve_body( $response );
+		}
+
+		return false;
+	}
+
 	function ip_in_range( $ip, $range ){
 		list( $subnet, $bits ) = explode( '/', $range );
 
@@ -379,19 +410,9 @@ class ACUI_Buddypress{
 		if ( (string)(int)$source == $source ) {
 			$data = file_get_contents( get_attached_file( $source ) );
 		} elseif ( preg_match( '#^https?://#i', $source ) ) {
-			if ( ! $this->is_safe_avatar_url( $source ) ) {
-				return false;
-			}
-
-			$response = wp_safe_remote_get( $source );
-
-			if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) !== 200 ) {
-				return false;
-			}
-
-			$data = wp_remote_retrieve_body( $response );
+			$data = $this->fetch_avatar_url_safely( $source );
 		} else {
-			$data = file_get_contents( $source );
+			return false;
 		}
 
 		if ( empty( $data ) ) {
