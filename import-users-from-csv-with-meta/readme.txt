@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.0
-Stable tag: 2.4.5
+Stable tag: 2.4.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -89,6 +89,10 @@ Plugin will automatically detect:
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.4.6 =
+*   Security fix: custom profile field values (Tools > Show fields in profile) are now sanitized with `sanitize_text_field()` before being stored as user meta in `save_extra_user_profile_fields()`, closing a stored XSS vector where a low-privileged user (e.g. Subscriber) could stash an HTML/JS payload in a custom column (reported by Luca Laytynher (LyT))
+*   Security fix: the CSV export "Some values have been altered" results notice now escapes the user id, column key and value with `esc_html()` before being rendered, preventing a stored XSS payload from executing in the administrator's browser via `export.js`'s `.html()` insertion (reported by Luca Laytynher (LyT))
 
 = 2.4.5 =
 *   Security fix: the BuddyPress/BuddyBoss `bp_avatar` CSV import no longer falls back to a raw `file_get_contents()` call for values that are neither a numeric attachment ID nor an `http(s)` URL, closing an arbitrary local file read / PHP stream wrapper vector (e.g. `file:///etc/passwd`, `php://filter`) (reported by Binesh Madharapu)

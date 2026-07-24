@@ -294,7 +294,7 @@ class ACUI_Exporter{
 		$results = array();
 
 		foreach( $bad_character_formulas_values_cleaned as $info ){
-			$results[] = sprintf( __( 'User with id: %s. The cell in column %s has been edited because its content may contain formulas that are automatically run in certain spreadsheet apps. The new value is: %s', 'import-users-from-csv-with-meta' ), $info['user_id'], $info['key'], $info['value'] );
+			$results[] = sprintf( __( 'User with id: %s. The cell in column %s has been edited because its content may contain formulas that are automatically run in certain spreadsheet apps. The new value is: %s', 'import-users-from-csv-with-meta' ), esc_html( $info['user_id'] ), esc_html( $info['key'] ), esc_html( $info['value'] ) );
 		}
 
 		$ret = '<h3>' . __( 'Export results','import-users-from-csv-with-meta' ) . '</h3>';

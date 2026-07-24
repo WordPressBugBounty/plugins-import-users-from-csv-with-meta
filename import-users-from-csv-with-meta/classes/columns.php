@@ -213,13 +213,14 @@ class ACUI_Columns{
 				$column_sanitized = str_replace(" ", "_", $column );
 
 				if( isset( $post_filtered[ $column_sanitized ] ) ){
+                    $field_value = sanitize_text_field( $post_filtered[ $column_sanitized ] );
                     $old_value = get_user_meta( $user_id, $column, true );
 
-                    if( $old_value != $post_filtered[ $column_sanitized ] )
-                        $values_changed[ $column ] = $post_filtered[ $column_sanitized ];
+                    if( $old_value != $field_value )
+                        $values_changed[ $column ] = $field_value;
 
-                    update_user_meta( $user_id, $column, $post_filtered[ $column_sanitized ] );
-                    $values[ $column ] = $post_filtered[ $column_sanitized ];
+                    update_user_meta( $user_id, $column, $field_value );
+                    $values[ $column ] = $field_value;
                 }
 			}
 
