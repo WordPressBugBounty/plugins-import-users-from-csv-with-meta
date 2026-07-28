@@ -43,9 +43,9 @@ class ACUI_Groups{
 			return;
 	
 		// groups that appears in the CSV
-		$user_groups_csv = explode( ',', $row[ $pos ] );
+		$user_groups_csv = array_map( 'trim', explode( ',', $row[ $pos ] ) );
 		$user_groups_csv = array_filter( $user_groups_csv, function( $value ){ return $value !== ''; } );
-	
+
 		// groups that user belongs to
 		$groups_user = new Groups_User( $user_id );
 		$user_group_ids = $groups_user->group_ids;
@@ -60,7 +60,7 @@ class ACUI_Groups{
 			return;
 	
 		// groups that appears in the CSV
-		$user_groups_name_csv = explode( ',', $row[ $pos ] );
+		$user_groups_name_csv = array_map( 'trim', explode( ',', $row[ $pos ] ) );
 		$user_groups_name_csv = array_filter( $user_groups_name_csv, function( $value ){ return $value !== ''; } );
 		$user_groups_csv = array();
 	

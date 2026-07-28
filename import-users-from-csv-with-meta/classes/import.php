@@ -511,7 +511,7 @@ class ACUI_Import{
             if( !is_array( $roles_cells ) )
                 $roles_cells = array( $roles_cells );
 
-            array_walk( $roles_cells, 'trim' );
+            $roles_cells = array_map( 'trim', $roles_cells );
             
             foreach( $roles_cells as $it => $role_cell )
                 $roles_cells[ $it ] = strtolower( $role_cell );

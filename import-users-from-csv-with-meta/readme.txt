@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.0
-Stable tag: 2.4.6
+Stable tag: 2.4.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -89,6 +89,10 @@ Plugin will automatically detect:
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.4.7 =
+*   Fix: the `role` column now correctly trims leading/trailing spaces from each comma-separated value (e.g. `executive_member, tracker_exclude`). The previous code called `array_walk( $roles_cells, 'trim' )`, which is a no-op because `trim()` does not modify its argument by reference, so roles with a stray space (as commonly added by spreadsheet tools like Google Sheets) were silently treated as invalid and ignored
+*   Fix: the Groups add-on (`group_id`/`group_name` columns) now also trims each comma-separated value before matching it against an existing group, avoiding the same issue when assigning multiple groups per user
 
 = 2.4.6 =
 *   Security fix: custom profile field values (Tools > Show fields in profile) are now sanitized with `sanitize_text_field()` before being stored as user meta in `save_extra_user_profile_fields()`, closing a stored XSS vector where a low-privileged user (e.g. Subscriber) could stash an HTML/JS payload in a custom column (reported by Luca Laytynher (LyT))
