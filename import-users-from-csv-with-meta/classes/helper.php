@@ -161,8 +161,29 @@ class ACUI_Helper{
         do {
             $rnd_str = sprintf("%06d", mt_rand(1, 999999));
         } while( username_exists( $prefix . $rnd_str ) );
-        
+
         return $prefix . $rnd_str;
+    }
+
+    function get_username_from_name( $first_name, $last_name ){
+        $base = remove_accents( trim( $first_name ) . ' ' . trim( $last_name ) );
+        $base = sanitize_user( $base, true );
+        $base = ucwords( strtolower( trim( $base ) ) );
+        $base = preg_replace( '/[^a-zA-Z0-9]/', '', $base );
+
+        if( empty( $base ) )
+            return $this->get_random_unique_username( 'duplicated_username_' );
+
+        if( !username_exists( $base ) )
+            return $base;
+
+        $suffix = 2;
+        do {
+            $candidate = $base . $suffix;
+            $suffix++;
+        } while( username_exists( $candidate ) );
+
+        return $candidate;
     }
 
     function array_one_dimension($array) {
@@ -222,10 +243,13 @@ class ACUI_Helper{
         return array( 'row' => $row, 'message' => $message, 'type' => $type );
     }
 
-    function maybe_update_email( $user_id, $email, $password, $update_emails_existing_users, $original_email ){
+    function maybe_update_email( $user_id, $email, $password, $update_emails_existing_users, $original_email, $first_name = '', $last_name = '' ){
         $user_object = get_user_by( 'id', $user_id );
 
-        if( $user_object->user_email == $email || ( apply_filters( 'acui_allow_no_email', false ) && empty( $original_email ) ) )
+        $normalized_existing_email = strtolower( trim( $user_object->user_email ) );
+        $normalized_new_email = strtolower( trim( $email ) );
+
+        if( ( !empty( $normalized_existing_email ) && !empty( $normalized_new_email ) && $normalized_existing_email === $normalized_new_email ) || ( apply_filters( 'acui_allow_no_email', false ) && empty( $original_email ) ) )
             return $user_id;
 
         switch( $update_emails_existing_users ){
@@ -242,11 +266,11 @@ class ACUI_Helper{
 
             case 'create':
                 $user_id = wp_insert_user( array(
-                    'user_login'  =>  $this->get_random_unique_username( 'duplicated_username_' ),
+                    'user_login'  =>  $this->get_username_from_name( $first_name, $last_name ),
                     'user_email'  =>  $email,
                     'user_pass'   =>  $password
                 ) );
-            break;           
+            break;
         }
 
         return $user_id;

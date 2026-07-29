@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.0
-Stable tag: 2.4.7
+Stable tag: 2.4.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -89,6 +89,12 @@ Plugin will automatically detect:
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.4.8 =
+*   Fix: email matching during import (`maybe_update_email()`) now normalizes both the stored and CSV emails with `strtolower(trim())` before comparing, so a case difference (e.g. `John.Doe@Example.com` vs `john.doe@example.com`) no longer triggers a false "email changed" event, unnecessary `wp_update_user()` calls, or duplicate account creation
+*   Improvement: when the plugin creates a new account because the CSV email didn't match an existing user (the `create` update-emails option), the new account's username is now derived from the row's `first_name`/`last_name` when available (e.g. `JohnDoe`, with `JohnDoe2`, `JohnDoe3`... on collision) instead of always falling back to an opaque `duplicated_username_XXXXXX` login
+*   Improvement: the BuddyPress/BuddyBoss `bp_member_type` CSV column is now matched case-insensitively against the header row, consistent with how `password`/`user_pass` are already matched
+*   Docs: documented the BuddyPress/BuddyBoss `bp_member_type` (Profile Type) import/export column, which was previously undocumented in the in-plugin help text
 
 = 2.4.7 =
 *   Fix: the `role` column now correctly trims leading/trailing spaces from each comma-separated value (e.g. `executive_member, tracker_exclude`). The previous code called `array_walk( $roles_cells, 'trim' )`, which is a no-op because `trim()` does not modify its argument by reference, so roles with a stray space (as commonly added by spreadsheet tools like Google Sheets) were silently treated as invalid and ignored

@@ -154,6 +154,10 @@ class ACUI_Buddypress{
 				</ul>
 			</td>
 		</tr>
+		<tr valign="top">
+			<th scope="row"><?php _e( 'BuddyPress/BuddyBoss Profile Type', 'import-users-from-csv-with-meta' ); ?></th>
+			<td><?php _e( 'You can assign a BuddyPress/BuddyBoss <strong>Profile Type</strong> (Member Type) to a user using a column called <strong>bp_member_type</strong>. The value must exactly match the type\'s slug (not its display label). Only one type can be set per user.', 'import-users-from-csv-with-meta' ); ?></td>
+		</tr>
 		<?php
 	}
 
@@ -255,7 +259,8 @@ class ACUI_Buddypress{
 			}
 		}
 			
-		$pos_member_type = array_search( 'bp_member_type', $headers );
+		$headers_lower = array_map( 'strtolower', $headers );
+		$pos_member_type = array_search( 'bp_member_type', $headers_lower );
 		if( $pos_member_type !== FALSE ){
 			bp_set_member_type( $user_id, $row[$pos_member_type] );
 		}

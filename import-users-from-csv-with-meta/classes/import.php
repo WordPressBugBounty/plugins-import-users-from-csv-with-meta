@@ -499,7 +499,13 @@ class ACUI_Import{
         
         $id_position = isset( $positions["id"] ) ? $positions["id"] : false;
         $id = ( empty( $id_position ) ) ? '' : $data[ $id_position ];
-        
+
+        $first_name_position = isset( $positions["first_name"] ) ? $positions["first_name"] : false;
+        $first_name = ( $first_name_position === false ) ? '' : $data[ $first_name_position ];
+
+        $last_name_position = isset( $positions["last_name"] ) ? $positions["last_name"] : false;
+        $last_name = ( $last_name_position === false ) ? '' : $data[ $last_name_position ];
+
         $created = true;
         
         if( $role_position === false ){
@@ -566,7 +572,7 @@ class ACUI_Import{
                         $password_changed = true;
                     }
 
-                    $new_user_id = ACUIHelper()->maybe_update_email( $user_id, $email, $password, $settings['update_emails_existing_users'], $original_email );
+                    $new_user_id = ACUIHelper()->maybe_update_email( $user_id, $email, $password, $settings['update_emails_existing_users'], $original_email, $first_name, $last_name );
                     if( empty( $new_user_id ) ){
                         $errors[] = ACUIHelper()->new_error( $row,  sprintf( __( 'User with email "%s" exists, we ignore it', 'import-users-from-csv-with-meta' ), $email ), 'notice' );
                         return array( 'result' => 'ignored', 'user_id' => $user_id );
@@ -618,9 +624,9 @@ class ACUI_Import{
                 $password_changed = true;
             }
 
-            $new_user_id = ACUIHelper()->maybe_update_email( $user_id, $email, $password, $settings['update_emails_existing_users'], $original_email );
+            $new_user_id = ACUIHelper()->maybe_update_email( $user_id, $email, $password, $settings['update_emails_existing_users'], $original_email, $first_name, $last_name );
             if( empty( $new_user_id ) ){
-                $errors[] = ACUIHelper()->new_error( $row,  sprintf( __( 'User with email "%s" exists with other username, it will be ignored', 'import-users-from-csv-with-meta' ), $email ), 'notice' );     
+                $errors[] = ACUIHelper()->new_error( $row,  sprintf( __( 'User with email "%s" exists with other username, it will be ignored', 'import-users-from-csv-with-meta' ), $email ), 'notice' );
                 return array( 'result' => 'ignored', 'user_id' => $new_user_id );
             }
             
