@@ -815,19 +815,26 @@ class ACUI_Import{
                     elseif( in_array( $headers[ $i ], ACUIHelper()->get_not_meta_fields() ) ){
                         continue;
                     }
-                    else{				
+                    elseif( in_array( $headers[ $i ], ACUIHelper()->get_restricted_fields(), true ) ){ // sensitive keys (e.g. wp_capabilities) are never writable as arbitrary meta
+                        continue;
+                    }
+                    else{
+                        if( !$created && !current_user_can( 'edit_user', $user_id ) ){
+                            continue;
+                        }
+
                         if( $data[ $i ] === '' ){
                             if( $settings['empty_cell_action'] == "delete" )
                                 delete_user_meta( $user_id, $headers[ $i ] );
                             else
-                                continue;	
+                                continue;
                         }
                         else{
                             if( is_object( $data[ $i ] ) && get_class( $data[ $i ] ) === '__PHP_Incomplete_Class' )
                                 $errors[] = ACUIHelper()->new_error( $row, __( 'Invalid value __PHP_Incomplete_Class', 'import-users-from-csv-with-meta' ), 'warning' );
-                            else    
+                            else
                                 update_user_meta( $user_id, $headers[ $i ], $data[ $i ] );
-                            
+
                             continue;
                         }
                     }

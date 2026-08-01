@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.0
-Stable tag: 2.4.8
+Stable tag: 2.4.9
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -89,6 +89,9 @@ Plugin will automatically detect:
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.4.9 =
+*   Security fix: during CSV import, unrecognized column headers no longer write to arbitrary user meta via `update_user_meta()` without an authorization check, and sensitive keys (`wp_capabilities`, `wp_user_level`, `role`, `Username`, `Email`) are now hard-blocked from this fallback path. Previously a user with only the `create_users` capability (e.g. a Shop Manager, or any role delegated CSV-import rights) could escalate their own account to Administrator by uploading a CSV with a `wp_capabilities` column
 
 = 2.4.8 =
 *   Fix: email matching during import (`maybe_update_email()`) now normalizes both the stored and CSV emails with `strtolower(trim())` before comparing, so a case difference (e.g. `John.Doe@Example.com` vs `john.doe@example.com`) no longer triggers a false "email changed" event, unnecessary `wp_update_user()` calls, or duplicate account creation
