@@ -83,8 +83,13 @@ class ACUI_Actions{
 		$post_ids = explode( ',', $data_cell );
 
 		foreach( $post_ids as $post_id ){
+			$post_id = intval( $post_id );
+
+			if( empty( $post_id ) || !current_user_can( 'edit_post', $post_id ) )
+				continue;
+
 			wp_update_post( array(
-				'ID' => intval( $post_id ),
+				'ID' => $post_id,
 				'post_author' => $user_id,
 			) );
 		}

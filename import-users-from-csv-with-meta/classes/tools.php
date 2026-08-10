@@ -96,12 +96,12 @@ class ACUI_Tools{
 		if( ! current_user_can( apply_filters( 'acui_capability', 'create_users' ) ) )
             wp_die( __( 'Only users who are allowed to create users can delete CSV attachments.', 'import-users-from-csv-with-meta' ) );
 	
-		$attach_id = absint( $_POST['attach_id'] );
+		$attach_id = isset( $_POST['attach_id'] ) ? absint( $_POST['attach_id'] ) : 0;
 		$mime_type  = (string) get_post_mime_type( $attach_id );
-	
+
 		if( $mime_type != 'text/csv' )
-			_e('This plugin can only delete the type of file it manages, i.e. CSV files.', 'import-users-from-csv-with-meta' );
-	
+			wp_die( __( 'This plugin can only delete the type of file it manages, i.e. CSV files.', 'import-users-from-csv-with-meta' ) );
+
 		$result = wp_delete_attachment( $attach_id, true );
 	
 		if( $result === false )

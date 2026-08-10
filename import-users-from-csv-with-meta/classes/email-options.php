@@ -387,11 +387,18 @@ class ACUI_Email_Options{
 
 	function ajax_remove_attachment(){
 		check_ajax_referer( 'codection-security', 'security' );
+
+		if( !current_user_can( apply_filters( 'acui_capability', 'create_users' ) ) )
+			wp_die( __( 'Only users who are allowed to create users can manage the email attachment.', 'import-users-from-csv-with-meta' ) );
+
 		update_option( "acui_mail_attachment_id", "" );
 	}
 
 	function ajax_send_test_email(){
 		check_ajax_referer( 'codection-security', 'security' );
+
+		if( !current_user_can( apply_filters( 'acui_capability', 'create_users' ) ) )
+			wp_die( __( 'Only users who are allowed to create users can send test emails.', 'import-users-from-csv-with-meta' ) );
 
 		self::send_email( wp_get_current_user() );
 	}

@@ -897,6 +897,9 @@ class ACUI_Cron{
 	function ajax_fire_cron(){
 		check_ajax_referer( 'codection-security', 'security' );
 
+		if( !current_user_can( apply_filters( 'acui_capability', 'create_users' ) ) )
+			wp_die( __( 'Only users who are allowed to create users can run the import task.', 'import-users-from-csv-with-meta' ) );
+
 		do_action( 'acui_cron_process' );
 		echo "OK";
 		wp_die();
@@ -904,6 +907,9 @@ class ACUI_Cron{
 
 	function ajax_fire_cron_no_session(){
 		check_ajax_referer( 'codection-security', 'security' );
+
+		if( !current_user_can( apply_filters( 'acui_capability', 'create_users' ) ) )
+			wp_die( __( 'Only users who are allowed to create users can run the import task.', 'import-users-from-csv-with-meta' ) );
 
 		wp_set_current_user( 0 );
 		do_action( 'acui_cron_process' );

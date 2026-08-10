@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.0
-Stable tag: 2.4.9
+Stable tag: 2.4.10
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -89,6 +89,12 @@ Plugin will automatically detect:
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.4.10 =
+*   Security fix: the `acui_delete_attachment` AJAX handler now really blocks the deletion when the attachment is not a `text/csv` file. The mime type check only printed a warning and then deleted the file anyway, so a user with the `create_users` capability could delete any attachment of the media library (images, PDFs...) and not only the CSV files the plugin manages
+*   Improvement: removed `classes/csv-uploaded.php`, a leftover copy of `classes/tools.php` (same code, class renamed) whose GUI was never called but which still registered the `acui_delete_attachment` and `acui_bulk_delete_attachment` AJAX handlers a second time
+*   Security fix (hardening): the AJAX handlers that fire the cron import task (`acui_fire_cron`, `acui_fire_cron_no_session`), remove the email attachment (`acui_mail_options_remove_attachment`) and send the test email (`acui_send_test_email`) now check `current_user_can()` in addition to the nonce, matching the rest of the plugin's AJAX endpoints. They were relying on the nonce alone for authorization
+*   Security fix: the `#action_assign_post` column now checks `current_user_can( 'edit_post', $post_id )` before reassigning the post author, and silently skips any post id that fails the check. Previously a user with only the `create_users` capability could take over the authorship of any post on the site (including admin-authored ones) just by putting its id in that column
 
 = 2.4.9 =
 *   Security fix: during CSV import, unrecognized column headers no longer write to arbitrary user meta via `update_user_meta()` without an authorization check, and sensitive keys (`wp_capabilities`, `wp_user_level`, `role`, `Username`, `Email`) are now hard-blocked from this fallback path. Previously a user with only the `create_users` capability (e.g. a Shop Manager, or any role delegated CSV-import rights) could escalate their own account to Administrator by uploading a CSV with a `wp_capabilities` column
