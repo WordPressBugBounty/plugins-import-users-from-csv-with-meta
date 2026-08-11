@@ -815,7 +815,7 @@ class ACUI_Import{
                     elseif( in_array( $headers[ $i ], ACUIHelper()->get_not_meta_fields() ) ){
                         continue;
                     }
-                    elseif( in_array( $headers[ $i ], ACUIHelper()->get_restricted_fields(), true ) ){ // sensitive keys (e.g. wp_capabilities) are never writable as arbitrary meta
+                    elseif( in_array( strtolower( $headers[ $i ] ), array_map( 'strtolower', ACUIHelper()->get_forbidden_meta_fields() ), true ) ){ // sensitive keys (e.g. wp_capabilities) are never writable as arbitrary meta
                         continue;
                     }
                     else{
@@ -843,9 +843,9 @@ class ACUI_Import{
             endfor;
         }
 
-        ACUIHelper()->print_row_imported( $row, $data, $errors );
-
         do_action( 'acui_post_import_single_user', $headers, $data, $user_id, $role, $positions, $form_data, $is_frontend, $is_cron, $password_changed, $created );
+
+        ACUIHelper()->print_row_imported( $row, $data, $errors );
 
         $mail_for_this_user = false;
         if( $is_cron ){

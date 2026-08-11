@@ -11,6 +11,7 @@ class ACUI_Multisite{
 		$this->sites = get_sites();
 
 		add_filter( 'acui_restricted_fields', array( $this, 'restricted_fields' ), 10, 1 );
+		add_filter( 'acui_forbidden_meta_fields', array( $this, 'forbidden_meta_fields' ), 10, 1 );
 		add_action( 'acui_documentation_after_plugins_activated', array( $this, 'documentation' ) );
 		add_action( 'acui_post_import_single_user', array( $this, 'assign' ), 10, 4 );
 		add_filter( 'acui_email_apply_wildcards', array( $this, 'email_apply_wildcards' ), 10, 2 );
@@ -25,6 +26,16 @@ class ACUI_Multisite{
 			$acui_restricted_fields[] = $prefix . 'user_level';
 		}
 		return array_merge( $acui_restricted_fields, array( 'blogs' ) );
+	}
+
+	function forbidden_meta_fields( $acui_forbidden_meta_fields ){
+		global $wpdb;
+		foreach ( $this->sites as $site ) {
+			$prefix = $wpdb->get_blog_prefix( $site->blog_id );
+			$acui_forbidden_meta_fields[] = $prefix . 'capabilities';
+			$acui_forbidden_meta_fields[] = $prefix . 'user_level';
+		}
+		return $acui_forbidden_meta_fields;
 	}
 
 	function documentation(){

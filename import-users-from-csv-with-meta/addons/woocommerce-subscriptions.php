@@ -8,10 +8,13 @@ if( !is_plugin_active( 'woocommerce-subscriptions/woocommerce-subscriptions.php'
 
 class ACUI_WooCommerceSubscriptions{
 	private $all_virtual;
+	private $row_warnings = array();
+	private $row_errors = array();
 
 	function __construct(){
 		add_filter( 'acui_restricted_fields', array( $this, 'restricted_fields' ), 10, 1 );
 		add_action( 'acui_header_table_extra_rows', array( $this, 'header_table_extra_rows' ) );
+		add_action( 'acui_row_table_extra_rows', array( $this, 'row_table_extra_rows' ), 10, 2 );
 		add_action( 'acui_documentation_after_plugins_activated', array( $this, 'documentation' ) );
 		add_action( 'after_acui_import_users', array( $this, 'end' ) );		
 		add_action( 'acui_post_import_single_user', array( $this, 'import' ), 10, 3 );
@@ -118,6 +121,8 @@ class ACUI_WooCommerceSubscriptions{
 	}
 
 	function import( $headers, $row, $user_id ){
+		$columns = $data = array();
+
 		foreach ( $this->fields() as $key ) {
 			$pos = array_search( $key, $headers );
 
@@ -126,6 +131,9 @@ class ACUI_WooCommerceSubscriptions{
 				$data[ $key ] = $row[ $columns[ $key ] ];
 			}
 		}
+
+		if( empty( array_filter( $data, function( $value ){ return $value !== '' && $value !== null; } ) ) )
+			return;
 
 		global $wpdb;
 
@@ -410,24 +418,16 @@ class ACUI_WooCommerceSubscriptions{
 
 		}
 
-		// print result
-		if( !empty( $result['warning'] ) ){
-			foreach ( $result['warning'] as $warning ) {
-				echo "<td>" . $warning . "</td>";
-			}
-		}
-		else{
-			echo "<td></td>";
-		}
+		$this->row_warnings = $result['warning'];
+		$this->row_errors = $result['error'];
+	}
 
-		if( !empty( $result['error'] ) ){
-			foreach ( $result['error'] as $error ) {
-				echo "<td>" . $error . "</td>";
-			}
-		}
-		else{
-			echo "<td></td>";
-		}		
+	function row_table_extra_rows( $row, $data ){
+		echo "<td>" . wp_kses_post( implode( '<br/>', $this->row_warnings ) ) . "</td>";
+		echo "<td>" . wp_kses_post( implode( '<br/>', $this->row_errors ) ) . "</td>";
+
+		$this->row_warnings = array();
+		$this->row_errors = array();
 	}
 
 	function set_payment_meta( $subscription, $data ) {

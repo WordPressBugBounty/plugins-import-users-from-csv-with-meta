@@ -10,15 +10,41 @@ class ACUI_Email_Options{
 		add_action( 'acui_mail_options_save_settings', array( $this, 'save_mail_template' ), 10, 1 );
 	}
 
+	public static function is_valid_email_template( $template_id ){
+		$template = get_post( absint( $template_id ) );
+
+		return !is_null( $template ) && $template->post_type == 'acui_email_template';
+	}
+
+	public static function is_valid_attachment( $attachment_id ){
+		$attachment = get_post( absint( $attachment_id ) );
+
+		return !is_null( $attachment ) && $attachment->post_type == 'attachment';
+	}
+
 	public static function admin_gui(){
 		$automatic_created_edited_wordpress_email = get_option( "acui_automatic_created_edited_wordpress_email" );
 		$automatic_wordpress_email = get_option( "acui_automatic_wordpress_email" );
 		$subject_mail = get_option( "acui_mail_subject" );
 		$body_mail = get_option( "acui_mail_body" );
-		$template_id = get_option( "acui_mail_template_id" );
-		$attachment_id = get_option( "acui_mail_attachment_id" );
+		$template_id = absint( get_option( "acui_mail_template_id" ) );
+		$attachment_id = absint( get_option( "acui_mail_attachment_id" ) );
 		$enable_email_templates = get_option( "acui_enable_email_templates" );
 		$disable_wp_editor = get_option( "acui_mail_disable_wp_editor" );
+		$template_notice = '';
+
+		if( !empty( $template_id ) ){
+			if( !self::is_valid_email_template( $template_id ) ){
+				$template_notice = __( 'The email template that was selected does not exist any more or is not an email template, so no template will be updated when you save. Select a valid one if you want to keep the subject and the content stored in a template.', 'import-users-from-csv-with-meta' );
+				$template_id = 0;
+			}
+			elseif( !current_user_can( 'edit_post', $template_id ) ){
+				$template_notice = __( 'You are not allowed to edit the selected email template, so its title and content will not be updated when you save. The subject and the content below will only be stored as the default email.', 'import-users-from-csv-with-meta' );
+			}
+		}
+
+		if( !empty( $attachment_id ) && !self::is_valid_attachment( $attachment_id ) )
+			$attachment_id = 0;
 	?>
 		<style>
 		.acui-mail-layout {
@@ -153,9 +179,14 @@ class ACUI_Email_Options{
 
 		<?php if( $enable_email_templates && wp_count_posts( 'acui_email_template' )->publish > 0 ): ?>
 			<h3><?php _e( 'Load custom email from email templates', 'import-users-from-csv-with-meta' ); ?></h3>
+			<?php if( !empty( $template_notice ) ): ?>
+				<div class="notice notice-warning inline">
+					<p><?php echo esc_html( $template_notice ); ?></p>
+				</div>
+			<?php endif; ?>
 			<?php wp_dropdown_pages( array( 'id' => 'email_template_selected', 'post_type' => 'acui_email_template', 'selected' => $template_id ) ); ?>
 			<input id="load_email_template" class="button-primary" type="button" value="<?php _e( "Load subject, content and attachment from this email template", 'import-users-from-csv-with-meta' ); ?>"/>
-		<?php endif; ?>			
+		<?php endif; ?>
 
 		<h3><?php _e( 'Customize the email that can be sent when importing users', 'import-users-from-csv-with-meta' ); ?></h3>
 
@@ -224,12 +255,33 @@ class ACUI_Email_Options{
 		$automatic_created_edited_wordpress_email = sanitize_text_field( $form_data["automatic_created_edited_wordpress_email"] );
 		$subject_mail = sanitize_text_field( stripslashes_deep( $form_data["subject_mail"] ) );
 		$body_mail = wp_kses_post( stripslashes( $form_data["body_mail"] ) );
-		$template_id = intval( $form_data["template_id"] );
-		$email_template_attachment_id = intval( $form_data["email_template_attachment_id"] );
+		$template_id = absint( $form_data["template_id"] );
+		$email_template_attachment_id = absint( $form_data["email_template_attachment_id"] );
 		$disable_wp_editor = isset( $form_data['disable_wp_editor'] ) && $form_data['disable_wp_editor'] == '1';
 
 		remove_filter( 'wp_kses_allowed_html', array( $this, 'allow_more_post_tags' ), 10, 2 );
-	
+
+		$notices = array();
+		$template_can_be_updated = false;
+
+		if( !empty( $template_id ) ){
+			if( !self::is_valid_email_template( $template_id ) ){
+				$notices[] = __( 'The email template you selected does not exist any more or is not an email template, so no template has been updated and the selection has been cleared. The subject and the content have been saved as the default email.', 'import-users-from-csv-with-meta' );
+				$template_id = 0;
+			}
+			elseif( !current_user_can( 'edit_post', $template_id ) ){
+				$notices[] = __( 'You are not allowed to edit this email template, so its title and content have not been updated. The subject and the content have been saved as the default email.', 'import-users-from-csv-with-meta' );
+			}
+			else{
+				$template_can_be_updated = true;
+			}
+		}
+
+		if( !empty( $email_template_attachment_id ) && !self::is_valid_attachment( $email_template_attachment_id ) ){
+			$notices[] = __( 'The file you selected as an attachment does not exist any more or is not a media library file, so it has not been saved.', 'import-users-from-csv-with-meta' );
+			$email_template_attachment_id = 0;
+		}
+
 		update_option( "acui_automatic_wordpress_email", $automatic_wordpress_email );
 		update_option( "acui_automatic_created_edited_wordpress_email", $automatic_created_edited_wordpress_email );
 		update_option( "acui_mail_subject", $subject_mail );
@@ -237,23 +289,25 @@ class ACUI_Email_Options{
 		update_option( "acui_mail_template_id", $template_id );
 		update_option( "acui_mail_attachment_id", $email_template_attachment_id );
 		update_option( "acui_mail_disable_wp_editor", $disable_wp_editor );
-	
-		$template_id = absint( $form_data["template_id"] );
-	
-		if( !empty( $template_id  ) ){
+
+		if( $template_can_be_updated ){
 			wp_update_post( array(
 				'ID'           => $template_id,
 				'post_title'   => $subject_mail,
 				'post_content' => $body_mail,
 			) );
-	
+
 			update_post_meta( $template_id, 'email_template_attachment_id', $email_template_attachment_id );
 		}
 		?>
 		<div class="updated">
 		   <p><?php _e( 'Mail template and options updated correctly', 'import-users-from-csv-with-meta' )?></p>
 		</div>
-		<?php
+		<?php foreach( $notices as $notice ): ?>
+		<div class="notice notice-warning">
+		   <p><?php echo esc_html( $notice ); ?></p>
+		</div>
+		<?php endforeach;
 	}
 
 	static function send_email( $user_object, $positions = array(), $headers = array(), $data = array(), $created = false, $password = '' ){

@@ -12,6 +12,7 @@ class ACUI_Actions{
 	
 	function hooks(){
 		add_filter( 'acui_restricted_fields', array( $this, 'restricted_fields' ) );
+		add_filter( 'acui_forbidden_meta_fields', array( $this, 'restricted_fields' ) );
 		add_action( 'acui_documentation_after_plugins_activated', array( $this, 'documentation' ) );
 
 		foreach( $this->registered as $registered_action ){

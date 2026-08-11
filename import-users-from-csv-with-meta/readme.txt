@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.0
-Stable tag: 2.4.10
+Stable tag: 2.4.11
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -90,11 +90,19 @@ Plugin will automatically detect:
 
 == Changelog ==
 
+= 2.4.11 =
+*   Security fix: the mail options save handler no longer writes to arbitrary posts. The `template_id` form field was passed straight to `wp_update_post()` without checking the post type or `current_user_can( 'edit_post' )`, so a user with only the `create_users` capability could overwrite the title and the content of any post or page of the site (and inject arbitrary CSS through the `<style>` tag the email editor allows) just by changing that hidden field. The plugin now validates that the id belongs to an `acui_email_template` post the current user is allowed to edit, and shows a warning notice instead of saving when it does not (reported by Averon Averenkov (averonsec.com))
+*   Security fix (hardening): the email attachment id sent from the mail options form is now validated as a real media library file before being stored, instead of being saved as an option and as a post meta of the email template straight from the form field
+*   Fix: WooCommerce columns (`billing_*` and `shipping_*`) are imported again. The 2.4.9 security fix blocked every field returned by `acui_restricted_fields` from being saved as user meta, but that filter is public and add-ons extend it, so the 20 WooCommerce customer fields (and any field added by a third party through that filter) stopped being imported. The sensitive keys are now listed apart in `ACUIHelper()->get_forbidden_meta_fields()`, filterable through the new `acui_forbidden_meta_fields` hook, and `acui_restricted_fields` goes back to being only about column mapping
+*   Fix: the WooCommerce Subscriptions add-on no longer tries to create a subscription for rows that carry no subscription data at all, which produced a bogus "Could not create subscription: Invalid subscription billing period" error on every imported row when the CSV had no subscription columns. It now returns early unless at least one of its columns is present and filled in the row
+*   Fix: the results table no longer breaks with a "DataTables warning: Requested unknown parameter" message when WooCommerce Subscriptions is active. The add-on added two columns to the table header but printed its cells from `acui_post_import_single_user`, which runs after `print_row_imported()` has already closed the `<tr>`, so those cells fell outside the row and every row was two columns short. There is a new `acui_row_table_extra_rows` action to print cells inside the row, and the add-on now prints exactly two cells per row (one for the warnings and one for the errors) instead of one cell per message
+*   Security fix (hardening): the check that blocks sensitive keys (`wp_capabilities`, `wp_user_level`, `role`, `Username`, `Email`) from being written as user meta during the import is now case insensitive, so a column header like `WP_Capabilities` cannot get through it
+
 = 2.4.10 =
-*   Security fix: the `acui_delete_attachment` AJAX handler now really blocks the deletion when the attachment is not a `text/csv` file. The mime type check only printed a warning and then deleted the file anyway, so a user with the `create_users` capability could delete any attachment of the media library (images, PDFs...) and not only the CSV files the plugin manages
+*   Security fix: the `acui_delete_attachment` AJAX handler now really blocks the deletion when the attachment is not a `text/csv` file. The mime type check only printed a warning and then deleted the file anyway, so a user with the `create_users` capability could delete any attachment of the media library (images, PDFs...) and not only the CSV files the plugin manages (reported by Averon Averenkov (averonsec.com))
 *   Improvement: removed `classes/csv-uploaded.php`, a leftover copy of `classes/tools.php` (same code, class renamed) whose GUI was never called but which still registered the `acui_delete_attachment` and `acui_bulk_delete_attachment` AJAX handlers a second time
-*   Security fix (hardening): the AJAX handlers that fire the cron import task (`acui_fire_cron`, `acui_fire_cron_no_session`), remove the email attachment (`acui_mail_options_remove_attachment`) and send the test email (`acui_send_test_email`) now check `current_user_can()` in addition to the nonce, matching the rest of the plugin's AJAX endpoints. They were relying on the nonce alone for authorization
-*   Security fix: the `#action_assign_post` column now checks `current_user_can( 'edit_post', $post_id )` before reassigning the post author, and silently skips any post id that fails the check. Previously a user with only the `create_users` capability could take over the authorship of any post on the site (including admin-authored ones) just by putting its id in that column
+*   Security fix (hardening): the AJAX handlers that fire the cron import task (`acui_fire_cron`, `acui_fire_cron_no_session`), remove the email attachment (`acui_mail_options_remove_attachment`) and send the test email (`acui_send_test_email`) now check `current_user_can()` in addition to the nonce, matching the rest of the plugin's AJAX endpoints. They were relying on the nonce alone for authorization (reported by Averon Averenkov (averonsec.com))
+*   Security fix: the `#action_assign_post` column now checks `current_user_can( 'edit_post', $post_id )` before reassigning the post author, and silently skips any post id that fails the check. Previously a user with only the `create_users` capability could take over the authorship of any post on the site (including admin-authored ones) just by putting its id in that column (reported by Averon Averenkov (averonsec.com))
 
 = 2.4.9 =
 *   Security fix: during CSV import, unrecognized column headers no longer write to arbitrary user meta via `update_user_meta()` without an authorization check, and sensitive keys (`wp_capabilities`, `wp_user_level`, `role`, `Username`, `Email`) are now hard-blocked from this fallback path. Previously a user with only the `create_users` capability (e.g. a Shop Manager, or any role delegated CSV-import rights) could escalate their own account to Administrator by uploading a CSV with a `wp_capabilities` column
@@ -1874,7 +1882,7 @@ Yes. Export users from your old site using the Export tab, then import the resul
 
 = Can I bulk create WooCommerce customers? =
 
-Yes. Add WooCommerce billing and shipping fields as columns in your CSV (e.g. billing_first_name, billing_email, shipping_address_1) and the plugin will populate them automatically when importing users with the customer role.
+Yes. Add WooCommerce billing and shipping fields as columns in your CSV (e.g. billing_first_name, billing_email, shipping_address_1) and the plugin will populate them automatically. Those fields are imported whatever the role of the user is, the customer role only adds the synchronization with the WooCommerce customer analytics data.
 
 = Can I import users with custom fields (ACF, BuddyPress, etc.)? =
 

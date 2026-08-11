@@ -149,8 +149,16 @@ class ACUI_Helper{
         $wp_users_fields = $this->get_wp_users_fields();
         $wp_min_fields = array( "Username", "Email", "role", $wpdb->prefix . 'capabilities', $wpdb->prefix . 'user_level' );
         $acui_restricted_fields = array_merge( $wp_users_fields, $wp_min_fields );
-        
+
         return apply_filters( 'acui_restricted_fields', $acui_restricted_fields );
+    }
+
+    function get_forbidden_meta_fields(){
+        global $wpdb;
+
+        $acui_forbidden_meta_fields = array( "Username", "Email", "role", $wpdb->prefix . 'capabilities', $wpdb->prefix . 'user_level' );
+
+        return apply_filters( 'acui_forbidden_meta_fields', $acui_forbidden_meta_fields );
     }
 
     function get_not_meta_fields(){
@@ -435,6 +443,8 @@ class ACUI_Helper{
             $element = esc_html( $element );
             echo "<td>$element</td>";
         }
+
+        do_action( 'acui_row_table_extra_rows', $row, $data );
 
         echo "</tr>\n";
     
