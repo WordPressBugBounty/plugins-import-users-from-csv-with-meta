@@ -843,9 +843,9 @@ class ACUI_Import{
             endfor;
         }
 
-        do_action( 'acui_post_import_single_user', $headers, $data, $user_id, $role, $positions, $form_data, $is_frontend, $is_cron, $password_changed, $created );
-
         ACUIHelper()->print_row_imported( $row, $data, $errors );
+
+        do_action( 'acui_post_import_single_user', $headers, $data, $user_id, $role, $positions, $form_data, $is_frontend, $is_cron, $password_changed, $created );
 
         $mail_for_this_user = false;
         if( $is_cron ){

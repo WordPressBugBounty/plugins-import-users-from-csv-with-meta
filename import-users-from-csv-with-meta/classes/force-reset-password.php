@@ -43,16 +43,90 @@ class ACUI_Force_Reset_Password{
 				return;
 		}
 
+		if( wp_doing_ajax() || wp_doing_cron() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || ( defined( 'XMLRPC_REQUEST' ) && XMLRPC_REQUEST ) )
+			return;
+
+		if( !isset( $_SERVER['REQUEST_METHOD'] ) || strtoupper( $_SERVER['REQUEST_METHOD'] ) != 'GET' )
+			return;
+
 		if( !is_user_logged_in() )
 			return;
 
         if( apply_filters( 'acui_force_reset_password_redirect_condition', false ) )
             return;
 
-		if( get_user_meta( get_current_user_id(), 'acui_force_reset_password', true ) ) {
-			wp_redirect( apply_filters( 'acui_force_reset_password_edit_profile_url', admin_url( 'profile.php' ) ) );
-			die();
+		if( !get_user_meta( get_current_user_id(), 'acui_force_reset_password', true ) )
+			return;
+
+		$url = apply_filters( 'acui_force_reset_password_edit_profile_url', admin_url( 'profile.php' ) );
+
+		if( empty( $url ) )
+			return;
+
+		if( $this->is_current_url( $url ) ) {
+			$this->reset_redirect_count();
+			return;
 		}
+
+		if( $this->redirect_loop_detected() )
+			return;
+
+		wp_redirect( $url );
+		die();
+	}
+
+	function is_current_url( $url ) {
+		$target = wp_parse_url( $url );
+
+		if( $target === false )
+			return false;
+
+		$current_path = isset( $_SERVER['REQUEST_URI'] ) ? wp_parse_url( wp_unslash( $_SERVER['REQUEST_URI'] ), PHP_URL_PATH ) : '';
+		$target_path = isset( $target['path'] ) ? $target['path'] : '';
+
+		if( untrailingslashit( urldecode( $current_path ) ) != untrailingslashit( urldecode( $target_path ) ) )
+			return false;
+
+		if( empty( $target['query'] ) )
+			return true;
+
+		parse_str( $target['query'], $target_args );
+
+		foreach ( $target_args as $key => $value ) {
+			if( !isset( $_GET[ $key ] ) || $_GET[ $key ] != $value )
+				return false;
+		}
+
+		return true;
+	}
+
+	function redirect_loop_detected() {
+		$limit = absint( apply_filters( 'acui_force_reset_password_max_redirects', 3 ) );
+
+		if( $limit === 0 )
+			return false;
+
+		$count = isset( $_COOKIE['acui_force_reset_password_redirects'] ) ? absint( $_COOKIE['acui_force_reset_password_redirects'] ) : 0;
+
+		if( $count >= $limit )
+			return true;
+
+		$this->set_redirect_count( $count + 1, time() + 300 );
+
+		return false;
+	}
+
+	function reset_redirect_count() {
+		if( isset( $_COOKIE['acui_force_reset_password_redirects'] ) )
+			$this->set_redirect_count( 0, time() - 3600 );
+	}
+
+	function set_redirect_count( $count, $expiration ) {
+		if( headers_sent() )
+			return;
+
+		setcookie( 'acui_force_reset_password_redirects', $count, $expiration, COOKIEPATH ? COOKIEPATH : '/', COOKIE_DOMAIN, is_ssl(), true );
+		$_COOKIE['acui_force_reset_password_redirects'] = $count;
 	}
 
 	function notice(){

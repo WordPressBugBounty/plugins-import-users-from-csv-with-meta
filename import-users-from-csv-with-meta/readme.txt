@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.0
-Stable tag: 2.4.11
+Stable tag: 2.4.12
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -80,6 +80,22 @@ Plugin will automatically detect:
 * It also will **auto detect line-ending** to prevent problems with different OS.
 * Finally, it will **detect the delimiter** being used in CSV file
 
+== Frequently Asked Questions ==
+
+= I get a "too many redirects" error on my site, how can I solve it? =
+
+This is caused by the option that forces the users to reset their password. When it is used, each of those users is redirected to their password page on every page load until they change it, and if that destination cannot be reached (for example, because wp-admin is blocked for customers or subscribers by WooCommerce, by a membership plugin or by a security plugin) the browser ends up in a redirection loop.
+
+Since version 2.4.12 the plugin detects this situation and gives up after 3 consecutive redirects, so the site stays usable, but you can also clear the flag for the users that are already affected: go to the plugin documentation tab and use the button that removes the force reset password metadata from all the users.
+
+If you want to change how many redirects are allowed before the plugin gives up, use the `acui_force_reset_password_max_redirects` filter (return 0 to disable the limit):
+
+`add_filter( 'acui_force_reset_password_max_redirects', function( $max ){ return 5; } );`
+
+= Which page are the users sent to when I force them to reset their password? =
+
+By default they are sent to their WordPress profile page. If WooCommerce or WP User Manager are active, they are sent to the password section of the account page of those plugins instead. You can point them anywhere else using the `acui_force_reset_password_edit_profile_url` filter, and you can add your own exceptions (pages where the redirection must not happen) using `acui_force_reset_password_redirect_condition`.
+
 == Screenshots ==
 
 1. Import dialog
@@ -89,6 +105,9 @@ Plugin will automatically detect:
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.4.12 =
+*   Fix: the "force users to reset their password" option no longer produces "too many redirects" errors. The redirection ran on every front end page load and only stopped when the add-on condition matched exactly, so any setup where the destination could not be reached or recognized (wp-admin blocked for customers by WooCommerce or a membership plugin, a My account URL that did not match the `home_url()` string comparison because of trailing slashes, www, https or a language prefix, an account page built with blocks or a page builder instead of the shortcode...) sent the user back and forth forever. The redirection is now skipped when the user is already on the destination URL, it does not run on AJAX, REST, cron, XML-RPC or non GET requests, and a counter stops it after 3 consecutive redirects (filterable through the new `acui_force_reset_password_max_redirects` hook) so the worst case is that the password change is not enforced instead of the site being unreachable
 
 = 2.4.11 =
 *   Security fix: the mail options save handler no longer writes to arbitrary posts. The `template_id` form field was passed straight to `wp_update_post()` without checking the post type or `current_user_can( 'edit_post' )`, so a user with only the `create_users` capability could overwrite the title and the content of any post or page of the site (and inject arbitrary CSS through the `<style>` tag the email editor allows) just by changing that hidden field. The plugin now validates that the id belongs to an `acui_email_template` post the current user is allowed to edit, and shows a warning notice instead of saving when it does not (reported by Averon Averenkov (averonsec.com))
@@ -1882,7 +1901,7 @@ Yes. Export users from your old site using the Export tab, then import the resul
 
 = Can I bulk create WooCommerce customers? =
 
-Yes. Add WooCommerce billing and shipping fields as columns in your CSV (e.g. billing_first_name, billing_email, shipping_address_1) and the plugin will populate them automatically. Those fields are imported whatever the role of the user is, the customer role only adds the synchronization with the WooCommerce customer analytics data.
+Yes. Add WooCommerce billing and shipping fields as columns in your CSV (e.g. billing_first_name, billing_email, shipping_address_1) and the plugin will populate them automatically when importing users with the customer role.
 
 = Can I import users with custom fields (ACF, BuddyPress, etc.)? =
 
