@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.0
-Stable tag: 2.4.12
+Stable tag: 2.4.13
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -105,6 +105,13 @@ By default they are sent to their WordPress profile page. If WooCommerce or WP U
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.4.13 =
+*   Improvement: the role errors during the import now say exactly what is wrong instead of always blaming permissions. The row is checked role by role and the message tells which single role failed and why: the role does not exist (and lists the roles that can be used), the role exists but the current user is not allowed to assign it (and lists which ones they can), or the role column is empty on that row. Before, a role that simply did not exist was reported as *"You do not have permission to assign some of the next roles"* whenever the "update roles of existing users" option was set to "no", because the "role does not exist" check was skipped in that case, and both messages printed the whole list of roles of the row instead of the offending ones
+*   Improvement: when the CSV carries the name of the role (`Conference`) instead of its slug (`conference_member`), the error now points to the right slug instead of only saying that the role does not exist
+*   Fix: roles whose slug contains uppercase letters (created that way by some role editor plugins) can be imported again. The values of the `role` column were lowercased but compared against the role slugs as they are stored, so those roles were always rejected as non existing or invalid
+*   Fix: `ACUI_Helper::get_editable_roles()` uses `wp_roles()` instead of reading the `$wp_roles` global directly, which could still be uninitialized in cron or front end imports, leaving the list of editable roles empty and making every role of the CSV fail
+*   Fix: a `role` cell containing the `::` list separator no longer produces a fatal error when the row is prepared
 
 = 2.4.12 =
 *   Fix: the "force users to reset their password" option no longer produces "too many redirects" errors. The redirection ran on every front end page load and only stopped when the add-on condition matched exactly, so any setup where the destination could not be reached or recognized (wp-admin blocked for customers by WooCommerce or a membership plugin, a My account URL that did not match the `home_url()` string comparison because of trailing slashes, www, https or a language prefix, an account page built with blocks or a page builder instead of the shortcode...) sent the user back and forth forever. The redirection is now skipped when the user is already on the destination URL, it does not run on AJAX, REST, cron, XML-RPC or non GET requests, and a counter stops it after 3 consecutive redirects (filterable through the new `acui_force_reset_password_max_redirects` hook) so the worst case is that the password change is not enforced instead of the site being unreachable

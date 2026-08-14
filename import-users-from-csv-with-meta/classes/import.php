@@ -512,10 +512,7 @@ class ACUI_Import{
             $role = $settings['role_default'];
         }
         else{
-            $roles_cells = explode( ',', $data[ $role_position ] );
-            
-            if( !is_array( $roles_cells ) )
-                $roles_cells = array( $roles_cells );
+            $roles_cells = is_array( $data[ $role_position ] ) ? $data[ $role_position ] : explode( ',', $data[ $role_position ] );
 
             $roles_cells = array_map( 'trim', $roles_cells );
             
@@ -527,20 +524,31 @@ class ACUI_Import{
 
         $no_role = ( $role == 'no_role' ) || in_array( 'no_role', $role );
 
-        if( !$no_role ){
-            if( ( !empty( $role ) || is_array( $role ) && empty( $role[0] ) ) && !empty( array_diff( $role, array_keys( wp_roles()->roles ) ) ) && $settings['update_roles_existing_users'] != 'no' ){
-                if( is_array( $role ) && empty( $role[0] ) )
-                    $errors[] = ACUIHelper()->new_error( $row, sprintf( __( 'If you are upgrading roles, you must choose at least one role', 'import-users-from-csv-with-meta' ), implode( ', ', $role ) ) );
-                else
-                    $errors[] = ACUIHelper()->new_error( $row, sprintf( __( 'Some of the next roles "%s" do not exists', 'import-users-from-csv-with-meta' ), implode( ', ', $role ) ) );
-                
+        if( !$no_role && $role_position !== false ){
+            $checked_roles = ACUIHelper()->check_roles( $role );
+
+            if( !empty( $checked_roles['not_existing'] ) ){
+                foreach( $checked_roles['not_existing'] as $not_existing_role ){
+                    if( isset( $checked_roles['suggestions'][ $not_existing_role ] ) )
+                        $errors[] = ACUIHelper()->new_error( $row, sprintf( __( 'The role "%1$s" does not exist on this site, but there is a role named like that whose slug is "%2$s": you have to use the slug of the role and not its name', 'import-users-from-csv-with-meta' ), $not_existing_role, $checked_roles['suggestions'][ $not_existing_role ] ) );
+                    else
+                        $errors[] = ACUIHelper()->new_error( $row, sprintf( __( 'The role "%1$s" does not exist on this site, these are the roles you can use: %2$s', 'import-users-from-csv-with-meta' ), $not_existing_role, implode( ', ', array_keys( ACUIHelper()->get_editable_roles( false ) ) ) ) );
+                }
+
                 return array( 'result' => 'ignored', 'user_id' => $user_id );
             }
 
-            if ( ( !empty( $role ) || is_array( $role ) && empty( $role[0] ) ) && !empty( array_diff( $role, array_keys( ACUIHelper()->get_editable_roles() ) ) ) ){ // users only are able to import users with a role they are allowed to edit
-                $errors[] = ACUIHelper()->new_error( $row, sprintf( __( 'You do not have permission to assign some of the next roles "%s"', 'import-users-from-csv-with-meta' ), implode( ', ', $role ) ) );
+            if( !empty( $checked_roles['not_editable'] ) ){
+                $errors[] = ACUIHelper()->new_error( $row, sprintf( __( 'The role "%1$s" exists but you are not allowed to assign it, probably because another plugin or your own role limits which roles you can manage: you can only assign %2$s', 'import-users-from-csv-with-meta' ), implode( '", "', $checked_roles['not_editable'] ), implode( ', ', array_keys( ACUIHelper()->get_editable_roles( false ) ) ) ) );
                 return array( 'result' => 'ignored', 'user_id' => $user_id );
             }
+
+            if( empty( $checked_roles['roles'] ) ){
+                $errors[] = ACUIHelper()->new_error( $row, __( 'The role column is empty on this row, you have to write at least one role or use "no_role" if you do not want to assign any', 'import-users-from-csv-with-meta' ) );
+                return array( 'result' => 'ignored', 'user_id' => $user_id );
+            }
+
+            $role = $checked_roles['roles'];
         }
 
         if( !empty( $email ) && ( ( sanitize_email( $email ) == '' ) ) ){ // if email is invalid
@@ -709,7 +717,7 @@ class ACUI_Import{
                     }
 
                     if( !empty( $role ) ){
-                        $editable_roles = ACUIHelper()->get_editable_roles();
+                        $editable_roles = array_change_key_case( ACUIHelper()->get_editable_roles(), CASE_LOWER );
                         $role = array_filter( (array) $role, function( $single_role ) use ( $editable_roles ) {
                             return array_key_exists( strtolower( trim( $single_role ) ), $editable_roles );
                         } );
@@ -735,7 +743,6 @@ class ACUI_Import{
                         }
 
                         foreach ($role as $single_role) {
-                            $single_role = strtolower($single_role);
                             if( get_role( $single_role ) ){
                                 $user_object->add_role( $single_role );
                             }
