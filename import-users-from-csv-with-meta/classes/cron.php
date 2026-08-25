@@ -71,7 +71,8 @@ class ACUI_Cron{
 		$submitted_user_id = isset( $form_data['cron_user_id'] ) ? absint( $form_data['cron_user_id'] ) : 0;
 		if( $submitted_user_id && user_can( $submitted_user_id, apply_filters( 'acui_capability', 'create_users' ) ) )
 			update_option( "acui_cron_user_id", $submitted_user_id );
-		update_option( "acui_cron_path_to_file", $this->clean_path_url_csv( sanitize_text_field( $form_data["path_to_file"] ) ) );
+		$path_to_file = $this->clean_path_url_csv( sanitize_text_field( $form_data["path_to_file"] ) );
+		update_option( "acui_cron_path_to_file", $path_to_file );
 		update_option( "acui_cron_path_to_move", $this->clean_path_url_csv( sanitize_text_field( $form_data["path_to_move"] ) ) );
 		update_option( "acui_cron_period", sanitize_text_field( $form_data["period"] ) );
 		update_option( "acui_cron_role", sanitize_text_field( $form_data["role"] ) );
@@ -80,10 +81,17 @@ class ACUI_Cron{
 
         if( isset( $form_data["cron-change-role-not-present-role"] ) )
             update_option( "acui_cron_change_role_not_present_role", sanitize_text_field( $form_data["cron-change-role-not-present-role"] ) );
+		global $acui_import;
+		$path_status = !empty( $path_to_file ) ? $acui_import->get_local_path_status( $path_to_file ) : false;
 		?>
 		<div class="updated">
 	       <p><?php _e( 'Settings updated correctly', 'import-users-from-csv-with-meta' ) ?></p>
 	    </div>
+	    <?php if( $path_status && !in_array( $path_status['status'], array( 'valid', 'url' ), true ) ): ?>
+	    <div class="notice notice-warning">
+	       <p><strong><?php _e( 'Path or URL of file that is going to be imported', 'import-users-from-csv-with-meta' ); ?>:</strong> <?php echo esc_html( $path_status['message'] ); ?></p>
+	    </div>
+	    <?php endif; ?>
 	    <?php
 	}
 
@@ -335,6 +343,15 @@ class ACUI_Cron{
 		tr.log div.notice{
 			display: none;
 		}
+		.acui-path-check-result{
+			font-weight: 600;
+		}
+		.acui-path-check-result.acui-path-ok{
+			color: #007017;
+		}
+		.acui-path-check-result.acui-path-bad{
+			color: #d63638;
+		}
 		.acui-cron-layout {
 			display: flex;
 			gap: 24px;
@@ -459,7 +476,10 @@ class ACUI_Cron{
 					<th scope="row"><label for="path_to_file"><?php _e( "Path or URL of file that is going to be imported", 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
                         <?php ACUIHTML()->text( array( 'name' => 'path_to_file', 'value' => $path_to_file, 'class' => '', 'placeholder' => __( 'Insert complete path to the file', 'import-users-from-csv-with-meta' ) ) ); ?>
+						<button type="button" class="button acui-check-path-btn" data-target="path_to_file"><?php _e( 'Check path', 'import-users-from-csv-with-meta' ); ?></button>
 						<p class="description"><?php printf( __( 'You have to enter the URL or the path to the file, i.e.: %s or %s' ,'import-users-from-csv-with-meta' ), $sample_path, $sample_url ); ?></p>
+						<p class="description"><?php printf( __( 'A local path must point to a .csv file located inside your WordPress uploads folder: %s (subfolders are allowed). Files outside that folder are rejected for security reasons. Use a URL instead if the file lives elsewhere.', 'import-users-from-csv-with-meta' ), '<code>' . esc_html( $upload_dir['basedir'] ) . '</code>' ); ?></p>
+						<p class="acui-path-check-result" data-target="path_to_file" style="display:none;"></p>
 					</td>
 				</tr>
 
@@ -624,6 +644,31 @@ class ACUI_Cron{
 		<script>
 		jQuery( document ).ready( function( $ ){
 			check_delete_users_checked();
+
+			$( '.acui-check-path-btn' ).click( function( e ){
+				e.preventDefault();
+
+				var $btn    = $( this );
+				var target  = $btn.data( 'target' );
+				var $input  = $( '#' + target );
+				var $result = $( '.acui-path-check-result[data-target="' + target + '"]' );
+
+				$btn.prop( 'disabled', true );
+				$result.show().removeClass( 'acui-path-ok acui-path-bad' ).text( '<?php echo esc_js( __( 'Checking…', 'import-users-from-csv-with-meta' ) ); ?>' );
+
+				$.post( ajaxurl, {
+					action: 'acui_check_local_path',
+					security: '<?php echo wp_create_nonce( "codection-security" ); ?>',
+					path: $input.val()
+				}, function( response ){
+					var ok = ( response.status === 'valid' || response.status === 'url' );
+					$result.text( response.message ).toggleClass( 'acui-path-ok', ok ).toggleClass( 'acui-path-bad', !ok );
+				}, 'json' ).fail( function(){
+					$result.text( '<?php echo esc_js( __( 'Could not check the path, please try again.', 'import-users-from-csv-with-meta' ) ); ?>' ).addClass( 'acui-path-bad' );
+				} ).always( function(){
+					$btn.prop( 'disabled', false );
+				} );
+			} );
 
 			$( '#cron-delete-users' ).on( 'click', function() {
 				check_delete_users_checked();

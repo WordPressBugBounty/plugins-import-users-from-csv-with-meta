@@ -241,7 +241,21 @@ class ACUI_Doc{
 	}
 
 	static function section_cron(){
-		return __( 'The Cron tab allows you to make periodic imports using the WordPress cron scheduler.', 'import-users-from-csv-with-meta' );
+		$upload_dir = wp_upload_dir();
+
+		return __( 'The Cron tab allows you to make periodic imports using the WordPress cron scheduler.', 'import-users-from-csv-with-meta' )
+			. '<p>' . sprintf(
+				__( 'The "Path or URL of file that is going to be imported" field accepts either a remote URL or a local server path. A local path must point to a .csv file located inside your WordPress uploads folder: %s (subfolders are allowed). This closes a security issue that previously allowed reading arbitrary server files (see the plugin changelog, version 2.4.3). If your CSV is generated outside that folder, move or copy it into a subfolder of uploads before the import runs, or serve it over HTTP(S) and use that URL instead.', 'import-users-from-csv-with-meta' ),
+				'<code>' . esc_html( $upload_dir['basedir'] ) . '</code>'
+			) . '</p>'
+			. '<p>' . __( 'Use the "Check path" button next to the field to verify, before saving, whether the path you entered will be accepted.', 'import-users-from-csv-with-meta' ) . '</p>'
+			. '<p>' . __( 'If your setup genuinely needs to read the CSV from outside uploads (e.g. a folder an external process writes to), a developer can whitelist extra base folders from code with the <code>acui_allowed_local_csv_base_dirs</code> filter, without disabling the underlying security check:', 'import-users-from-csv-with-meta' ) . '</p>'
+			. '<pre>add_filter( \'acui_allowed_local_csv_base_dirs\', function( $dirs ) {' . "\n"
+			. '    $dirs[] = \'/usr/home/user/public_html/DCC/Update\';' . "\n"
+			. '    return $dirs;' . "\n"
+			. '} );</pre>'
+			. '<p>' . __( 'This code has to be added to a plugin or to your theme\'s functions.php by someone with server access; the plugin does not expose a setting for it, since only a folder a developer explicitly trusts should be added.', 'import-users-from-csv-with-meta' ) . '</p>'
+			. '<p>' . __( 'A remote URL is safe to use too: the plugin blocks requests to private, loopback, link-local (including the cloud metadata endpoint 169.254.169.254) and carrier-grade NAT addresses, and re-checks that block on every redirect the server sends, instead of trusting the first URL alone.', 'import-users-from-csv-with-meta' ) . '</p>';
 	}
 
 	static function section_hooks(){

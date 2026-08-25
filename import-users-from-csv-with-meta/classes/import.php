@@ -8,6 +8,7 @@ class ACUI_Import{
     function hooks(){
         add_action( 'wp_ajax_acui_import_users_batch', array( $this, 'ajax_import_users_batch' ) );
         add_action( 'acui_post_import_single_user', array( $this, 'mark_user_as_imported' ), 10, 11 );
+        add_action( 'wp_ajax_acui_check_local_path', array( $this, 'ajax_check_local_path' ) );
     }
 
     function mark_user_as_imported( $headers, $data, $user_id, $role, $positions, $form_data, $is_frontend, $is_cron, $password_changed, $created ){
@@ -353,7 +354,7 @@ class ACUI_Import{
                 return false;
             }
 
-            $path_to_file = download_url( $path_to_file );
+            $path_to_file = $this->fetch_remote_csv_safely( $path_to_file );
 
             if( is_wp_error( $path_to_file ) ){
                 echo "<p>" . sprintf( __( 'Error, problems downloading the file from the URL: %s', 'import-users-from-csv-with-meta' ), $path_to_file->get_error_message() ) . "</p>";
@@ -362,6 +363,115 @@ class ACUI_Import{
         }
 
         return $path_to_file;
+    }
+
+    // Same SSRF hardening pattern used for the bp_avatar remote fetch (addons/buddypress.php):
+    // reject private/loopback/link-local/CGNAT hosts, and re-validate on every redirect hop
+    // instead of trusting WP core's download_url(), which follows redirects unchecked.
+    function is_safe_remote_csv_url( $url ){
+        if( wp_http_validate_url( $url ) === false )
+            return false;
+
+        $host = wp_parse_url( $url, PHP_URL_HOST );
+
+        if( empty( $host ) )
+            return false;
+
+        $ip = filter_var( $host, FILTER_VALIDATE_IP ) ? $host : gethostbyname( $host );
+
+        if( !filter_var( $ip, FILTER_VALIDATE_IP ) )
+            return false;
+
+        $blocked_ranges = array(
+            '127.0.0.0/8',
+            '10.0.0.0/8',
+            '172.16.0.0/12',
+            '192.168.0.0/16',
+            '169.254.0.0/16',
+            '100.64.0.0/10',
+            '198.18.0.0/15',
+            '::1/128',
+            'fc00::/7',
+            'fe80::/10',
+        );
+
+        foreach( $blocked_ranges as $range ){
+            if( $this->ip_in_range( $ip, $range ) )
+                return false;
+        }
+
+        return true;
+    }
+
+    function ip_in_range( $ip, $range ){
+        list( $subnet, $bits ) = explode( '/', $range );
+
+        $ip_bin = inet_pton( $ip );
+        $subnet_bin = inet_pton( $subnet );
+
+        if( $ip_bin === false || $subnet_bin === false || strlen( $ip_bin ) !== strlen( $subnet_bin ) )
+            return false;
+
+        $bits = (int) $bits;
+        $bytes = intdiv( $bits, 8 );
+        $remainder_bits = $bits % 8;
+
+        if( $bytes > 0 && substr( $ip_bin, 0, $bytes ) !== substr( $subnet_bin, 0, $bytes ) )
+            return false;
+
+        if( $remainder_bits === 0 )
+            return true;
+
+        $mask = chr( ( 0xFF << ( 8 - $remainder_bits ) ) & 0xFF );
+
+        return ( $ip_bin[ $bytes ] & $mask ) === ( $subnet_bin[ $bytes ] & $mask );
+    }
+
+    function fetch_remote_csv_safely( $url, $max_redirects = 3 ){
+        if( !function_exists( 'wp_tempnam' ) )
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+
+        for( $i = 0; $i <= $max_redirects; $i++ ){
+            if( !$this->is_safe_remote_csv_url( $url ) )
+                return new WP_Error( 'acui_unsafe_url', __( 'The URL points to a host that is not allowed (private, loopback, link-local or carrier-grade NAT address).', 'import-users-from-csv-with-meta' ) );
+
+            $tmpfname = wp_tempnam( $url );
+
+            $response = wp_safe_remote_get( $url, array(
+                'timeout'     => 300,
+                'redirection' => 0,
+                'stream'      => true,
+                'filename'    => $tmpfname,
+            ) );
+
+            if( is_wp_error( $response ) ){
+                @unlink( $tmpfname );
+                return $response;
+            }
+
+            $code = wp_remote_retrieve_response_code( $response );
+
+            if( in_array( $code, array( 301, 302, 303, 307, 308 ), true ) ){
+                @unlink( $tmpfname );
+
+                $location = wp_remote_retrieve_header( $response, 'location' );
+
+                if( empty( $location ) )
+                    return new WP_Error( 'acui_bad_redirect', __( 'The server returned a redirect without a valid destination.', 'import-users-from-csv-with-meta' ) );
+
+                $url = WP_Http::make_absolute_url( $location, $url );
+                continue;
+            }
+
+            if( $code !== 200 ){
+                @unlink( $tmpfname );
+                return new WP_Error( 'acui_download_failed', sprintf( __( 'The server responded with HTTP %d.', 'import-users-from-csv-with-meta' ), $code ) );
+            }
+
+            return $tmpfname;
+        }
+
+        return new WP_Error( 'acui_too_many_redirects', __( 'Too many redirects while trying to download the file.', 'import-users-from-csv-with-meta' ) );
     }
 
     function manage_file_upload( $path_to_file ){
@@ -393,16 +503,64 @@ class ACUI_Import{
             return false;
 
         $upload_dir = wp_upload_dir();
-        $real_base = realpath( $upload_dir['basedir'] );
         $real_path = realpath( $path_to_file );
 
-        if( $real_base === false || $real_path === false )
+        if( $real_path === false )
             return false;
 
-        $real_base = wp_normalize_path( $real_base );
         $real_path = wp_normalize_path( $real_path );
 
-        return strpos( $real_path, trailingslashit( $real_base ) ) === 0;
+        // Sites that generate the CSV outside wp-content/uploads can widen this via code,
+        // e.g. add_filter( 'acui_allowed_local_csv_base_dirs', fn( $dirs ) => array_merge( $dirs, array( '/usr/home/user/public_html/DCC/Update' ) ) );
+        $allowed_base_dirs = apply_filters( 'acui_allowed_local_csv_base_dirs', array( $upload_dir['basedir'] ), $path_to_file );
+
+        foreach( (array) $allowed_base_dirs as $base_dir ){
+            $real_base = realpath( $base_dir );
+
+            if( $real_base === false )
+                continue;
+
+            $real_base = wp_normalize_path( $real_base );
+
+            if( strpos( $real_path, trailingslashit( $real_base ) ) === 0 )
+                return true;
+        }
+
+        return false;
+    }
+
+    function get_local_path_status( $path_to_file ){
+        $path_to_file = wp_normalize_path( trim( $path_to_file ) );
+
+        if( $path_to_file === '' )
+            return array( 'status' => 'empty', 'message' => __( 'Enter a path or URL first.', 'import-users-from-csv-with-meta' ) );
+
+        if( wp_http_validate_url( $path_to_file ) !== false )
+            return array( 'status' => 'url', 'message' => __( 'This is a URL. It will be downloaded at import time and is not restricted to the uploads folder.', 'import-users-from-csv-with-meta' ) );
+
+        if( strtolower( pathinfo( $path_to_file, PATHINFO_EXTENSION ) ) !== 'csv' )
+            return array( 'status' => 'invalid', 'message' => __( 'The path must point to a .csv file.', 'import-users-from-csv-with-meta' ) );
+
+        if( !file_exists( $path_to_file ) )
+            return array( 'status' => 'invalid', 'message' => __( 'The file cannot be found at that path on the server.', 'import-users-from-csv-with-meta' ) );
+
+        if( !$this->is_allowed_local_csv( $path_to_file ) ){
+            $upload_dir = wp_upload_dir();
+            $allowed_base_dirs = apply_filters( 'acui_allowed_local_csv_base_dirs', array( $upload_dir['basedir'] ), $path_to_file );
+            return array( 'status' => 'invalid', 'message' => sprintf( __( 'The file exists but is located outside the allowed folder(s) (%s), so the import will refuse it.', 'import-users-from-csv-with-meta' ), implode( ', ', (array) $allowed_base_dirs ) ) );
+        }
+
+        return array( 'status' => 'valid', 'message' => __( 'This path is valid and allowed.', 'import-users-from-csv-with-meta' ) );
+    }
+
+    function ajax_check_local_path(){
+        check_ajax_referer( 'codection-security', 'security' );
+
+        if( !current_user_can( apply_filters( 'acui_capability', 'create_users' ) ) )
+            wp_die( -1 );
+
+        $path = isset( $_POST['path'] ) ? sanitize_text_field( wp_unslash( $_POST['path'] ) ) : '';
+        wp_send_json( $this->get_local_path_status( $path ) );
     }
 
     function fileupload_process( $form_data, $is_cron = false, $is_frontend  = false ) {

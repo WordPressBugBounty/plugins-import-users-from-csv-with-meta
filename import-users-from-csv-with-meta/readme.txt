@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.0
-Stable tag: 2.4.13
+Stable tag: 2.4.14
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -105,6 +105,13 @@ By default they are sent to their WordPress profile page. If WooCommerce or WP U
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.4.14 =
+*   Improvement: the "Path or URL of file that is going to be imported" field (manual import and Cron tab) now explains right on screen that a local path must be located inside the WordPress uploads folder, and shows the actual folder path of the site
+*   Improvement: added a "Check path" button next to that field to verify, before saving or running the import, whether the entered path or URL will be accepted, and why not otherwise
+*   Improvement: saving the Cron settings now shows a warning notice when the configured path is not a valid local path (wrong extension, file not found, or outside the uploads folder), instead of only failing silently at the next scheduled run
+*   New: added the `acui_allowed_local_csv_base_dirs` filter so a developer can whitelist extra local base folders for the CSV path (e.g. a folder an external process writes to), without disabling the underlying security check added in 2.4.3
+*   Security fix (hardening): importing a CSV from a remote URL (manual import and Cron tab) now blocks link-local (`169.254.0.0/16`, including the cloud metadata endpoint `169.254.169.254`) and carrier-grade NAT (`100.64.0.0/10`, `198.18.0.0/15`) hosts, and re-validates every redirect hop against the same SSRF blocklist instead of letting `download_url()` follow redirects unchecked. This closes the same class of Server-Side Request Forgery that was already fixed for the BuddyPress/BuddyBoss `bp_avatar` import in 2.4.3/3.x, but that fix had not been applied to the main CSV-by-URL import path
 
 = 2.4.13 =
 *   Improvement: the role errors during the import now say exactly what is wrong instead of always blaming permissions. The row is checked role by role and the message tells which single role failed and why: the role does not exist (and lists the roles that can be used), the role exists but the current user is not allowed to assign it (and lists which ones they can), or the role column is empty on that row. Before, a role that simply did not exist was reported as *"You do not have permission to assign some of the next roles"* whenever the "update roles of existing users" option was set to "no", because the "role does not exist" check was skipped in that case, and both messages printed the whole list of roles of the row instead of the offending ones

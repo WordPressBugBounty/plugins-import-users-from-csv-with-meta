@@ -95,6 +95,18 @@ class ACUI_Homepage{
 		.acui-importing .user-importer-progress-wrapper{
 			display: block !important;
 		}
+
+		.acui-path-check-result{
+			font-weight: 600;
+		}
+
+		.acui-path-check-result.acui-path-ok{
+			color: #007017;
+		}
+
+		.acui-path-check-result.acui-path-bad{
+			color: #d63638;
+		}
 		</style>
 		<?php do_action( 'acui_homepage_start' ); ?>
 
@@ -132,7 +144,10 @@ class ACUI_Homepage{
 							</div>
 							<div id="introduce_path" style="display:none;">
 								<input placeholder="<?php printf( __( 'You have to enter the URL or the path to the file, i.e.: %s or %s' ,'import-users-from-csv-with-meta' ), $sample_path, $sample_url ); ?>" type="text" name="path_to_file" id="path_to_file" value="<?php echo $settings->get( 'path_to_file' ); ?>" style="width:70%;" />
+								<button type="button" class="button acui-check-path-btn" data-target="path_to_file"><?php _e( 'Check path', 'import-users-from-csv-with-meta' ); ?></button>
 								<em><?php _e( 'or you can upload it directly from your computer', 'import-users-from-csv-with-meta' ); ?>, <a href="#" class="toggle_upload_path"><?php _e( 'click here', 'import-users-from-csv-with-meta' ); ?></a>.</em>
+								<p class="description"><?php printf( __( 'A local path must point to a .csv file located inside your WordPress uploads folder: %s (subfolders are allowed). Files outside that folder are rejected for security reasons. Use a URL instead if the file lives elsewhere.', 'import-users-from-csv-with-meta' ), '<code>' . esc_html( $upload_dir['basedir'] ) . '</code>' ); ?></p>
+								<p class="acui-path-check-result" data-target="path_to_file" style="display:none;"></p>
 							</div>
 							<?php if( !is_plugin_active( 'import-export-users-customers-file-formats/import-export-users-customers-file-formats.php' ) ): ?>
 							<p class="description"><?php printf( __( 'You can also import <strong>XLSX, XLS or ODS</strong> files with the <a href="%s" target="_blank">File Formats addon</a>.', 'import-users-from-csv-with-meta' ), 'https://import-wp.com/plugins/file-formats-addon/' ); ?></p>
@@ -503,6 +518,31 @@ class ACUI_Homepage{
 		$( '.toggle_upload_path' ).click( function( e ){
 			e.preventDefault();
 			$( '#upload_file,#introduce_path' ).toggle();
+		} );
+
+		$( '.acui-check-path-btn' ).click( function( e ){
+			e.preventDefault();
+
+			var $btn    = $( this );
+			var target  = $btn.data( 'target' );
+			var $input  = $( '#' + target );
+			var $result = $( '.acui-path-check-result[data-target="' + target + '"]' );
+
+			$btn.prop( 'disabled', true );
+			$result.show().removeClass( 'acui-path-ok acui-path-bad' ).text( '<?php echo esc_js( __( 'Checking…', 'import-users-from-csv-with-meta' ) ); ?>' );
+
+			$.post( ajaxurl, {
+				action: 'acui_check_local_path',
+				security: '<?php echo wp_create_nonce( 'codection-security' ); ?>',
+				path: $input.val()
+			}, function( response ){
+				var ok = ( response.status === 'valid' || response.status === 'url' );
+				$result.text( response.message ).toggleClass( 'acui-path-ok', ok ).toggleClass( 'acui-path-bad', !ok );
+			}, 'json' ).fail( function(){
+				$result.text( '<?php echo esc_js( __( 'Could not check the path, please try again.', 'import-users-from-csv-with-meta' ) ); ?>' ).addClass( 'acui-path-bad' );
+			} ).always( function(){
+				$btn.prop( 'disabled', false );
+			} );
 		} );
 
 		$( '#vote_us' ).click( function(){
