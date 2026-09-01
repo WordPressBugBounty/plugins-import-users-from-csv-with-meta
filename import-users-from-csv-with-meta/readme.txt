@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 2.4.15
+Stable tag: 2.4.16
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -105,6 +105,9 @@ By default they are sent to their WordPress profile page. If WooCommerce or WP U
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.4.16 =
+*   Security fix (privilege escalation): the 2.4.15 fix gated the Cron tab's stored default role and execution user, but not the "Run now" no-session action (`acui_fire_cron_no_session`) itself, nor the role that a CSV row can carry in its own role column. A user with only `create_users` could still save an attacker-controlled file path (not gated by `promote_users`) and trigger that no-session run, which clears the current user and falls back to the site's first Administrator; the per-row role check then saw that substituted Administrator's capabilities instead of the actual caller's, so a role of `administrator` delivered through the CSV itself (rather than the stored default) was still accepted. The role assignment check on every cron-triggered run, including multi-step batches, now uses the capability of the user who actually triggered the run instead of the capability of the substituted execution user
 
 = 2.4.15 =
 *   Security fix (privilege escalation): saving the Cron tab settings (`acui_cron_save_settings`) checked only the shared plugin nonce and, for the "User that runs the cron" field, that the selected user held the same broad menu capability (`create_users` by default) as whoever was saving. This let a user with `create_users` but not `promote_users` (or `delete_users`) select an Administrator as the execution identity, set the default role to `administrator`, or enable "delete users not present"/"change role of users not present", and then trigger the "Run now" no-session action, which runs the import with no logged-in user and falls back to the site's first Administrator. The `promote_users` check on role assignment and the missing capability checks on user deletion and role change only saw that substituted Administrator, not the actual caller, so a delegated importer could create a new Administrator account or delete/demote existing users. The Cron tab now requires `promote_users` to set a default role, to set the "change role of users not present" role, or to select an execution user that itself has `promote_users`, and requires `delete_users` to enable "delete users not present"

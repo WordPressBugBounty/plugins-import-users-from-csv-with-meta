@@ -869,7 +869,8 @@ class ACUI_Import{
                 }
 
                 if( !$no_role && ( $settings['update_roles_existing_users'] == 'yes' || $settings['update_roles_existing_users'] == 'yes_no_override' || $created ) ){
-                    if( !empty( $role ) && !current_user_can( 'promote_users' ) ){
+                    $can_promote_users = ( $settings['caller_can_promote_users'] !== null ) ? (bool) $settings['caller_can_promote_users'] : current_user_can( 'promote_users' );
+                    if( !empty( $role ) && !$can_promote_users ){
                         $errors[] = ACUIHelper()->new_error( $row, __( 'You are not allowed to assign roles, the requested role was ignored.', 'import-users-from-csv-with-meta' ), 'warning' );
                         $role = array();
                     }
@@ -1070,7 +1071,8 @@ class ACUI_Import{
         $settings['change_role_not_present_role'] = isset( $form_data["change_role_not_present_role"] ) ? sanitize_text_field( $form_data["change_role_not_present_role"] ) : '';
         $settings['not_present_same_role'] = isset( $form_data["not_present_same_role"] ) ? sanitize_text_field( $form_data["not_present_same_role"] ) : 'no';
         $settings['not_present_only_imported'] = isset( $form_data["not_present_only_imported"] ) ? sanitize_text_field( $form_data["not_present_only_imported"] ) : 'no';
-        
+        $settings['caller_can_promote_users'] = array_key_exists( 'caller_can_promote_users', $form_data ) ? $form_data['caller_can_promote_users'] : null;
+
         if( $is_cron ){
             $settings['allow_multiple_accounts'] = ( get_option( "acui_cron_allow_multiple_accounts" ) == "allowed" ) ? "allowed" : "not_allowed";
         }
@@ -1409,7 +1411,7 @@ class ACUI_Import{
                 $this->save_transients( $columns, $headers, $headers_filtered, $positions, $errors, $errors_totals, $results, $users_created, $users_updated, $users_ignored, $roles_appeared, $users_deleted );
 
                 if( $is_cron ){
-                    as_enqueue_async_action( 'acui_cron_process_step', array( 'step' => $step + 1, 'initial_row' => $row, 'session_id' => $this->session_id ) );
+                    as_enqueue_async_action( 'acui_cron_process_step', array( 'step' => $step + 1, 'initial_row' => $row, 'session_id' => $this->session_id, 'caller_can_promote_users' => isset( $form_data['caller_can_promote_users'] ) ? $form_data['caller_can_promote_users'] : null ) );
                 }
 
                 ACUIHelper()->print_table_end( false );
@@ -1421,7 +1423,7 @@ class ACUI_Import{
                 $this->save_transients( $columns, $headers, $headers_filtered, $positions, $errors, $errors_totals, $results, $users_created, $users_updated, $users_ignored, $roles_appeared, $users_deleted );
 
                 if( $is_cron ){
-                    as_enqueue_async_action( 'acui_cron_process_step', array( 'step' => $step + 1, 'initial_row' => $row, 'session_id' => $this->session_id ) );
+                    as_enqueue_async_action( 'acui_cron_process_step', array( 'step' => $step + 1, 'initial_row' => $row, 'session_id' => $this->session_id, 'caller_can_promote_users' => isset( $form_data['caller_can_promote_users'] ) ? $form_data['caller_can_promote_users'] : null ) );
                 }
                 ACUIHelper()->print_table_end( false );
                 echo '</div>';
