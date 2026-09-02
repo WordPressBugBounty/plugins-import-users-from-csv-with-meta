@@ -1448,7 +1448,7 @@ class ACUI_Import{
             $delete_users_assign_posts = false;
             $change_role_not_present_flag = false;
 
-            if( $settings['delete_users_not_present'] == 'yes' ){
+            if( $settings['delete_users_not_present'] == 'yes' && current_user_can( 'delete_users' ) ){
                 $delete_users_flag = true;
                 $delete_users_assign_posts = $settings['delete_users_assign_posts'];
             }
@@ -1458,7 +1458,7 @@ class ACUI_Import{
                 $delete_users_assign_posts = get_option( "acui_cron_delete_users_assign_posts");
             }
 
-            if( $is_backend && $settings['change_role_not_present'] == 'yes' ){
+            if( $is_backend && $settings['change_role_not_present'] == 'yes' && current_user_can( 'promote_users' ) ){
                 $change_role_not_present_flag = true;
                 $change_role_not_present_role = $settings['change_role_not_present_role'];
             }

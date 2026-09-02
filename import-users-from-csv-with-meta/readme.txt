@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 2.4.16
+Stable tag: 2.4.17
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -105,6 +105,10 @@ By default they are sent to their WordPress profile page. If WooCommerce or WP U
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.4.17 =
+*   Security fix (privilege escalation): the 2.4.16 fix only closed the literal `acui_fire_cron_no_session` no-session action; it did not close the same gap on a genuinely unattended run of the recurring import (an Action Scheduler queue tick, with no `$caller_can_promote_users` argument at all). A user with only `create_users` could leave the Cron tab's default role empty (so the `promote_users` gate on that field was never tripped), point the recurring import at an attacker-controlled CSV with its own `role` column set to `administrator`, and activate it. On the next unattended tick, the execution user still falls back to the site's first Administrator, and the per-row role check evaluated that substituted Administrator's own capability rather than the capability of whoever had actually configured the task, so the CSV-supplied `administrator` role was applied. Whether an unattended cron run may apply any role, including one carried in the CSV's own role column, is now decided by the `promote_users` capability of the user who last saved the Cron tab settings, recorded at save time, instead of being re-derived from the (possibly substituted) execution user at run time
+*   Security fix (privilege escalation): the manual backend import ("Import" tab) only required `create_users` to run at all, but let the request also enable "delete users not present" and "change role of users not present" without holding `delete_users` or `promote_users` respectively — the same gap that the Cron tab already had fixed in 2.4.15. Both options on the manual import now also require the matching capability
 
 = 2.4.16 =
 *   Security fix (privilege escalation): the 2.4.15 fix gated the Cron tab's stored default role and execution user, but not the "Run now" no-session action (`acui_fire_cron_no_session`) itself, nor the role that a CSV row can carry in its own role column. A user with only `create_users` could still save an attacker-controlled file path (not gated by `promote_users`) and trigger that no-session run, which clears the current user and falls back to the site's first Administrator; the per-row role check then saw that substituted Administrator's capabilities instead of the actual caller's, so a role of `administrator` delivered through the CSV itself (rather than the stored default) was still accepted. The role assignment check on every cron-triggered run, including multi-step batches, now uses the capability of the user who actually triggered the run instead of the capability of the substituted execution user

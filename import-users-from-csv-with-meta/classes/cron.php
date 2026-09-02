@@ -85,6 +85,7 @@ class ACUI_Cron{
 		if( !empty( $submitted_role ) && !current_user_can( 'promote_users' ) )
 			wp_die( __( 'You are not allowed to assign roles.', 'import-users-from-csv-with-meta' ) );
 		update_option( "acui_cron_role", $submitted_role );
+		update_option( "acui_cron_role_authorized", current_user_can( 'promote_users' ) );
 		update_option( "acui_cron_update_roles_existing_users", isset( $form_data["update-roles-existing-users"] ) && $form_data["update-roles-existing-users"] == "1" );
 		update_option( "acui_cron_change_role_not_present", isset( $form_data["cron-change-role-not-present"] ) && $form_data["cron-change-role-not-present"] == "1" );
 
@@ -124,8 +125,12 @@ class ACUI_Cron{
 		$session_id = sanitize_key( uniqid( 'c' ) );
 		$message = __('Import cron task - Step #1 - starts at', 'import-users-from-csv-with-meta' ) . ' ' . current_time('mysql') . '<br/>';
 
+		$has_real_session = is_user_logged_in();
+
 		$this->set_cron_user();
 
+		if( $caller_can_promote_users === null && !$has_real_session )
+			$caller_can_promote_users = (bool) get_option( "acui_cron_role_authorized" );
 
 		$form_data = array();
 		$form_data[ "acui_session_id" ] = $session_id;
@@ -162,7 +167,12 @@ class ACUI_Cron{
 	function process_step( $step, $initial_row, $session_id = '', $caller_can_promote_users = null ){
 		$message = __('Import cron task - Step #' . $step . ' - starts at', 'import-users-from-csv-with-meta' ) . ' ' . current_time('mysql') . '<br/>';
 
+		$has_real_session = is_user_logged_in();
+
 		$this->set_cron_user();
+
+		if( $caller_can_promote_users === null && !$has_real_session )
+			$caller_can_promote_users = (bool) get_option( "acui_cron_role_authorized" );
 
 		$form_data = array();
 		$form_data[ "acui_session_id" ] = $session_id;
