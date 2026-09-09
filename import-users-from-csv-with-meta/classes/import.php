@@ -882,6 +882,14 @@ class ACUI_Import{
                         } );
                     }
 
+                    $can_create_users = ( $settings['caller_can_promote_users'] !== null ) ? $can_promote_users : current_user_can( 'create_users' );
+                    if( !empty( $role ) && in_array( 'administrator', array_map( function( $single_role ){ return strtolower( trim( $single_role ) ); }, (array) $role ), true ) && !$can_create_users ){
+                        $errors[] = ACUIHelper()->new_error( $row, __( 'Assigning the administrator role requires the create_users capability; the administrator role was ignored for this row.', 'import-users-from-csv-with-meta' ), 'warning' );
+                        $role = array_filter( (array) $role, function( $single_role ){
+                            return strtolower( trim( $single_role ) ) !== 'administrator';
+                        } );
+                    }
+
                     if( !empty( $role ) ){
                         if( is_array( $role ) ){
                             foreach( $role as $single_role ){
@@ -1342,7 +1350,7 @@ class ACUI_Import{
 
         if( $initial_row != 0 && !$columns ){
             $header_manager = new SplFileObject( $file );
-            $header_data = $header_manager->fgetcsv( $delimiter );
+            $header_data = $header_manager->fgetcsv( $delimiter, '"', "\0" );
             if( is_array( $header_data ) && count( $header_data ) > 1 ){
                 $headers = array();
                 $headers_filtered = array();
@@ -1353,7 +1361,7 @@ class ACUI_Import{
             unset( $header_manager );
         }
 
-        while( $data = $manager->fgetcsv( $delimiter ) ):
+        while( $data = $manager->fgetcsv( $delimiter, '"', "\0" ) ):
             $row++;
 
             if( count( $data ) == 1 )

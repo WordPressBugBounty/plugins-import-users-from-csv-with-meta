@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 2.4.17
+Stable tag: 2.4.18
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -105,6 +105,10 @@ By default they are sent to their WordPress profile page. If WooCommerce or WP U
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.4.18 =
+*   Security fix (privilege escalation): the CSV exporter writes fields with the NUL character as the escape character (`fputcsv(..., '"', "\0")`), but the importer's `SplFileObject::fgetcsv()` calls were passing only the delimiter, which silently kept PHP's default backslash escape character. Any registered user able to save their own profile could set `display_name` to a value ending in a comma and a backslash (e.g. `a,\`) and `nickname` to a value starting and ending with a comma around a role name (e.g. `,administrator,q`). When an administrator later used the plugin's own Export tab and re-imported that file with "Update existing users" and "Update roles for existing users" both set to "yes" — the plugin's documented backup/migration workflow — the escape mismatch merged the `display_name` cell into the `role` column and split the `nickname` cell, so the parsed role column for the attacker's own row read exactly `administrator`, and the administrator's own authorized import call applied it. The importer's `fgetcsv()` calls now use the same explicit escape character as the exporter, so no combination of profile field values can shift the parsed column boundaries
+*   Security fix (hardening): as defense in depth for the same code path, assigning the `administrator` role during an import now additionally requires the `create_users` capability (not only `promote_users`) on the account running the import. This does not change behavior on sites using the plugin's own default access gate, but stops a future column-shift bug — or a site that has lowered the `acui_capability` filter to allow non-administrators to run imports — from being able to deliver an `administrator` role assignment through a CSV. Other roles present on the same row are unaffected; only `administrator` is dropped (with a warning) when `create_users` is missing
 
 = 2.4.17 =
 *   Security fix (privilege escalation): the 2.4.16 fix only closed the literal `acui_fire_cron_no_session` no-session action; it did not close the same gap on a genuinely unattended run of the recurring import (an Action Scheduler queue tick, with no `$caller_can_promote_users` argument at all). A user with only `create_users` could leave the Cron tab's default role empty (so the `promote_users` gate on that field was never tripped), point the recurring import at an attacker-controlled CSV with its own `role` column set to `administrator`, and activate it. On the next unattended tick, the execution user still falls back to the site's first Administrator, and the per-row role check evaluated that substituted Administrator's own capability rather than the capability of whoever had actually configured the task, so the CSV-supplied `administrator` role was applied. Whether an unattended cron run may apply any role, including one carried in the CSV's own role column, is now decided by the `promote_users` capability of the user who last saved the Cron tab settings, recorded at save time, instead of being re-derived from the (possibly substituted) execution user at run time
