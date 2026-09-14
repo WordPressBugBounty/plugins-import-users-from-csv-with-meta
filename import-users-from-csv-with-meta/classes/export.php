@@ -272,7 +272,7 @@ class ACUI_Exporter{
 	}
 
     function download_export_file() {
-		if( current_user_can( apply_filters( 'acui_capability', 'create_users' ) ) && isset( $_GET['action'], $_GET['nonce'] ) && wp_verify_nonce( wp_unslash( $_GET['nonce'] ), 'codection-security' ) && 'download_user_csv' === wp_unslash( $_GET['action'] ) ) {
+		if( current_user_can( apply_filters( 'acui_export_capability', 'edit_users' ) ) && isset( $_GET['action'], $_GET['nonce'] ) && wp_verify_nonce( wp_unslash( $_GET['nonce'] ), 'codection-security' ) && 'download_user_csv' === wp_unslash( $_GET['action'] ) ) {
             $exporter = new ACUI_Batch_Exporter();
 
 			if ( !empty( $_GET['filename'] ) ){
@@ -312,8 +312,8 @@ class ACUI_Exporter{
     function export_users_csv(){
         check_ajax_referer( 'codection-security', 'security' );
 
-		if( !current_user_can( apply_filters( 'acui_capability', 'create_users' ) ) )
-			wp_die( __( 'Only users who are allowed to create users can export them.', 'import-users-from-csv-with-meta' ) );
+		if( !current_user_can( apply_filters( 'acui_export_capability', 'edit_users' ) ) )
+			wp_die( __( 'Only users who are allowed to list users can export them.', 'import-users-from-csv-with-meta' ) );
     
         $step = isset( $_POST['step'] ) ? absint( $_POST['step'] ) : 1;
 		        
@@ -392,8 +392,8 @@ class ACUI_Exporter{
 	function ajax_save_settings(){
 		check_ajax_referer( 'codection-security', 'security' );
 
-		if( !current_user_can( apply_filters( 'acui_capability', 'create_users' ) ) )
-			wp_die( __( 'Only users who are able to create users can save settings about exporting them.', 'import-users-from-csv-with-meta' ) );
+		if( !current_user_can( apply_filters( 'acui_export_capability', 'edit_users' ) ) )
+			wp_die( __( 'Only users who are allowed to list users can save settings about exporting them.', 'import-users-from-csv-with-meta' ) );
 
 		$this->save_settings();
 

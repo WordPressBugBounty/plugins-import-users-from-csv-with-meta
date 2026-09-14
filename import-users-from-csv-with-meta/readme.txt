@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 2.4.18
+Stable tag: 2.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -105,6 +105,10 @@ By default they are sent to their WordPress profile page. If WooCommerce or WP U
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.5 =
+*   Security hardening: exporting users is now gated by its own `acui_export_capability` filter (default `edit_users`) instead of sharing the `acui_capability` filter used by import. Previously, any site that lowered `acui_capability` to give a role import-only access (for example, to `add_users`) was also handing that same role access to the Export tab and its download/save endpoints, since both checks resolved to the exact same filter call with no way to tell them apart. The Export tab, its nav link, the plugin list "Export" action link and the export AJAX/download handlers now check the new filter independently, so an import-only role stays import-only unless the new filter is explicitly overridden
+*   The "Update existing users?" section on the Import tab now hides the "Update emails?", "Update roles for existing users?" and "Update passwords for existing users?" fields when "Update existing users?" is set to "No", since they have no effect in that case
 
 = 2.4.18 =
 *   Security fix (privilege escalation): the CSV exporter writes fields with the NUL character as the escape character (`fputcsv(..., '"', "\0")`), but the importer's `SplFileObject::fgetcsv()` calls were passing only the delimiter, which silently kept PHP's default backslash escape character. Any registered user able to save their own profile could set `display_name` to a value ending in a comma and a backslash (e.g. `a,\`) and `nickname` to a value starting and ending with a comma around a role name (e.g. `,administrator,q`). When an administrator later used the plugin's own Export tab and re-imported that file with "Update existing users" and "Update roles for existing users" both set to "yes" — the plugin's documented backup/migration workflow — the escape mismatch merged the `display_name` cell into the `role` column and split the `nickname` cell, so the parsed role column for the attacker's own row read exactly `administrator`, and the administrator's own authorized import call applied it. The importer's `fgetcsv()` calls now use the same explicit escape character as the exporter, so no combination of profile field values can shift the parsed column boundaries

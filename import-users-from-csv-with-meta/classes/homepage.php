@@ -478,6 +478,11 @@ class ACUI_Homepage{
 		} );
 
 		check_delete_users_checked();
+		toggle_update_existing_users_fields();
+
+		$( '#update_existing_users' ).on( 'change', function(){
+			toggle_update_existing_users_fields();
+		} );
 
         $( '#uploadfile_btn,#uploadfile_btn_up' ).click( function(){
             if( $( '#uploadfile' ).val() == "" && $( '#upload_file' ).is( ':visible' ) ) {
@@ -574,6 +579,11 @@ class ACUI_Homepage{
                 }
             },
         });
+
+		function toggle_update_existing_users_fields(){
+			var show = $( '#update_existing_users' ).val() == 'yes';
+			$( '#acui_update_emails_existing_users_wrapper, #acui_update_roles_existing_users_wrapper, #acui_update_allow_update_passwords_wrapper' ).toggle( show );
+		}
 
 		function check_delete_users_checked(){
 			if( $( '#delete_users_not_present' ).is( ':checked' ) ){

@@ -5,6 +5,10 @@ class ACUI_Import{
     function __construct(){
     }
 
+    static function current_user_can_export(){
+        return current_user_can( apply_filters( 'acui_export_capability', 'edit_users' ) );
+    }
+
     function hooks(){
         add_action( 'wp_ajax_acui_import_users_batch', array( $this, 'ajax_import_users_batch' ) );
         add_action( 'acui_post_import_single_user', array( $this, 'mark_user_as_imported' ), 10, 11 );
@@ -46,7 +50,12 @@ class ACUI_Import{
         $tab = ( isset ( $_GET['tab'] ) ) ? $_GET['tab'] : 'homepage';
         $sections = $this->get_sections_from_tab( $tab );
 	    $section = isset( $_GET['section'] ) ? sanitize_text_field( $_GET['section'] ) : 'main';
-    
+
+        $export_tab_ids = apply_filters( 'acui_export_tab_ids', array( 'export', 'frontend-export', 'cron-export' ) );
+        if ( in_array( $tab, $export_tab_ids, true ) && ! self::current_user_can_export() ) {
+            wp_die( __( 'You are not allowed to see this content.', 'import-users-from-csv-with-meta' ) );
+        }
+
         if( isset( $_POST ) && !empty( $_POST ) ):
             if ( !wp_verify_nonce( $_POST['security'], 'codection-security' ) ) {
                 wp_die( __( 'Nonce check failed', 'import-users-from-csv-with-meta' ) ); 
@@ -177,8 +186,9 @@ class ACUI_Import{
 
         $all_tabs = apply_filters( 'acui_tabs', $all_tabs );
 
+        $can_export  = self::current_user_can_export();
         $in_import   = in_array( $current, $import_tab_ids );
-        $in_export   = in_array( $current, $export_tab_ids );
+        $in_export   = in_array( $current, $export_tab_ids ) && $can_export;
         $in_settings = in_array( $current, $settings_tab_ids );
         $in_log      = in_array( $current, $log_tab_ids );
 
@@ -190,8 +200,10 @@ class ACUI_Import{
         $import_class = $in_import ? ' nav-tab-active' : '';
         echo "<a class='nav-tab$import_class' href='?page=acui&tab=homepage'>" . __( 'Import', 'import-users-from-csv-with-meta' ) . "</a>";
 
-        $export_class = $in_export ? ' nav-tab-active' : '';
-        echo "<a class='nav-tab$export_class' href='?page=acui&tab=export'>" . __( 'Export', 'import-users-from-csv-with-meta' ) . "</a>";
+        if( $can_export ){
+            $export_class = $in_export ? ' nav-tab-active' : '';
+            echo "<a class='nav-tab$export_class' href='?page=acui&tab=export'>" . __( 'Export', 'import-users-from-csv-with-meta' ) . "</a>";
+        }
 
         $settings_class = $in_settings ? ' nav-tab-active' : '';
         echo "<a class='nav-tab$settings_class' href='?page=acui&tab=mail-options'>" . __( 'Settings', 'import-users-from-csv-with-meta' ) . "</a>";

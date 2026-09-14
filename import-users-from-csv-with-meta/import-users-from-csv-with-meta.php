@@ -3,7 +3,7 @@
 Plugin Name:	Import and export users and customers
 Plugin URI:		https://www.codection.com
 Description:	Using this plugin you will be able to import and export users or customers choosing many options and interacting with lots of other plugins
-Version:		2.4.18
+Version:		2.5
 Author:			codection
 Author URI: 	https://codection.com
 License:     	GPL2
@@ -14,7 +14,7 @@ Domain Path: /languages
 if ( ! defined( 'ABSPATH' ) ) 
 	exit;
 
-define( 'ACUI_VERSION', '2.4.18' );
+define( 'ACUI_VERSION', '2.5' );
 
 if( !defined( 'ACUI_IMPORT_BATCH_SIZE' ) )
 	define( 'ACUI_IMPORT_BATCH_SIZE', 100 );
@@ -128,9 +128,10 @@ class ImportExportUsersCustomers{
 
 	function action_links( $links, $file ) {
 		if ($file == 'import-users-from-csv-with-meta/import-users-from-csv-with-meta.php') {
-			$links[] = sprintf( __( '<a href="%s">Export</a>', 'import-users-from-csv-with-meta' ), get_admin_url( null, 'tools.php?page=acui&tab=export' ) );
+			if( current_user_can( apply_filters( 'acui_export_capability', 'edit_users' ) ) )
+				$links[] = sprintf( __( '<a href="%s">Export</a>', 'import-users-from-csv-with-meta' ), get_admin_url( null, 'tools.php?page=acui&tab=export' ) );
 			$links[] = sprintf( __( '<a href="%s">Import</a>', 'import-users-from-csv-with-meta' ), get_admin_url( null, 'tools.php?page=acui&tab=homepage' ) );
-			return array_reverse( $links );		
+			return array_reverse( $links );
 		}
 		
 		return $links; 
