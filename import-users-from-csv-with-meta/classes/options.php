@@ -84,8 +84,19 @@ class ACUI_Options{
             update_option( "acui_frontend_send_mail_admin_address_list", sanitize_text_field( $form_data["send_mail_admin_frontend_address_list"] ) );
             update_option( "acui_frontend_delete_users", isset( $form_data["delete_users_frontend"] ) && $form_data["delete_users_frontend"] == "1" );
             update_option( "acui_frontend_delete_users_assign_posts", sanitize_text_field( $form_data["delete-users-assign-posts-frontend"] ) );
-            update_option( "acui_frontend_change_role_not_present", isset( $form_data["change_role_not_present_frontend"] ) && $form_data["change_role_not_present_frontend"] == "1" );
-            update_option( "acui_frontend_change_role_not_present_role", sanitize_text_field( $form_data["change_role_not_present_role_frontend"] ) );
+            $change_role_not_present_frontend = isset( $form_data["change_role_not_present_frontend"] ) && $form_data["change_role_not_present_frontend"] == "1";
+            if( $change_role_not_present_frontend && !current_user_can( 'promote_users' ) )
+                wp_die( __( 'You are not allowed to assign roles.', 'import-users-from-csv-with-meta' ) );
+
+            update_option( "acui_frontend_change_role_not_present", $change_role_not_present_frontend );
+
+            if( isset( $form_data["change_role_not_present_role_frontend"] ) ){
+                $change_role_not_present_role_frontend = sanitize_text_field( $form_data["change_role_not_present_role_frontend"] );
+                if( !empty( $change_role_not_present_role_frontend ) && !current_user_can( 'promote_users' ) )
+                    wp_die( __( 'You are not allowed to assign roles.', 'import-users-from-csv-with-meta' ) );
+
+                update_option( "acui_frontend_change_role_not_present_role", $change_role_not_present_role_frontend );
+            }
             update_option( "acui_frontend_activate_users_wp_members", isset( $form_data["activate-users-wp-members-frontend"] ) ? sanitize_text_field( $form_data["activate-users-wp-members-frontend"] ) : 'no_activate' );
 
             update_option( "acui_frontend_role", sanitize_text_field( $form_data["role-frontend"] ) );

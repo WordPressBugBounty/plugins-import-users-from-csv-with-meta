@@ -1091,7 +1091,12 @@ class ACUI_Import{
         $settings['change_role_not_present_role'] = isset( $form_data["change_role_not_present_role"] ) ? sanitize_text_field( $form_data["change_role_not_present_role"] ) : '';
         $settings['not_present_same_role'] = isset( $form_data["not_present_same_role"] ) ? sanitize_text_field( $form_data["not_present_same_role"] ) : 'no';
         $settings['not_present_only_imported'] = isset( $form_data["not_present_only_imported"] ) ? sanitize_text_field( $form_data["not_present_only_imported"] ) : 'no';
-        $settings['caller_can_promote_users'] = array_key_exists( 'caller_can_promote_users', $form_data ) ? $form_data['caller_can_promote_users'] : null;
+        // The pre-recorded promote_users/create_users decision is only trustworthy on the
+        // cron path, where it was derived from a capability at schedule time. On every
+        // request-driven path $form_data is the raw request, so a caller could set this
+        // value themselves; force it to null there so the checks fall back to
+        // current_user_can() for the user actually making the request.
+        $settings['caller_can_promote_users'] = ( $is_cron && array_key_exists( 'caller_can_promote_users', $form_data ) ) ? $form_data['caller_can_promote_users'] : null;
 
         if( $is_cron ){
             $settings['allow_multiple_accounts'] = ( get_option( "acui_cron_allow_multiple_accounts" ) == "allowed" ) ? "allowed" : "not_allowed";
@@ -1488,7 +1493,7 @@ class ACUI_Import{
                 $change_role_not_present_role = get_option( "acui_cron_change_role_not_present_role");
             }
 
-            if( $is_frontend && !empty( get_option( "acui_frontend_change_role_not_present" ) ) ){
+            if( $is_frontend && !empty( get_option( "acui_frontend_change_role_not_present" ) ) && current_user_can( 'promote_users' ) ){
                 $change_role_not_present_flag = true;
                 $change_role_not_present_role = get_option( "acui_frontend_change_role_not_present_role");
             }
