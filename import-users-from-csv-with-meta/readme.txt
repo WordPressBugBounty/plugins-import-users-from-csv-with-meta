@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 2.5
+Stable tag: 2.5.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -105,6 +105,9 @@ By default they are sent to their WordPress profile page. If WooCommerce or WP U
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.5.1 =
+*   Fixed the `[export-users]` shortcode dropping the `columns` attribute when it used the `key=>Label` renaming syntax (for example `columns="user_email=>Email,first_name=>First name"`), which caused all columns to be exported instead of just the selected ones. The `=` and `>` characters were not part of the shortcode attribute's whitelist and made it get sanitized down to an empty value
 
 = 2.5 =
 *   Security hardening: exporting users is now gated by its own `acui_export_capability` filter (default `edit_users`) instead of sharing the `acui_capability` filter used by import. Previously, any site that lowered `acui_capability` to give a role import-only access (for example, to `add_users`) was also handing that same role access to the Export tab and its download/save endpoints, since both checks resolved to the exact same filter call with no way to tell them apart. The Export tab, its nav link, the plugin list "Export" action link and the export AJAX/download handlers now check the new filter independently, so an import-only role stays import-only unless the new filter is explicitly overridden
