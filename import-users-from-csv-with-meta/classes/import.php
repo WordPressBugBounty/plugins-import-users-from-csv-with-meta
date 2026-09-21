@@ -1255,10 +1255,11 @@ class ACUI_Import{
         }
     }
 
-    function save_transients( $columns, $headers, $headers_filtered, $positions, $errors, $errors_totals, $results, $users_created, $users_updated, $users_ignored, $roles_appeared, $users_deleted = array() ){
+    function save_transients( $columns, $headers, $headers_filtered, $positions, $errors, $errors_totals, $results, $users_created, $users_updated, $users_ignored, $roles_appeared, $users_deleted = array(), $resume_offset = 0 ){
         $pfx = 'acui' . ( $this->session_id ? '_' . $this->session_id : '' ) . '_';
         $ttl = HOUR_IN_SECONDS;
         set_transient( $pfx . 'columns', $columns, $ttl );
+        set_transient( $pfx . 'resume_offset', $resume_offset, $ttl );
         set_transient( $pfx . 'headers', $headers, $ttl );
         set_transient( $pfx . 'headers_filtered', $headers_filtered, $ttl );
         set_transient( $pfx . 'positions', $positions, $ttl );
@@ -1298,10 +1299,11 @@ class ACUI_Import{
 
         if( $step == 1 ){
             $columns = 0;
-            
+            $resume_offset = 0;
+
             $headers = array();
             $headers_filtered = array();
-            $positions = array();            
+            $positions = array();
 
             $errors = array();
             $errors_totals = array( 'notices' => 0, 'warnings' => 0, 'errors' => 0 );
@@ -1318,6 +1320,8 @@ class ACUI_Import{
         else{
             $pfx = 'acui' . ( $this->session_id ? '_' . $this->session_id : '' ) . '_';
             $columns = get_transient( $pfx . 'columns' );
+            $resume_offset = get_transient( $pfx . 'resume_offset' );
+            if( !is_numeric( $resume_offset ) ) $resume_offset = 0;
 
             $headers = get_transient( $pfx . 'headers' );
             if( !is_array( $headers ) ) $headers = array();
@@ -1362,8 +1366,8 @@ class ACUI_Import{
         $file = apply_filters( 'acui_import_file_path', $file, $form_data );
         $delimiter = ACUIHelper()->detect_delimiter( $file );
         $manager = new SplFileObject( $file );
-        if( $initial_row != 0 )
-            $manager->seek( $initial_row );
+        if( $resume_offset > 0 )
+            $manager->fseek( $resume_offset );
 
         if( $initial_row != 0 && !$columns ){
             $header_manager = new SplFileObject( $file );
@@ -1433,7 +1437,7 @@ class ACUI_Import{
             }
 
             if( $limit > 0 && ($row - $initial_row) >= $limit + ($initial_row == 0 ? 1 : 0) ){
-                $this->save_transients( $columns, $headers, $headers_filtered, $positions, $errors, $errors_totals, $results, $users_created, $users_updated, $users_ignored, $roles_appeared, $users_deleted );
+                $this->save_transients( $columns, $headers, $headers_filtered, $positions, $errors, $errors_totals, $results, $users_created, $users_updated, $users_ignored, $roles_appeared, $users_deleted, $manager->ftell() );
 
                 if( $is_cron ){
                     as_enqueue_async_action( 'acui_cron_process_step', array( 'step' => $step + 1, 'initial_row' => $row, 'session_id' => $this->session_id, 'caller_can_promote_users' => isset( $form_data['caller_can_promote_users'] ) ? $form_data['caller_can_promote_users'] : null ) );
@@ -1445,7 +1449,7 @@ class ACUI_Import{
             }
 
             if( $this->time_exceeded( $time_start, $time_per_step ) ){
-                $this->save_transients( $columns, $headers, $headers_filtered, $positions, $errors, $errors_totals, $results, $users_created, $users_updated, $users_ignored, $roles_appeared, $users_deleted );
+                $this->save_transients( $columns, $headers, $headers_filtered, $positions, $errors, $errors_totals, $results, $users_created, $users_updated, $users_ignored, $roles_appeared, $users_deleted, $manager->ftell() );
 
                 if( $is_cron ){
                     as_enqueue_async_action( 'acui_cron_process_step', array( 'step' => $step + 1, 'initial_row' => $row, 'session_id' => $this->session_id, 'caller_can_promote_users' => isset( $form_data['caller_can_promote_users'] ) ? $form_data['caller_can_promote_users'] : null ) );
