@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 2.5.4
+Stable tag: 2.5.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -105,6 +105,10 @@ By default they are sent to their WordPress profile page. If WooCommerce or WP U
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.5.5 =
+*   The "Update roles for existing users?" option in the Cron import tab is now a selector with the same three choices as the manual importer: "No", "Yes, update and override existing roles" and "Yes, add new roles and do not override existing ones". Until now it was a checkbox that could only override the existing roles, so recurring imports had no way to add the roles from the CSV while keeping the ones users already had. Existing settings are kept: a checked box is read as "Yes, update and override existing roles" and an unchecked one as "No"
+*   Fixed "Yes, add new roles and do not override existing ones" still replacing the roles of existing users on multisite when the row had no role to assign (no `role` column and role assignment disabled): the user was re-added to the current site as Subscriber, which removed the roles they already had there. Existing members of the site now keep their roles in that case, and only users that are not yet members of the site are added as Subscriber
 
 = 2.5.4 =
 *   Security fix (privilege escalation): batched imports (both the manual "Import" tab, which runs in batches once the file is large enough, and the recurring Cron import) resumed the next batch with `SplFileObject::seek()`, which counts physical lines in the file, while the resume position handed between batches was a count of CSV records. Any exported column whose value can contain a newline — for example the Biographical Info profile field, which is editable by every role and stored verbatim by WordPress core — could make those two counts diverge once such a value was present before the batch boundary. When they diverged, the next batch could resume in the middle of an open quoted field, and the remaining lines that a user had put inside that one cell were then parsed as top-level CSV records in their own right, under the importing administrator's own role/password-assignment capabilities. The resume position is now the exact byte offset (`ftell()`/`fseek()`) at which the last fully parsed CSV record ended, so a batch can only ever resume at a genuine record boundary

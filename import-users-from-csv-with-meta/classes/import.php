@@ -946,8 +946,12 @@ class ACUI_Import{
         // Multisite add user to current blog
         if( is_multisite() ){
             if( $created || $settings['update_roles_existing_users'] != 'no' ){
-                if( empty( $role ) )
-                    $role = 'subscriber';
+                if( empty( $role ) ){
+                    if( !$created && $settings['update_roles_existing_users'] == 'yes_no_override' && is_user_member_of_blog( $user_id, get_current_blog_id() ) )
+                        $role = array();
+                    else
+                        $role = 'subscriber';
+                }
 
                 if( !is_array( $role ) ){
                     add_user_to_blog( get_current_blog_id(), $user_id, $role );

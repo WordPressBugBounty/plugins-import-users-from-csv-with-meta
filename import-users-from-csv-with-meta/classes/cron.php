@@ -37,6 +37,15 @@ class ACUI_Cron{
 		return $path_url;
 	}
 
+	static function get_update_roles_existing_users(){
+		$value = get_option( "acui_cron_update_roles_existing_users" );
+
+		if( in_array( $value, array( 'no', 'yes', 'yes_no_override' ), true ) )
+			return $value;
+
+		return ( $value ) ? 'yes' : 'no';
+	}
+
 	function save_settings( $form_data ){
 		if ( !isset( $form_data['security'] ) || !wp_verify_nonce( $form_data['security'], 'codection-security' ) ) {
 			wp_die( __( 'Nonce check failed', 'import-users-from-csv-with-meta' ) );
@@ -86,7 +95,8 @@ class ACUI_Cron{
 			wp_die( __( 'You are not allowed to assign roles.', 'import-users-from-csv-with-meta' ) );
 		update_option( "acui_cron_role", $submitted_role );
 		update_option( "acui_cron_role_authorized", current_user_can( 'promote_users' ) );
-		update_option( "acui_cron_update_roles_existing_users", isset( $form_data["update-roles-existing-users"] ) && $form_data["update-roles-existing-users"] == "1" );
+		$update_roles_existing_users = isset( $form_data["update-roles-existing-users"] ) ? sanitize_text_field( $form_data["update-roles-existing-users"] ) : 'no';
+		update_option( "acui_cron_update_roles_existing_users", in_array( $update_roles_existing_users, array( 'no', 'yes', 'yes_no_override' ), true ) ? $update_roles_existing_users : 'no' );
 		update_option( "acui_cron_change_role_not_present", isset( $form_data["cron-change-role-not-present"] ) && $form_data["cron-change-role-not-present"] == "1" );
 
         if( isset( $form_data["cron-change-role-not-present-role"] ) ){
@@ -137,7 +147,7 @@ class ACUI_Cron{
 		$form_data[ "path_to_file" ] = $this->clean_path_url_csv( get_option( "acui_cron_path_to_file") );
 		$form_data[ "role" ] = get_option( "acui_cron_role" );
 		$form_data[ "caller_can_promote_users" ] = $caller_can_promote_users;
-		$form_data[ "update_roles_existing_users" ] = ( get_option( "acui_cron_update_roles_existing_users" ) ) ? 'yes' : 'no';
+		$form_data[ "update_roles_existing_users" ] = self::get_update_roles_existing_users();
 		$form_data[ "update_emails_existing_users" ] = "no";
 		$form_data[ "empty_cell_action" ] = "leave";
 		$form_data[ "security" ] = wp_create_nonce( "codection-security" );
@@ -179,7 +189,7 @@ class ACUI_Cron{
 		$form_data[ "path_to_file" ] = $this->clean_path_url_csv( get_option( "acui_cron_path_to_file") );
 		$form_data[ "role" ] = get_option( "acui_cron_role");
 		$form_data[ "caller_can_promote_users" ] = $caller_can_promote_users;
-		$form_data[ "update_roles_existing_users" ] = ( get_option( "acui_cron_update_roles_existing_users" ) ) ? 'yes' : 'no';
+		$form_data[ "update_roles_existing_users" ] = self::get_update_roles_existing_users();
 		$form_data[ "update_emails_existing_users" ] = "no";
 		$form_data[ "empty_cell_action" ] = "leave";
 		$form_data[ "security" ] = wp_create_nonce( "codection-security" );
@@ -314,7 +324,7 @@ class ACUI_Cron{
 		$path_to_file = get_option( "acui_cron_path_to_file");
 		$period = get_option( "acui_cron_period");
 		$role = get_option( "acui_cron_role");
-		$update_roles_existing_users = get_option( "acui_cron_update_roles_existing_users");
+		$update_roles_existing_users = self::get_update_roles_existing_users();
 		$move_file_cron = get_option( "acui_move_file_cron");
 		$path_to_move = get_option( "acui_cron_path_to_move");
 		$path_to_move_auto_rename = get_option( "acui_cron_path_to_move_auto_rename");
@@ -334,9 +344,6 @@ class ACUI_Cron{
 
 		if( empty( $cron_delete_users ) )
 			$cron_delete_users = false;
-
-		if( empty( $update_roles_existing_users) )
-			$update_roles_existing_users = false;
 
 		if( empty( $cron_delete_users_assign_posts ) )
 			$cron_delete_users_assign_posts = '';
@@ -553,7 +560,13 @@ class ACUI_Cron{
 				<tr class="form-field form-required">
 					<th scope="row"><label for="update-roles-existing-users"><?php _e( 'Update roles for existing users?', 'import-users-from-csv-with-meta' ); ?></label></th>
 					<td>
-                        <?php ACUIHTML()->checkbox( array( 'name' => 'update-roles-existing-users', 'compare_value' => $update_roles_existing_users ) ); ?>
+                        <?php ACUIHTML()->select( array(
+                            'options' => array( 'no' => __( 'No', 'import-users-from-csv-with-meta' ), 'yes' => __( 'Yes, update and override existing roles', 'import-users-from-csv-with-meta' ), 'yes_no_override' => __( 'Yes, add new roles and do not override existing ones', 'import-users-from-csv-with-meta' ) ),
+                            'name' => 'update-roles-existing-users',
+                            'show_option_all' => false,
+                            'show_option_none' => false,
+                            'selected' => $update_roles_existing_users,
+                        )); ?>
 					</td>
 				</tr>
 
