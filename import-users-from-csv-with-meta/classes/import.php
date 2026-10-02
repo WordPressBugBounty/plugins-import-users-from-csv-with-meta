@@ -873,7 +873,9 @@ class ACUI_Import{
             
             if( empty( array_intersect( apply_filters( 'acui_protected_roles', array( 'administrator' ) ), ACUIHelper()->get_roles_by_user_id( $user_id ) ) ) || is_multisite() && is_super_admin( $user_id ) ){
                 
-                if( $settings['update_roles_existing_users'] == 'yes' || $created ){
+                $can_promote_users = ( $settings['caller_can_promote_users'] !== null ) ? (bool) $settings['caller_can_promote_users'] : current_user_can( 'promote_users' );
+
+                if( ( $settings['update_roles_existing_users'] == 'yes' && $can_promote_users ) || $created ){
                     $default_roles = $user_object->roles;
                     foreach ( $default_roles as $default_role ) {
                         $user_object->remove_role( $default_role );
@@ -881,7 +883,6 @@ class ACUI_Import{
                 }
 
                 if( !$no_role && ( $settings['update_roles_existing_users'] == 'yes' || $settings['update_roles_existing_users'] == 'yes_no_override' || $created ) ){
-                    $can_promote_users = ( $settings['caller_can_promote_users'] !== null ) ? (bool) $settings['caller_can_promote_users'] : current_user_can( 'promote_users' );
                     if( !empty( $role ) && !$can_promote_users ){
                         $errors[] = ACUIHelper()->new_error( $row, __( 'You are not allowed to assign roles, the requested role was ignored.', 'import-users-from-csv-with-meta' ), 'warning' );
                         $role = array();

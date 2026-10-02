@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 2.5.5
+Stable tag: 2.5.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -105,6 +105,12 @@ By default they are sent to their WordPress profile page. If WooCommerce or WP U
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.5.7 =
+*   Security fix (account takeover): the 2.5.6 fix closed every role-assignment path, but a user with only `create_users` could still save the Cron tab with their own "Path or URL of file that is going to be imported" and let the recurring import run with the privileges of an administrator. The scheduled run and "Run now" without session switched to the user selected in "User that runs the cron" (or to the first administrator when none was selected), so every per-user check in the importer passed: a CSV row with an existing administrator's username and a password reset that account's password, and the administrator running the cron could be taken over by matching its email and adding a `user_email` column. The Cron tab now records who saved it, and when that user cannot `edit_users` the import always runs as that same user (the scheduled run, "Run now" and "Run now" without session), and the "User that runs the cron" selector only offers their own account. "Run now" without session also takes the role-assignment decision from the user who configured the task instead of from the user who clicks the button
+
+= 2.5.6 =
+*   Security fix (privilege escalation hardening): a user with only `create_users` could still change other users' roles without `promote_users`. Saving the Cron tab now requires `promote_users` to set "Update roles for existing users?" to anything other than "No" or to enable "Change role of users that are not present in the CSV" (until now only the target role was checked, so the option could be enabled while keeping a previously stored role). The importer also no longer removes the existing roles of updated users when the user running the import cannot assign roles, which previously left them with no role when no role was being assigned
 
 = 2.5.5 =
 *   The "Update roles for existing users?" option in the Cron import tab is now a selector with the same three choices as the manual importer: "No", "Yes, update and override existing roles" and "Yes, add new roles and do not override existing ones". Until now it was a checkbox that could only override the existing roles, so recurring imports had no way to add the roles from the CSV while keeping the ones users already had. Existing settings are kept: a checked box is read as "Yes, update and override existing roles" and an unchecked one as "No"
@@ -1972,6 +1978,8 @@ Scheduled exports are available via the [Recurring Export Addon](https://import-
 = Can I schedule automatic imports? =
 
 Yes. The Recurring Import tab lets you configure a periodic import from a file path or URL. The plugin will fetch and process the CSV automatically at the chosen interval (hourly, daily, weekly, etc.) without any manual action.
+
+The import runs as the user selected in "User that runs the cron", so it can only do what that user is allowed to do. If the settings are saved by a user who cannot edit other users (`edit_users`), for example a role that has only been given `create_users` to import users, the import always runs as that same user, whoever starts it, and the selector only offers their own account.
 
 The free version supports one recurring import task. If you need multiple simultaneous scheduled imports — each with its own file, interval, role and settings — the [Recurring Import Addon](https://import-wp.com/plugins/recurring-import-addon/) removes that limitation.
 
