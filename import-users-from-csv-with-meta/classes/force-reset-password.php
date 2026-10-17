@@ -9,6 +9,8 @@ class ACUI_Force_Reset_Password{
     function hooks(){
         add_action( 'acui_post_import_single_user', array( $this, 'new_user' ), 10, 9 );
 		add_action( 'personal_options_update', array( $this, 'updated' ) );
+		add_action( 'profile_update', array( $this, 'profile_updated' ), 10, 2 );
+		add_action( 'after_password_reset', array( $this, 'password_reset' ) );
 		add_action( 'template_redirect', array( $this, 'redirect' ) );
 		add_action( 'current_screen', array( $this, 'redirect' ) );
 		add_action( 'admin_notices', array( $this, 'notice' ) );
@@ -33,6 +35,23 @@ class ACUI_Force_Reset_Password{
 			return;
 
 		delete_user_meta( $user_id, 'acui_force_reset_password' );
+	}
+
+	function profile_updated( $user_id, $old_user_data ){
+		if( !is_object( $old_user_data ) || !isset( $old_user_data->user_pass ) )
+			return;
+
+		$user = get_userdata( $user_id );
+
+		if( !$user || $user->user_pass === $old_user_data->user_pass )
+			return;
+
+		delete_user_meta( $user_id, 'acui_force_reset_password' );
+	}
+
+	function password_reset( $user ){
+		if( is_object( $user ) && isset( $user->ID ) )
+			delete_user_meta( $user->ID, 'acui_force_reset_password' );
 	}
 
 	function redirect() {

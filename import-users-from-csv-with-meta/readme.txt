@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 2.5.7
+Stable tag: 2.5.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -105,6 +105,12 @@ By default they are sent to their WordPress profile page. If WooCommerce or WP U
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.5.8 =
+*   New bbPress addon
+*   Force password change: when BuddyPress (with the Settings component) or bbPress is active, users are now sent to their front-end settings page (BuddyPress) or profile edit page (bbPress) instead of wp-admin/profile.php, so the back end can stay private. The URL can still be changed with the `acui_force_reset_password_edit_profile_url` filter
+*   Force password change: the flag is now removed whenever the user really changes their password, from any place (BuddyPress settings, bbPress, WooCommerce My Account, the lost password form...), not only from wp-admin/profile.php
+*   Force password change: the "Please change your password" notice is also shown on the BuddyPress settings page and the bbPress profile edit page
 
 = 2.5.7 =
 *   Security fix (account takeover): the 2.5.6 fix closed every role-assignment path, but a user with only `create_users` could still save the Cron tab with their own "Path or URL of file that is going to be imported" and let the recurring import run with the privileges of an administrator. The scheduled run and "Run now" without session switched to the user selected in "User that runs the cron" (or to the first administrator when none was selected), so every per-user check in the importer passed: a CSV row with an existing administrator's username and a password reset that account's password, and the administrator running the cron could be taken over by matching its email and adding a `user_email` column. The Cron tab now records who saved it, and when that user cannot `edit_users` the import always runs as that same user (the scheduled run, "Run now" and "Run now" without session), and the "User that runs the cron" selector only offers their own account. "Run now" without session also takes the role-assignment decision from the user who configured the task instead of from the user who clicks the button

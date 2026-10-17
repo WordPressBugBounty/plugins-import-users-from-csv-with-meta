@@ -32,7 +32,29 @@ class ACUI_Buddypress{
 		add_filter( 'acui_export_columns', array( $this, 'export_columns' ), 10, 1 );
 		add_filter( 'acui_export_data', array( $this, 'export_data' ), 10, 3 );
 		add_action( 'acui_post_import_single_user', array( $this, 'import' ), 10, 10 );	
-		add_action( 'acui_post_import_single_user', array( $this, 'import_avatar' ), 10, 3 );	
+		add_action( 'acui_post_import_single_user', array( $this, 'import_avatar' ), 10, 3 );
+		add_filter( 'acui_force_reset_password_edit_profile_url', array( $this, 'force_reset_password_edit_profile_url' ), 9 );
+		add_action( 'bp_before_member_settings_template', array( $this, 'force_reset_password_notice' ) );
+	}
+
+	function force_reset_password_edit_profile_url( $url ){
+		if( $url != admin_url( 'profile.php' ) || !bp_is_active( 'settings' ) || !function_exists( 'bp_get_settings_slug' ) )
+			return $url;
+
+		$user_id = get_current_user_id();
+
+		if( function_exists( 'bp_members_get_user_url' ) && function_exists( 'bp_members_get_path_chunks' ) )
+			return bp_members_get_user_url( $user_id, bp_members_get_path_chunks( array( bp_get_settings_slug() ) ) );
+
+		if( function_exists( 'bp_core_get_user_domain' ) )
+			return trailingslashit( bp_core_get_user_domain( $user_id ) . bp_get_settings_slug() );
+
+		return $url;
+	}
+
+	function force_reset_password_notice(){
+		if( get_user_meta( get_current_user_id(), 'acui_force_reset_password', true ) )
+			printf( '<div class="error"><p>%s</p></div>', apply_filters( 'acui_force_reset_password_message', __( 'Please change your password', 'import-users-from-csv-with-meta' ) ) );
 	}
 
 	function restricted_fields( $acui_restricted_fields ){
