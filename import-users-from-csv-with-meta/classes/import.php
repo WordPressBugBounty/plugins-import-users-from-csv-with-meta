@@ -628,7 +628,11 @@ class ACUI_Import{
             $i++;
         }
 
-        update_option( "acui_columns", $headers_filtered );
+        $old_columns = get_option( "acui_columns" );
+        if( get_option( "acui_columns_keep_existing" ) && is_array( $old_columns ) )
+            update_option( "acui_columns", array_values( array_unique( array_merge( $old_columns, $headers_filtered ) ) ) );
+        else
+            update_option( "acui_columns", $headers_filtered );
 
         ACUIHelper()->print_table_header_footer( $headers );
 
@@ -1376,7 +1380,7 @@ class ACUI_Import{
 
         if( $initial_row != 0 && !$columns ){
             $header_manager = new SplFileObject( $file );
-            $header_data = $header_manager->fgetcsv( $delimiter, '"', "\0" );
+            $header_data = $header_manager->fgetcsv( $delimiter, '"', ACUIHelper()->get_csv_escape() );
             if( is_array( $header_data ) && count( $header_data ) > 1 ){
                 $headers = array();
                 $headers_filtered = array();
@@ -1387,7 +1391,7 @@ class ACUI_Import{
             unset( $header_manager );
         }
 
-        while( $data = $manager->fgetcsv( $delimiter, '"', "\0" ) ):
+        while( $data = $manager->fgetcsv( $delimiter, '"', ACUIHelper()->get_csv_escape() ) ):
             $row++;
 
             if( count( $data ) == 1 )

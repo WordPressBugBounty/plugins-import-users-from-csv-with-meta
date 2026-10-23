@@ -6,6 +6,7 @@ class ACUI_Options{
     static function get_default_list(){
 		return array(
 			self::$prefix . 'columns' => array(),
+			self::$prefix . 'columns_keep_existing' => false,
             // emails
 			self::$prefix . 'mail_subject' => __('Welcome to', 'import-users-from-csv-with-meta') . ' ' . get_bloginfo("name"),
 			self::$prefix . 'mail_body' => __('Welcome,', 'import-users-from-csv-with-meta') . '<br/>' . __('Your data to login in this site is:', 'import-users-from-csv-with-meta') . '<br/><ul><li>' . __('URL to login', 'import-users-from-csv-with-meta') . ': **loginurl**</li><li>' . __( 'Username', 'import-users-from-csv-with-meta') . '= **username**</li><li>Password = **password**</li></ul>',

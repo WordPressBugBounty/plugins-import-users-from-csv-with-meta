@@ -28,6 +28,10 @@ class ACUI_Helper{
 		return self::$instance;
 	}
 
+    function get_csv_escape(){
+        return version_compare( PHP_VERSION, '7.4', '>=' ) ? '' : "\0";
+    }
+
     function detect_delimiter( $file ) {
         $delimiters = array( ';' => 0, ',' => 0, "\t" => 0, "|" => 0 );
     
@@ -36,7 +40,7 @@ class ACUI_Helper{
         fclose( $handle );
 
         foreach( $delimiters as $delimiter => &$count ) {
-            $count = count( str_getcsv( $firstLine, $delimiter ) );
+            $count = count( str_getcsv( $firstLine, $delimiter, '"', $this->get_csv_escape() ) );
         }
     
         return array_search( max( $delimiters ), $delimiters );

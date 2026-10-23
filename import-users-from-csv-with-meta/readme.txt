@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 2.5.8
+Stable tag: 2.5.9
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -105,6 +105,12 @@ By default they are sent to their WordPress profile page. If WooCommerce or WP U
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.5.9 - 2026-10-23 =
+*   Security fix (privilege escalation): a subscriber could store profile values ending with a NUL byte so that, when a user with import and export permissions exported the users and imported the generated CSV again, the closing quote of that cell was read as escaped and the rest of the value was parsed as new columns and rows, for example a row with their own username and the administrator role. The exporter now removes NUL bytes from every cell and, on PHP 7.4 or newer, the CSV is written and read without escape character (RFC 4180), so a cell can never break out of its quotes
+*   Fixed the PHP 8.4+ deprecation notice about the str_getcsv() escape parameter when detecting the delimiter of the CSV file
+*   Extra profile fields: new "Keep fields from previous files?" option, when it is checked the columns of a new CSV are added to the list of extra profile fields instead of replacing it, so there is no need to include empty columns for fields that the new users do not use
+*   Extra profile fields: every field of the list can now be removed individually, the values already saved for each user are kept
 
 = 2.5.8 =
 *   New bbPress addon

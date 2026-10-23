@@ -447,6 +447,11 @@ class ACUI_Batch_Exporter{
 	}
 
 	protected function fputcsv( $buffer, $export_row ) {
+		foreach ( $export_row as $key => $value ) {
+			if ( is_string( $value ) )
+				$export_row[ $key ] = str_replace( "\0", '', $value );
+		}
+
 		if ( version_compare( PHP_VERSION, '5.5.4', '<' ) ) {
 			ob_start();
 			$temp = fopen( 'php://output', 'w' );
@@ -456,7 +461,7 @@ class ACUI_Batch_Exporter{
 			$row = str_replace( '\\"', '\\""', $row );
 			fwrite( $buffer, $row );
 		} else {
-			fputcsv( $buffer, $export_row, $this->get_delimiter(), '"', "\0" );
+			fputcsv( $buffer, $export_row, $this->get_delimiter(), '"', ACUIHelper()->get_csv_escape() );
 		}
 	}
 

@@ -27,6 +27,7 @@ class ACUI_Columns{
 
 	public static function admin_gui(){
 		$show_profile_fields = get_option( "acui_show_profile_fields");
+		$keep_existing_fields = get_option( "acui_columns_keep_existing" );
 		$headers = get_option("acui_columns");
 	?>
 	<h3><?php _e( 'Extra profile fields', 'import-users-from-csv-with-meta' ); ?></h3>
@@ -44,6 +45,18 @@ class ACUI_Columns{
 				</td>
 			</tr>
 			<tr valign="top">
+				<th scope="row"><?php _e( 'Keep fields from previous files?', 'import-users-from-csv-with-meta' ); ?></th>
+				<td>
+					<form method="POST" enctype="multipart/form-data" action="" accept-charset="utf-8">
+						<input type="checkbox" name="keep-profile-fields" value="yes" <?php if( $keep_existing_fields == true ) echo "checked='checked'"; ?>>
+						<input type="hidden" name="keep-profile-fields-action" value="update"/>
+						<?php wp_nonce_field( 'codection-security', 'security' ); ?>
+						<input class="button-primary" type="submit" value="<?php _e( 'Save option', 'import-users-from-csv-with-meta'); ?>"/>
+						<p class="description"><?php _e( 'If checked, the columns of a new CSV are added to the list below instead of replacing it, so you do not need to include empty columns for fields that the new users do not use', 'import-users-from-csv-with-meta' ); ?></p>
+					</form>
+				</td>
+			</tr>
+			<tr valign="top">
 				<th scope="row"><?php _e( 'Reset fields in profile?', 'import-users-from-csv-with-meta' ); ?></th>
 				<td>
 					<form method="POST" enctype="multipart/form-data" action="" accept-charset="utf-8" id="reset-profile-fields">
@@ -55,19 +68,28 @@ class ACUI_Columns{
 			</tr>
 			<tr valign="top">
 				<th scope="row"><?php _e( 'Extra profile fields loadad in previous files', 'import-users-from-csv-with-meta' ); ?></th>
-				<td><small><em><?php _e( '(if you load another CSV with different columns, the new ones will replace this list)', 'import-users-from-csv-with-meta' ); ?></em></small>
-					<ol>
-						<?php 
-						if( is_array( $headers ) && count( $headers ) > 0 ):
-							foreach ($headers as $column): ?>
-							<li><?php echo esc_html( $column ); ?></li>
-						<?php endforeach;  ?>
-						
-						<?php else: ?>
-							<li><?php _e( 'There is no columns loaded yet', 'import-users-from-csv-with-meta' ); ?></li>
-						<?php endif;
-						?>
-					</ol>
+				<td>
+					<?php if( $keep_existing_fields == true ): ?>
+					<small><em><?php _e( '(if you load another CSV with different columns, the new ones will be added to this list)', 'import-users-from-csv-with-meta' ); ?></em></small>
+					<?php else: ?>
+					<small><em><?php _e( '(if you load another CSV with different columns, the new ones will replace this list)', 'import-users-from-csv-with-meta' ); ?></em></small>
+					<?php endif; ?>
+					<form method="POST" enctype="multipart/form-data" action="" accept-charset="utf-8">
+						<?php wp_nonce_field( 'codection-security', 'security' ); ?>
+						<ol>
+							<?php
+							if( is_array( $headers ) && count( $headers ) > 0 ):
+								foreach ($headers as $column): ?>
+								<li><?php echo esc_html( $column ); ?> <button type="submit" class="button-link button-link-delete" name="remove-profile-field" value="<?php echo esc_attr( $column ); ?>"><?php _e( 'Remove', 'import-users-from-csv-with-meta' ); ?></button></li>
+							<?php endforeach;  ?>
+
+							<?php else: ?>
+								<li><?php _e( 'There is no columns loaded yet', 'import-users-from-csv-with-meta' ); ?></li>
+							<?php endif;
+							?>
+						</ol>
+					</form>
+					<p class="description"><?php _e( 'Removing a field only hides it from the profile page, the values already saved for each user are kept', 'import-users-from-csv-with-meta' ); ?></p>
 				</td>
 			</tr>
 		</tbody>
@@ -236,8 +258,18 @@ class ACUI_Columns{
 		if( isset( $form_data['show-profile-fields-action'] ) && $form_data['show-profile-fields-action'] == 'update' )
 			update_option( "acui_show_profile_fields", isset( $form_data["show-profile-fields"] ) && $form_data["show-profile-fields"] == "yes" );
 	
+		if( isset( $form_data['keep-profile-fields-action'] ) && $form_data['keep-profile-fields-action'] == 'update' )
+			update_option( "acui_columns_keep_existing", isset( $form_data["keep-profile-fields"] ) && $form_data["keep-profile-fields"] == "yes" );
+
 		if( isset( $form_data['reset-profile-fields-action'] ) && $form_data['reset-profile-fields-action'] == 'reset' )
 			update_option( "acui_columns", array() );
+
+		if( isset( $form_data['remove-profile-field'] ) ){
+			$headers = get_option( "acui_columns" );
+
+			if( is_array( $headers ) )
+				update_option( "acui_columns", array_values( array_diff( $headers, array( wp_unslash( $form_data['remove-profile-field'] ) ) ) ) );
+		}
 	}
 }
 
