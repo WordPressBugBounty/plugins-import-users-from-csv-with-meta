@@ -452,10 +452,10 @@ class ACUI_Frontend{
     function shortcode_import( $atts ) {
 		$atts = shortcode_atts( array( 'role' => '', 'delete-only-specified-role' => false ), $atts );
 
-		ob_start();
-		
 		if( !current_user_can( apply_filters( 'acui_capability', 'create_users' ) ) )
-			wp_die( __( 'Only users who are allowed to create users can manage this form.', 'import-users-from-csv-with-meta' ) );
+			return '<p>' . esc_html__( 'Only users who are allowed to create users can manage this form.', 'import-users-from-csv-with-meta' ) . '</p>';
+
+		ob_start();
 
 		if ( $_FILES && !empty( $_POST ) ):
 			if ( !wp_verify_nonce( $_POST['security'], 'codection-security' ) ){
@@ -538,8 +538,9 @@ class ACUI_Frontend{
 				return ( preg_match('/^[a-zA-Z0-9_-]+(,[a-zA-Z0-9_-]+)*$/', $value ) ) ? $value : '';
 
 			case 'from':
-			case 'to:':
-				return ( preg_match( '/\b\d{4}-\d{2}-\d{2}\b/', $value ) ) ? $value : '';
+			case 'to':
+				$date = DateTime::createFromFormat( 'Y-m-d', $value );
+				return ( $date && $date->format( 'Y-m-d' ) === $value ) ? $value : '';
 
 			case 'delimiter':
 				return ( in_array( $value, array_keys( ACUI_Helper::get_csv_delimiters_titles() ) ) ) ? $value : 'COMMA';
@@ -570,12 +571,12 @@ class ACUI_Frontend{
 			unset( $atts['role'] );
 		}
 
+		if( !current_user_can( apply_filters( 'acui_capability', 'create_users' ) ) )
+            return '<p>' . esc_html__( 'Only users who are allowed to create users can export them.', 'import-users-from-csv-with-meta' ) . '</p>';
+
 		wp_enqueue_script( 'jquery' );
 
 		ob_start();
-		
-		if( !current_user_can( apply_filters( 'acui_capability', 'create_users' ) ) )
-            wp_die( __( 'Only users who are allowed to create users can export them.', 'import-users-from-csv-with-meta' ) );
 
         ACUI_Exporter::enqueue();
         ACUI_Exporter::styles();
@@ -585,10 +586,10 @@ class ACUI_Frontend{
             <input type="hidden" name="acui_frontend_export" value="1"/>
         
             <?php foreach( $atts as $key => $value ): ?>
-            <input type="hidden" name="<?php echo $key; ?>" value="<?php echo $this->sanitize_shortcode_values( $key, $value ); ?>"/>
+            <input type="hidden" name="<?php echo esc_attr( $key ); ?>" value="<?php echo esc_attr( $this->sanitize_shortcode_values( $key, $value ) ); ?>"/>
             <?php endforeach; ?>
-            
-            <input class="acui_frontend_submit" type="submit" value="<?php apply_filters( 'acui_export_shortcode_button_text', _e( 'Export', 'import-users-from-csv-with-meta' ) ); ?>"/>
+
+            <input class="acui_frontend_submit" type="submit" value="<?php echo esc_attr( apply_filters( 'acui_export_shortcode_button_text', __( 'Export', 'import-users-from-csv-with-meta' ) ) ); ?>"/>
 
 			<?php wp_nonce_field( 'codection-security', 'security' ); ?>
 

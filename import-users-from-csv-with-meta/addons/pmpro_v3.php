@@ -159,7 +159,7 @@ class ACUI_PMPro{
                 // If membership was in the past make it inactive.
                 if($membership_status === "inactive" || (!empty($membership_enddate) && $membership_enddate !== "NULL" && strtotime($membership_enddate, current_time('timestamp')) < current_time('timestamp')))
                 {
-                    $sqlQuery = "UPDATE $wpdb->pmpro_memberships_users SET status = 'inactive' WHERE user_id = '" . $user_id . "' AND membership_id = '" . $membership_id . "'";
+                    $sqlQuery = $wpdb->prepare("UPDATE {$wpdb->pmpro_memberships_users} SET status = 'inactive' WHERE user_id = %d AND membership_id = %d", $user_id, $membership_id);
                     $wpdb->query($sqlQuery);
                     $membership_in_the_past = true;
                 }

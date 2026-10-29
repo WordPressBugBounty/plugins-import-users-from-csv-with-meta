@@ -1132,10 +1132,14 @@ class ACUI_Import{
 
         $step = isset( $_POST['step'] ) ? absint( $_POST['step'] ) : 1;
         $row = isset( $_POST['row'] ) ? absint( $_POST['row'] ) : 0;
-        $file = isset( $_POST['file_path'] ) ? sanitize_text_field( $_POST['file_path'] ) : '';
-        
+        $file = '';
+        $is_temporary_file = false;
+        $batch_file_key = 'acui_import_batch_file_' . get_current_user_id();
+
         // On first step, we might need to handle the upload if it's there
-        if( $step == 1 && empty( $file ) ){
+        if( $step == 1 ){
+            delete_transient( $batch_file_key );
+
             if( !empty( $_FILES['uploadfile']['tmp_name'] ) ){
                 $original_ext = strtolower( pathinfo( $_FILES['uploadfile']['name'], PATHINFO_EXTENSION ) );
                 $allowed_extensions = apply_filters( 'acui_allowed_upload_extensions', array( 'csv' ) );
@@ -1145,9 +1149,21 @@ class ACUI_Import{
                 $upload_dir = wp_upload_dir();
                 $file = $upload_dir['basedir'] . '/acui-import-' . uniqid() . '.' . $original_ext;
                 move_uploaded_file( $_FILES['uploadfile']['tmp_name'], $file );
+                $is_temporary_file = true;
             }
             elseif( !empty( $_POST['path_to_file'] ) ){
                 $file = $this->manage_file_upload( $_POST['path_to_file'] );
+            }
+
+            if( !empty( $file ) )
+                set_transient( $batch_file_key, array( 'path' => $file, 'temporary' => $is_temporary_file ), HOUR_IN_SECONDS );
+        }
+        else{
+            $batch_file = get_transient( $batch_file_key );
+
+            if( is_array( $batch_file ) && !empty( $batch_file['path'] ) ){
+                $file = $batch_file['path'];
+                $is_temporary_file = !empty( $batch_file['temporary'] );
             }
         }
 
@@ -1238,8 +1254,10 @@ class ACUI_Import{
             delete_transient( 'acui_import_log_accumulate' );
 
             // Clean up file if it was our temporary one
-            if( strpos( $file, 'acui-import-' ) !== false )
+            if( $is_temporary_file )
                 @unlink( $file );
+
+            delete_transient( $batch_file_key );
 
             wp_send_json_success( array(
                 'step' => 'done',
