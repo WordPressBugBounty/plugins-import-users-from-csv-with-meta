@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 2.5.11
+Stable tag: 2.5.12
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -116,6 +116,10 @@ By default they are sent to their WordPress profile page. If WooCommerce or WP U
 
 == Changelog ==
 
+= 2.5.12 - 2026-10-30 =
+*   Security: saving the cron task settings now checks every permission before storing anything, so a request that is rejected can no longer leave part of its settings saved
+*   Security: when the cron task was configured by a user who cannot promote users, the unattended runs no longer reuse the role permission saved by a previous administrator
+
 = 2.5.11 - 2026-10-29 =
 *   When some rows are skipped because they have no email, the import result now says how many and that the Allow No Email addon can import them
 *   Uploading an XLSX, XLS or ODS file now explains that the File Formats addon can import it, instead of only saying that the file type is not valid
@@ -127,8 +131,8 @@ By default they are sent to their WordPress profile page. If WooCommerce or WP U
 *   Fixed a malformed jQuery selector in the users option of Tools > Export
 
 = 2.5.10 - 2026-10-29 =
-*   Security fix (path traversal and file deletion): the batch importer trusted the file path sent back by the browser on every step, so a user allowed to import users could point it to a CSV outside the uploads folder and read its processed rows in the import log, or have a file whose name contained "acui-import-" deleted when the import finished. The path is now resolved and validated only on the first step and kept on the server for the rest of the batches, and only the temporary file created from an upload is deleted (reported by Rafael Honorato (Honorato SEG))
-*   Security fix (SQL injection): the Paid Memberships Pro addons built the query that marks a membership as inactive by concatenating the membership_id column of the CSV. The query is now prepared with integer placeholders (reported by Rafael Honorato (Honorato SEG))
+*   Security fix (path traversal and file deletion): the batch importer trusted the file path sent back by the browser on every step, so a user allowed to import users could point it to a CSV outside the uploads folder and read its processed rows in the import log, or have a file whose name contained "acui-import-" deleted when the import finished. The path is now resolved and validated only on the first step and kept on the server for the rest of the batches, and only the temporary file created from an upload is deleted (reported by Rafael Honorato (honorato0))
+*   Security fix (SQL injection): the Paid Memberships Pro addons built the query that marks a membership as inactive by concatenating the membership_id column of the CSV. The query is now prepared with integer placeholders (reported by Rafael Honorato (honorato0))
 *   Security fix (stored XSS): the from and to attributes of the [export-users] shortcode were checked with a regular expression that only looked for a date anywhere in the value, and the attributes were printed in the hidden fields of the form without escaping, so a contributor could save a post with a from value like 2024-01-01"><svg onload=...> and run JavaScript in the browser of an administrator previewing it. The dates must now be exactly YYYY-MM-DD and every attribute is escaped (reported by dzaku)
 *   Fixed the to attribute of the [export-users] shortcode, which was always ignored because of a typo (reported by dzaku)
 *   The [import-users] and [export-users] shortcodes now show a short notice to users who cannot create users instead of stopping the whole page with wp_die(), so a post containing them no longer breaks the page or the REST API for other visitors (reported by dzaku)
