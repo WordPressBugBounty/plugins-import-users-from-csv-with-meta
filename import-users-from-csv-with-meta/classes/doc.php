@@ -153,7 +153,7 @@ class ACUI_Doc{
 			'<small><em>' . __( "You can name these first two columns whatever you want; only the order matters. In the rest of the columns, the order doesn't matter, but what you name them is what matters.", 'import-users-from-csv-with-meta' ) . '</em></small>'
 			. '<ol>'
 			. '<li>' . __( 'Username: you can leave it empty and the username will be generated randomly', 'import-users-from-csv-with-meta' ) . '</li>'
-			. '<li>' . __( 'Email:', 'import-users-from-csv-with-meta' ) . ' ' . apply_filters( 'acui_documentation_email_message', sprintf( __( 'required, although you can use <a href="%s">this addon to allow users to be imported without an associated email address</a>.', 'import-users-from-csv-with-meta' ), 'https://import-wp.com/allow-no-email-addon/' ) ) . '</li>'
+			. '<li>' . __( 'Email:', 'import-users-from-csv-with-meta' ) . ' ' . apply_filters( 'acui_documentation_email_message', sprintf( __( 'required, although you can use <a href="%s">this addon to allow users to be imported without an associated email address</a>.', 'import-users-from-csv-with-meta' ), esc_url( ACUIHelper()->premium_url( 'allow-no-email-addon', 'documentation' ) ) ) ) . '</li>'
 			. '</ol>'
 			. '<small><em>' . __( '(The next columns are totally customizable and you can use whatever you want. All rows must contains the same columns)', 'import-users-from-csv-with-meta' ) . '</em></small>'
 			. '<small><em>' . __( '(User profile will be adapted to the kind of data you have selected)', 'import-users-from-csv-with-meta' ) . '</em></small>'

@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 2.5.10
+Stable tag: 2.5.11
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -62,6 +62,16 @@ If you have some problem or doubt:
 *   Periodically import subscribers or students from an external list
 *   Import users from the frontend using a shortcode
 
+### **Premium addons**
+
+Need more? These addons extend the plugin for specific needs:
+
+*   [Allow No Email](https://import-wp.com/plugins/allow-no-email-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): import users that do not have an email address
+*   [File Formats](https://import-wp.com/plugins/file-formats-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): import users directly from XLSX, XLS and ODS spreadsheets, no need to convert them to CSV
+*   [Recurring Import](https://import-wp.com/plugins/recurring-import-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): unlimited scheduled import tasks, each one with its own file, period, role and notification email
+*   [Recurring Export](https://import-wp.com/plugins/recurring-export-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): schedule automatic exports of your users and customers
+*   [Dokan](https://import-wp.com/plugins/dokan-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): import Dokan marketplace vendors
+
 ### **Usage**
 
 Once the plugin is installed you can use it. Go to Tools menu and there, there will be a section called _Insert users from CSV_. Just choose your CSV file and go!
@@ -105,6 +115,16 @@ By default they are sent to their WordPress profile page. If WooCommerce or WP U
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.5.11 - 2026-10-29 =
+*   When some rows are skipped because they have no email, the import result now says how many and that the Allow No Email addon can import them
+*   Uploading an XLSX, XLS or ODS file now explains that the File Formats addon can import it, instead of only saying that the file type is not valid
+*   The import screen now mentions the Dokan addon when Dokan is active
+*   New "Premium addons" section in the plugin description
+*   Links to the premium addons now include campaign parameters to know which ones are useful
+*   Fewer links in the plugin row of the Plugins screen: the coffee and premium support links are only in the sidebar of the import screen, and the RedSys and Ceca gateways link only appears on sites in Spanish or with a WooCommerce store based in Spain
+*   The Import link in the Plugins screen is only shown to users who can import, and the Import and Export links no longer change the order of the other links of the row
+*   Fixed a malformed jQuery selector in the users option of Tools > Export
 
 = 2.5.10 - 2026-10-29 =
 *   Security fix (path traversal and file deletion): the batch importer trusted the file path sent back by the browser on every step, so a user allowed to import users could point it to a CSV outside the uploads folder and read its processed rows in the import log, or have a file whose name contained "acui-import-" deleted when the import finished. The path is now resolved and validated only on the first step and kept on the server for the rest of the batches, and only the temporary file created from an upload is deleted (reported by Rafael Honorato (Honorato SEG))

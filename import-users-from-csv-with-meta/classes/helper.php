@@ -302,6 +302,27 @@ class ACUI_Helper{
         return array( 'row' => $row, 'message' => $message, 'type' => $type );
     }
 
+    static function premium_url( $slug, $campaign ){
+        $url = empty( $slug ) ? 'https://import-wp.com/' : 'https://import-wp.com/plugins/' . $slug . '/';
+
+        return add_query_arg( array(
+            'utm_source'   => 'wp-free-dashboard',
+            'utm_medium'   => 'import-users-from-csv-with-meta',
+            'utm_campaign' => $campaign,
+        ), $url );
+    }
+
+    static function count_errors_with_message( $errors, $message ){
+        $count = 0;
+
+        foreach( (array) $errors as $error ){
+            if( isset( $error['message'] ) && $error['message'] === $message )
+                $count++;
+        }
+
+        return $count;
+    }
+
     function maybe_update_email( $user_id, $email, $password, $update_emails_existing_users, $original_email, $first_name = '', $last_name = '' ){
         $user_object = get_user_by( 'id', $user_id );
 

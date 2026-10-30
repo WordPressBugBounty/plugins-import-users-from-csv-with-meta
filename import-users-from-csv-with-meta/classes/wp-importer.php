@@ -22,7 +22,7 @@ class ACUI_WP_Importer_GUI{
 		<script>
 		jQuery( document ).ready( function( $ ){
 			$( '#export-filters' ).submit( function( e ){
-				if( $('input[type="radio"][name="content"][value="users"').is(':checked') ){
+				if( $('input[type="radio"][name="content"][value="users"]').is(':checked') ){
 					document.location.href='<?php echo admin_url( 'tools.php?page=acui&tab=export' ); ?>';
 					return false;
 				}

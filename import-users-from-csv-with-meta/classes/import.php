@@ -260,7 +260,7 @@ class ACUI_Import{
                 $target = '_self';
                 if( !function_exists( 'acui_ec_check_active' ) && $tab === 'cron-export' ){
                     $name  .= ' (PRO)';
-                    $href   = 'https://import-wp.com/recurring-export-addon/';
+                    $href   = ACUIHelper()->premium_url( 'recurring-export-addon', 'export-tab' );
                     $target = '_blank';
                 }
                 echo '<li><a class="' . esc_attr( $class ) . '" href="' . esc_url( $href ) . '" target="' . esc_attr( $target ) . '">' . esc_html( $name ) . '</a></li>';
@@ -363,6 +363,10 @@ class ACUI_Import{
 
             if( pathinfo( $path_to_file, PATHINFO_EXTENSION ) != 'csv' && !$is_google_sheet_export_csv ){
                 echo "<p>" . __( 'Error, the file is not a CSV', 'import-users-from-csv-with-meta' ) . "</p>";
+
+                $addon_url = $this->get_file_formats_addon_url( pathinfo( $path_to_file, PATHINFO_EXTENSION ) );
+                if( $addon_url )
+                    echo "<p>" . sprintf( __( 'XLSX, XLS and ODS files can be imported with the <a href="%s" target="_blank">File Formats addon</a>.', 'import-users-from-csv-with-meta' ), esc_url( $addon_url ) ) . "</p>";
                 return false;
             }
 
@@ -1144,6 +1148,14 @@ class ACUI_Import{
                 $original_ext = strtolower( pathinfo( $_FILES['uploadfile']['name'], PATHINFO_EXTENSION ) );
                 $allowed_extensions = apply_filters( 'acui_allowed_upload_extensions', array( 'csv' ) );
                 if( !in_array( $original_ext, $allowed_extensions, true ) ){
+                    $addon_url = $this->get_file_formats_addon_url( $original_ext );
+
+                    if( $addon_url )
+                        wp_send_json_error( array(
+                            'message'   => __( 'Invalid file type. XLSX, XLS and ODS files can be imported with the File Formats addon. Do you want to see it?', 'import-users-from-csv-with-meta' ),
+                            'addon_url' => $addon_url,
+                        ) );
+
                     wp_send_json_error( array( 'message' => __( 'Invalid file type.', 'import-users-from-csv-with-meta' ) ) );
                 }
                 $upload_dir = wp_upload_dir();
@@ -1265,7 +1277,8 @@ class ACUI_Import{
                 'log' => $log,
                 'results' => $results_data,
                 'errors_count' => $errors_count,
-                'file_path' => $file
+                'file_path' => $file,
+                'addon_notice' => $this->get_no_email_addon_notice( $errors_for_log ),
             ) );
         }
         else{
@@ -1280,6 +1293,28 @@ class ACUI_Import{
                 'file_path' => $file
             ) );
         }
+    }
+
+    function get_no_email_addon_notice( $errors ){
+        if( function_exists( 'acui_ane_check_active' ) )
+            return '';
+
+        $rows_without_email = ACUIHelper()->count_errors_with_message( $errors, __( 'Email not specified', 'import-users-from-csv-with-meta' ) );
+
+        if( !$rows_without_email )
+            return '';
+
+        return '<div class="notice notice-info inline acui-addon-notice" style="margin:0 0 16px;"><p>'
+            . sprintf( _n( '%d row was skipped because it has no email.', '%d rows were skipped because they have no email.', $rows_without_email, 'import-users-from-csv-with-meta' ), $rows_without_email ) . ' '
+            . sprintf( __( 'With the <a href="%s" target="_blank">Allow No Email addon</a> you can import users without an email address.', 'import-users-from-csv-with-meta' ), esc_url( ACUIHelper()->premium_url( 'allow-no-email-addon', 'import-result-no-email' ) ) )
+            . '</p></div>';
+    }
+
+    function get_file_formats_addon_url( $extension ){
+        if( defined( 'ACUI_FFA_VERSION' ) ||!in_array( strtolower( $extension ), array( 'xlsx', 'xls', 'ods' ), true ) )
+            return '';
+
+        return ACUIHelper()->premium_url( 'file-formats-addon', 'import-error-file-type' );
     }
 
     function save_transients( $columns, $headers, $headers_filtered, $positions, $errors, $errors_totals, $results, $users_created, $users_updated, $users_ignored, $roles_appeared, $users_deleted = array(), $resume_offset = 0 ){

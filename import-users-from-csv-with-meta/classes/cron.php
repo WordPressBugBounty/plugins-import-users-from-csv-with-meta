@@ -489,7 +489,7 @@ class ACUI_Cron{
 				<strong><?php _e( 'Need multiple import tasks with different schedules?', 'import-users-from-csv-with-meta' ); ?></strong>
 				<p style="margin:4px 0 0;color:#50575e;"><?php _e( 'With the <strong>Recurring Import Addon</strong> you can create unlimited tasks, each with its own file, period, role and notification email.', 'import-users-from-csv-with-meta' ); ?></p>
 			</div>
-			<a href="https://import-wp.com/plugins/recurring-import-addon/" target="_blank" style="white-space:nowrap;background:#2271b1;color:#fff;border-radius:3px;padding:8px 18px;font-size:13px;font-weight:600;text-decoration:none;"><?php _e( 'Get the addon', 'import-users-from-csv-with-meta' ); ?></a>
+			<a href="<?php echo esc_url( ACUIHelper()->premium_url( 'recurring-import-addon', 'cron-tab' ) ); ?>" target="_blank" style="white-space:nowrap;background:#2271b1;color:#fff;border-radius:3px;padding:8px 18px;font-size:13px;font-weight:600;text-decoration:none;"><?php _e( 'Get the addon', 'import-users-from-csv-with-meta' ); ?></a>
 		</div>
 		<?php endif; ?>
 

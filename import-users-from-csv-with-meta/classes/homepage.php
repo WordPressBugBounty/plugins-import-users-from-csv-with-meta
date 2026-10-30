@@ -150,7 +150,7 @@ class ACUI_Homepage{
 								<p class="acui-path-check-result" data-target="path_to_file" style="display:none;"></p>
 							</div>
 							<?php if( !is_plugin_active( 'import-export-users-customers-file-formats/import-export-users-customers-file-formats.php' ) ): ?>
-							<p class="description"><?php printf( __( 'You can also import <strong>XLSX, XLS or ODS</strong> files with the <a href="%s" target="_blank">File Formats addon</a>.', 'import-users-from-csv-with-meta' ), 'https://import-wp.com/plugins/file-formats-addon/' ); ?></p>
+							<p class="description"><?php printf( __( 'You can also import <strong>XLSX, XLS or ODS</strong> files with the <a href="%s" target="_blank">File Formats addon</a>.', 'import-users-from-csv-with-meta' ), esc_url( ACUIHelper()->premium_url( 'file-formats-addon', 'homepage-file-field' ) ) ); ?></p>
 							<?php endif; ?>
 						</td>
 					</tr>
@@ -439,12 +439,15 @@ class ACUI_Homepage{
 				</div>
 
 				<div class="sidebar_section sidebar-info">
-					<p><?php printf( __( 'The CSV must have at least <strong>2 columns: username and email</strong>, in that order. Extra columns are matched by their header name. Both fields are required unless you use <a href="%s">the Allow No Email addon</a>.', 'import-users-from-csv-with-meta' ), 'https://import-wp.com/allow-no-email-addon/' ); ?></p>
+					<p><?php printf( __( 'The CSV must have at least <strong>2 columns: username and email</strong>, in that order. Extra columns are matched by their header name. Both fields are required unless you use <a href="%s">the Allow No Email addon</a>.', 'import-users-from-csv-with-meta' ), esc_url( ACUIHelper()->premium_url( 'allow-no-email-addon', 'homepage-sidebar' ) ) ); ?></p>
 					<p><?php _e( 'Read the documentation on how <strong>passwords are managed</strong>. This plugin is <strong>case sensitive</strong>.', 'import-users-from-csv-with-meta' ); ?></p>
+					<?php if( ( class_exists( 'WeDevs_Dokan' ) || function_exists( 'dokan' ) ) && !function_exists( 'acui_da_check_active' ) ): ?>
+					<p><?php printf( __( 'Using <strong>Dokan</strong>? Import your marketplace vendors with the <a href="%s" target="_blank">Dokan addon</a>.', 'import-users-from-csv-with-meta' ), esc_url( ACUIHelper()->premium_url( 'dokan-addon', 'homepage-sidebar-dokan' ) ) ); ?></p>
+					<?php endif; ?>
 				</div>
 
 				<div class="sidebar_section premium_addons">
-					<a class="premium-addons" color="primary" type="button" name="premium-addons" data-tag="premium-addons" href="https://www.import-wp.com/" role="button" target="_blank">
+					<a class="premium-addons" color="primary" type="button" name="premium-addons" data-tag="premium-addons" href="<?php echo esc_url( ACUIHelper()->premium_url( '', 'homepage-sidebar-button' ) ); ?>" role="button" target="_blank">
 						<div><span><?php _e( 'Premium Addons', 'import-users-from-csv-with-meta'); ?></span></div>
 					</a>
 				</div>

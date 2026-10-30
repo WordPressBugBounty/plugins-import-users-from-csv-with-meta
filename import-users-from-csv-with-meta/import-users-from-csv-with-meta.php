@@ -3,7 +3,7 @@
 Plugin Name:	Import and export users and customers
 Plugin URI:		https://www.codection.com
 Description:	Using this plugin you will be able to import and export users or customers choosing many options and interacting with lots of other plugins
-Version:		2.5.10
+Version:		2.5.11
 Author:			codection
 Author URI: 	https://codection.com
 License:     	GPL2
@@ -15,7 +15,7 @@ Domain Path: /languages
 if ( ! defined( 'ABSPATH' ) ) 
 	exit;
 
-define( 'ACUI_VERSION', '2.5.10' );
+define( 'ACUI_VERSION', '2.5.11' );
 
 if( !defined( 'ACUI_IMPORT_BATCH_SIZE' ) )
 	define( 'ACUI_IMPORT_BATCH_SIZE', 100 );
@@ -129,10 +129,15 @@ class ImportExportUsersCustomers{
 
 	function action_links( $links, $file ) {
 		if ($file == 'import-users-from-csv-with-meta/import-users-from-csv-with-meta.php') {
+			$new_links = array();
+
+			if( current_user_can( apply_filters( 'acui_capability', 'create_users' ) ) )
+				$new_links[] = sprintf( __( '<a href="%s">Import</a>', 'import-users-from-csv-with-meta' ), esc_url( get_admin_url( null, 'tools.php?page=acui&tab=homepage' ) ) );
+
 			if( current_user_can( apply_filters( 'acui_export_capability', 'edit_users' ) ) )
-				$links[] = sprintf( __( '<a href="%s">Export</a>', 'import-users-from-csv-with-meta' ), get_admin_url( null, 'tools.php?page=acui&tab=export' ) );
-			$links[] = sprintf( __( '<a href="%s">Import</a>', 'import-users-from-csv-with-meta' ), get_admin_url( null, 'tools.php?page=acui&tab=homepage' ) );
-			return array_reverse( $links );
+				$new_links[] = sprintf( __( '<a href="%s">Export</a>', 'import-users-from-csv-with-meta' ), esc_url( get_admin_url( null, 'tools.php?page=acui&tab=export' ) ) );
+
+			return array_merge( $new_links, $links );
 		}
 		
 		return $links; 
@@ -140,12 +145,12 @@ class ImportExportUsersCustomers{
 
 	function plugin_row_meta( $links, $file ){
 		if ( strpos( $file, basename( __FILE__ ) ) !== false ) {
-			$new_links = array(
-				'<a href="https://ko-fi.com/codection" target="_blank">' . __( 'Invite us for a coffee', 'import-users-from-csv-with-meta' ) . '</a>',
-				'<a href="mailto:contacto@codection.com" target="_blank">' . __( 'Premium support', 'import-users-from-csv-with-meta' ) . '</a>',
-				'<a href="https://codection.com/" target="_blank">' . __( 'RedSys and Ceca Gateways', 'import-users-from-csv-with-meta' ) . '</a>',
-				'<a href="https://import-wp.com/" target="_blank" style="color:#d54e21;font-weight:bold">' . __( 'Premium addons and plugins', 'import-users-from-csv-with-meta' ) . '</a>',
-			);
+			$new_links = array();
+
+			if( strpos( get_locale(), 'es_' ) === 0 || strpos( get_option( 'woocommerce_default_country', '' ), 'ES' ) === 0 )
+				$new_links[] = '<a href="https://codection.com/" target="_blank">' . __( 'RedSys and Ceca Gateways', 'import-users-from-csv-with-meta' ) . '</a>';
+
+			$new_links[] = '<a href="' . esc_url( ACUIHelper()->premium_url( '', 'plugin-row' ) ) . '" target="_blank" style="color:#d54e21;font-weight:bold">' . __( 'Premium addons and plugins', 'import-users-from-csv-with-meta' ) . '</a>';
 			
 			$links = array_merge( $links, $new_links );
 		}

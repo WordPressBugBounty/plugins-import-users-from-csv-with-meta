@@ -150,6 +150,10 @@
                             '</div>';
                         $('#acui_import_log').before(doneNotice);
 
+                        if (response.data.addon_notice) {
+                            $('#acui_import_log').before(response.data.addon_notice);
+                        }
+
                         // Scroll down to show results below datatable
                         $("html, body").animate({ scrollTop: $('#acui_import_results').offset().top - 40 }, "slow");
                     } else {
@@ -187,6 +191,12 @@
 
                         $this.processStep(nextFormData);
                     }
+                } else if (response.data.addon_url) {
+                    if (confirm(response.data.message)) {
+                        window.open(response.data.addon_url, '_blank');
+                    }
+                    $('.wrap.acui').removeClass('acui-importing');
+                    $('#uploadfile_btn').prop('disabled', false);
                 } else {
                     alert(response.data.message);
                     $('.wrap.acui').removeClass('acui-importing');
