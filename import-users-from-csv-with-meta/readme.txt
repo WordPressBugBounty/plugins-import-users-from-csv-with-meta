@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 2.5.12
+Stable tag: 2.5.13
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -115,6 +115,13 @@ By default they are sent to their WordPress profile page. If WooCommerce or WP U
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.5.13 - 2026-11-01 =
+*   Fixed the recurring import running the first batch again and again without end when the data of the previous batch was not available in the next one, which also made the cron log grow until the settings page could not be loaded. This happened mainly in sites with a persistent object cache, because the batch data was saved in transients
+*   The data shared between batches is now saved in a non autoloaded option of each import, which works with or without an object cache, and it is removed when the import ends
+*   If the data of the previous batch cannot be found, the import is stopped with an error in the log instead of starting again from the first row
+*   The log of each cron run is limited to 1 MB (filter acui_cron_log_max_size) and is no longer autoloaded
+*   Manual imports in batches of different users no longer share the same batch data
 
 = 2.5.12 - 2026-10-30 =
 *   Security: saving the cron task settings now checks every permission before storing anything, so a request that is rejected can no longer leave part of its settings saved

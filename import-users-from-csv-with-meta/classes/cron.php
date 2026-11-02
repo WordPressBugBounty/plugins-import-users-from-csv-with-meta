@@ -236,7 +236,7 @@ class ACUI_Cron{
 		$message .= "<br/>" . ob_get_contents() . "<br/>";
 		ob_end_clean();
 
-		if( get_option( "acui_move_file_cron") && ( empty( $result ) || !empty( $result['done'] ) ) ){
+		if( get_option( "acui_move_file_cron") && empty( $result['aborted'] ) && ( empty( $result ) || !empty( $result['done'] ) ) ){
 			$path_to_move = $this->clean_path_url_csv( get_option( "acui_cron_path_to_move") );
 			rename( $form_data[ "path_to_file" ], $path_to_move );
 			$this->auto_rename();
@@ -244,7 +244,15 @@ class ACUI_Cron{
 
 		$message .= __( '--Finished at', 'import-users-from-csv-with-meta' ) . ' ' . current_time('mysql') . '<br/><br/>';
 
-		update_option( "acui_cron_log", get_option( "acui_cron_log" ) . $message );
+		$log = (string) get_option( "acui_cron_log" );
+		$log_limit_message = '<p>' . __( 'The log of this run has reached its maximum size, the next steps are not included.', 'import-users-from-csv-with-meta' ) . '</p>';
+
+		if( !empty( $result['aborted'] ) || strlen( $log ) + strlen( $message ) <= apply_filters( 'acui_cron_log_max_size', MB_IN_BYTES ) )
+			$log .= $message;
+		elseif( strpos( $log, $log_limit_message ) === false )
+			$log .= $log_limit_message;
+
+		update_option( "acui_cron_log", $log, false );
 
 		if( !empty( $result['done'] ) ){
 			$this->save_execution_log( $result, $step );

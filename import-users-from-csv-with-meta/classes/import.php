@@ -1139,6 +1139,7 @@ class ACUI_Import{
         $file = '';
         $is_temporary_file = false;
         $batch_file_key = 'acui_import_batch_file_' . get_current_user_id();
+        $this->session_id = 'u' . get_current_user_id();
 
         // On first step, we might need to handle the upload if it's there
         if( $step == 1 ){
@@ -1210,6 +1211,16 @@ class ACUI_Import{
         $import_status = $this->import_users( $file, $form_data, false, false, $step, $row, ACUI_IMPORT_TIME_LIMIT, $total_rows, true );
         $log = ob_get_clean();
 
+        if( !empty( $import_status['aborted'] ) ){
+            if( $is_temporary_file )
+                @unlink( $file );
+
+            delete_transient( $batch_file_key );
+            delete_transient( 'acui_import_log_accumulate' );
+
+            wp_send_json_error( array( 'message' => wp_strip_all_tags( $log ) ) );
+        }
+
         // Accumulate log across batches for Log tab
         if ( $step == 1 ) {
             set_transient( 'acui_import_log_accumulate', $log, HOUR_IN_SECONDS );
@@ -1227,10 +1238,13 @@ class ACUI_Import{
 
         if( $import_status['done'] ){
             // Finalize
-            $users_created = get_transient( 'acui_users_created' );
-            $users_updated = get_transient( 'acui_users_updated' );
-            $users_ignored = get_transient( 'acui_users_ignored' );
-            $users_deleted = get_transient( 'acui_users_deleted' );
+            $state = $this->get_batch_state();
+            $this->delete_batch_state();
+
+            $users_created = isset( $state['users_created'] ) ? $state['users_created'] : array();
+            $users_updated = isset( $state['users_updated'] ) ? $state['users_updated'] : array();
+            $users_ignored = isset( $state['users_ignored'] ) ? $state['users_ignored'] : array();
+            $users_deleted = isset( $state['users_deleted'] ) ? $state['users_deleted'] : array();
 
             if( !is_array( $users_created ) ) $users_created = array();
             if( !is_array( $users_updated ) ) $users_updated = array();
@@ -1240,7 +1254,7 @@ class ACUI_Import{
             do_action( 'acui_after_import_users', $users_created, $users_updated, $users_deleted, $users_ignored );
 
             // Generate results HTML for the Log tab
-            $errors_for_log = get_transient( 'acui_errors' );
+            $errors_for_log = isset( $state['errors'] ) ? $state['errors'] : array();
             if( !is_array( $errors_for_log ) ) $errors_for_log = array();
 
             ob_start();
@@ -1317,22 +1331,48 @@ class ACUI_Import{
         return ACUIHelper()->premium_url( 'file-formats-addon', 'import-error-file-type' );
     }
 
-    function save_transients( $columns, $headers, $headers_filtered, $positions, $errors, $errors_totals, $results, $users_created, $users_updated, $users_ignored, $roles_appeared, $users_deleted = array(), $resume_offset = 0 ){
-        $pfx = 'acui' . ( $this->session_id ? '_' . $this->session_id : '' ) . '_';
-        $ttl = HOUR_IN_SECONDS;
-        set_transient( $pfx . 'columns', $columns, $ttl );
-        set_transient( $pfx . 'resume_offset', $resume_offset, $ttl );
-        set_transient( $pfx . 'headers', $headers, $ttl );
-        set_transient( $pfx . 'headers_filtered', $headers_filtered, $ttl );
-        set_transient( $pfx . 'positions', $positions, $ttl );
-        set_transient( $pfx . 'errors', $errors, $ttl );
-        set_transient( $pfx . 'errors_totals', $errors_totals, $ttl );
-        set_transient( $pfx . 'results', $results, $ttl );
-        set_transient( $pfx . 'users_created', $users_created, $ttl );
-        set_transient( $pfx . 'users_updated', $users_updated, $ttl );
-        set_transient( $pfx . 'users_ignored', $users_ignored, $ttl );
-        set_transient( $pfx . 'roles_appeared', $roles_appeared, $ttl );
-        set_transient( $pfx . 'users_deleted', $users_deleted, $ttl );
+    function get_batch_state_key(){
+        return 'acui_batch_state' . ( $this->session_id ? '_' . $this->session_id : '' );
+    }
+
+    function save_batch_state( $columns, $headers, $headers_filtered, $positions, $errors, $errors_totals, $results, $users_created, $users_updated, $users_ignored, $roles_appeared, $users_deleted = array(), $resume_offset = 0 ){
+        update_option( $this->get_batch_state_key(), array(
+            'expires'          => time() + DAY_IN_SECONDS,
+            'columns'          => $columns,
+            'resume_offset'    => $resume_offset,
+            'headers'          => $headers,
+            'headers_filtered' => $headers_filtered,
+            'positions'        => $positions,
+            'errors'           => $errors,
+            'errors_totals'    => $errors_totals,
+            'results'          => $results,
+            'users_created'    => $users_created,
+            'users_updated'    => $users_updated,
+            'users_ignored'    => $users_ignored,
+            'roles_appeared'   => $roles_appeared,
+            'users_deleted'    => $users_deleted,
+        ), false );
+    }
+
+    function get_batch_state(){
+        $state = get_option( $this->get_batch_state_key() );
+        return is_array( $state ) ? $state : array();
+    }
+
+    function delete_batch_state(){
+        delete_option( $this->get_batch_state_key() );
+    }
+
+    function delete_expired_batch_states(){
+        global $wpdb;
+
+        $option_names = $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM $wpdb->options WHERE option_name LIKE %s", $wpdb->esc_like( 'acui_batch_state' ) . '%' ) );
+
+        foreach( $option_names as $option_name ){
+            $state = get_option( $option_name );
+            if( !is_array( $state ) || empty( $state['expires'] ) || $state['expires'] < time() )
+                delete_option( $option_name );
+        }
     }
 
     function import_users( $file, $form_data, $_is_cron = false, $_is_frontend = false, $step = 1, $initial_row = 0, $time_per_step = -1, $total_rows = 0, $is_batch = false ){
@@ -1378,33 +1418,43 @@ class ACUI_Import{
 
             $roles_appeared = $settings['role_default'];
             $users_deleted = array();
+
+            $this->delete_expired_batch_states();
         }
         else{
-            $pfx = 'acui' . ( $this->session_id ? '_' . $this->session_id : '' ) . '_';
-            $columns = get_transient( $pfx . 'columns' );
-            $resume_offset = get_transient( $pfx . 'resume_offset' );
-            if( !is_numeric( $resume_offset ) ) $resume_offset = 0;
+            $state = $this->get_batch_state();
 
-            $headers = get_transient( $pfx . 'headers' );
+            if( empty( $state['resume_offset'] ) || !is_numeric( $state['resume_offset'] ) ){
+                ACUIHelper()->maybe_enable_wordpress_core_emails();
+
+                echo '<div class="wrap"><p>' . sprintf( __( 'Error, the data saved by the previous batch of this import could not be found, so the import has been stopped at row %d to avoid importing the same rows again. If you use a persistent object cache, check that it works for the background requests of WordPress.', 'import-users-from-csv-with-meta' ), $row ) . '</p></div>';
+
+                return array( 'row' => $row, 'done' => true, 'aborted' => true, 'results' => array( 'created' => 0, 'updated' => 0, 'deleted' => 0, 'ignored' => 0 ), 'errors_count' => 1 );
+            }
+
+            $columns = isset( $state['columns'] ) ? $state['columns'] : 0;
+            $resume_offset = $state['resume_offset'];
+
+            $headers = isset( $state['headers'] ) ? $state['headers'] : array();
             if( !is_array( $headers ) ) $headers = array();
-            $headers_filtered = get_transient( $pfx . 'headers_filtered' );
-            $positions = get_transient( $pfx . 'positions' );
+            $headers_filtered = isset( $state['headers_filtered'] ) ? $state['headers_filtered'] : array();
+            $positions = isset( $state['positions'] ) ? $state['positions'] : array();
 
-            $errors = get_transient( $pfx . 'errors' );
+            $errors = isset( $state['errors'] ) ? $state['errors'] : array();
             if( !is_array( $errors ) ) $errors = array();
-            $errors_totals = get_transient( $pfx . 'errors_totals' );
+            $errors_totals = isset( $state['errors_totals'] ) ? $state['errors_totals'] : array();
             if( !is_array( $errors_totals ) ) $errors_totals = array( 'notices' => 0, 'warnings' => 0, 'errors' => 0 );
 
-            $results = get_transient( $pfx . 'results' );
+            $results = isset( $state['results'] ) ? $state['results'] : array();
             if( !is_array( $results ) ) $results = array( 'created' => 0, 'updated' => 0, 'deleted' => 0, 'ignored' => 0 );
             if( !isset( $results['ignored'] ) ) $results['ignored'] = 0;
 
-            $users_created = get_transient( $pfx . 'users_created' );
-            $users_updated = get_transient( $pfx . 'users_updated' );
-            $users_ignored = get_transient( $pfx . 'users_ignored' );
+            $users_created = isset( $state['users_created'] ) ? $state['users_created'] : array();
+            $users_updated = isset( $state['users_updated'] ) ? $state['users_updated'] : array();
+            $users_ignored = isset( $state['users_ignored'] ) ? $state['users_ignored'] : array();
 
-            $roles_appeared = get_transient( $pfx . 'roles_appeared' );
-            $users_deleted = get_transient( $pfx . 'users_deleted' );
+            $roles_appeared = isset( $state['roles_appeared'] ) ? $state['roles_appeared'] : array();
+            $users_deleted = isset( $state['users_deleted'] ) ? $state['users_deleted'] : array();
             if( !is_array( $users_created ) ) $users_created = array();
             if( !is_array( $users_updated ) ) $users_updated = array();
             if( !is_array( $users_ignored ) ) $users_ignored = array();
@@ -1499,7 +1549,7 @@ class ACUI_Import{
             }
 
             if( $limit > 0 && ($row - $initial_row) >= $limit + ($initial_row == 0 ? 1 : 0) ){
-                $this->save_transients( $columns, $headers, $headers_filtered, $positions, $errors, $errors_totals, $results, $users_created, $users_updated, $users_ignored, $roles_appeared, $users_deleted, $manager->ftell() );
+                $this->save_batch_state( $columns, $headers, $headers_filtered, $positions, $errors, $errors_totals, $results, $users_created, $users_updated, $users_ignored, $roles_appeared, $users_deleted, $manager->ftell() );
 
                 if( $is_cron ){
                     as_enqueue_async_action( 'acui_cron_process_step', array( 'step' => $step + 1, 'initial_row' => $row, 'session_id' => $this->session_id, 'caller_can_promote_users' => isset( $form_data['caller_can_promote_users'] ) ? $form_data['caller_can_promote_users'] : null ) );
@@ -1511,7 +1561,7 @@ class ACUI_Import{
             }
 
             if( $this->time_exceeded( $time_start, $time_per_step ) ){
-                $this->save_transients( $columns, $headers, $headers_filtered, $positions, $errors, $errors_totals, $results, $users_created, $users_updated, $users_ignored, $roles_appeared, $users_deleted, $manager->ftell() );
+                $this->save_batch_state( $columns, $headers, $headers_filtered, $positions, $errors, $errors_totals, $results, $users_created, $users_updated, $users_ignored, $roles_appeared, $users_deleted, $manager->ftell() );
 
                 if( $is_cron ){
                     as_enqueue_async_action( 'acui_cron_process_step', array( 'step' => $step + 1, 'initial_row' => $row, 'session_id' => $this->session_id, 'caller_can_promote_users' => isset( $form_data['caller_can_promote_users'] ) ? $form_data['caller_can_promote_users'] : null ) );
@@ -1641,9 +1691,11 @@ class ACUI_Import{
 
                 if( !$is_frontend && !$is_cron )
                     ACUIHelper()->execute_datatable();
+
+                $this->delete_batch_state();
             }
             else{
-                $this->save_transients( $columns, $headers, $headers_filtered, $positions, $errors, $errors_totals, $results, $users_created, $users_updated, $users_ignored, $roles_appeared, $users_deleted );
+                $this->save_batch_state( $columns, $headers, $headers_filtered, $positions, $errors, $errors_totals, $results, $users_created, $users_updated, $users_ignored, $roles_appeared, $users_deleted );
             }
 
             @ini_set( 'auto_detect_line_endings', FALSE );
