@@ -211,6 +211,13 @@ class ACUI_Exporter{
 						<span class="description"><?php _e( "This data cannot then be imported back into the database as an array if the exported file is imported.", 'import-users-from-csv-with-meta' ); ?></span>
 					</td>
 				</tr>
+				<tr id="acui_export_password_hashes_wrapper" valign="top">
+					<th scope="row"><?php _e( 'Export password hashes', 'import-users-from-csv-with-meta' ); ?></th>
+					<td>
+                        <?php ACUIHTML()->checkbox( array( 'name' => 'export_password_hashes', 'current' => 'yes', 'compare_value' => $settings->get( 'export_password_hashes' ) ) ); ?>
+						<span class="description"><?php _e( "Include the user_pass column with the hashed passwords, so users can keep their passwords if you import the file in another site. Uncheck it if you do not need it: the file will not contain any password information, even if user_pass is included in the Columns field.", 'import-users-from-csv-with-meta' ); ?></span>
+					</td>
+				</tr>
 			</tbody>
 		</table>
 
@@ -352,6 +359,7 @@ class ACUI_Exporter{
         $exporter->set_order_fields_alphabetically( isset( $_POST['order_fields_alphabetically'] ) ? $_POST['order_fields_alphabetically'] : '' );
         $exporter->set_double_encapsulate_serialized_values( isset( $_POST['double_encapsulate_serialized_values'] ) ? $_POST['double_encapsulate_serialized_values'] : '' );
 		$exporter->set_display_arrays_as_comma_separated_list_of_values( isset( $_POST['display_arrays_as_comma_separated_list_of_values'] ) ? $_POST['display_arrays_as_comma_separated_list_of_values'] : '' );
+		$exporter->set_export_password_hashes( isset( $_POST['export_password_hashes'] ) ? $_POST['export_password_hashes'] : true );
         $exporter->set_filtered_columns( ( isset( $_POST['columns'] ) && !empty( $_POST['columns'] ) ) ? $_POST['columns'] : array() );
         $exporter->set_orderby( ( isset( $_POST['orderby'] ) && !empty( $_POST['orderby'] ) ) ? sanitize_text_field( $_POST['orderby'] ) : '' );
         $exporter->set_order( ( isset( $_POST['order'] ) && !empty( $_POST['order'] ) ) ? sanitize_text_field( $_POST['order'] ) : 'ASC' );

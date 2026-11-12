@@ -378,6 +378,12 @@ class ACUI_Frontend{
 			</tr>
 
 			<tr class="form-field">
+				<th scope="row"><label for=""><?php _e( 'Attribute export_password_hashes', 'import-users-from-csv-with-meta' ); ?></label></th>
+				<td><?php _e( "The user_pass column with the hashed passwords is exported by default. Use this attribute to leave it out of the file, for example", 'import-users-from-csv-with-meta' ); ?> <pre>[export-users export_password_hashes="no"]</pre>
+				</td>
+			</tr>
+
+			<tr class="form-field">
 				<th scope="row"><label for=""><?php _e( 'Attribute orderby', 'import-users-from-csv-with-meta' ); ?></label></th>
 				<td><?php _e( 'You can use order by attribute to set the order in which users would be exported. You can use some of the next fields or a meta_key:', 'import-users-from-csv-with-meta' ); ?>
 					<ul style="list-style:disc outside none;margin-left:2em;">
@@ -550,6 +556,9 @@ class ACUI_Frontend{
 			case 'display_arrays_as_comma_separated_list_of_values':
 				return strtolower( $value ) == 'yes' ? 1 : 0;
 
+			case 'export_password_hashes':
+				return strtolower( $value ) == 'no' ? 0 : 1;
+
 			case 'columns':
 				return ( preg_match('/^[,=>\p{L}\p{N}_ -]+$/u', $value ) ) ? $value : '';
 			
@@ -564,7 +573,7 @@ class ACUI_Frontend{
 	}
 
     function shortcode_export( $atts ) {
-        $atts = shortcode_atts( array( 'role' => '', 'from' => '', 'to' => '', 'delimiter' => '', 'order_fields_alphabetically' => '', 'double_encapsulate_serialized_values' => '', 'display_arrays_as_comma_separated_list_of_values' => '', 'columns' => '', 'orderby' => '', 'order' => '' ), $atts );
+        $atts = shortcode_atts( array( 'role' => '', 'from' => '', 'to' => '', 'delimiter' => '', 'order_fields_alphabetically' => '', 'double_encapsulate_serialized_values' => '', 'display_arrays_as_comma_separated_list_of_values' => '', 'export_password_hashes' => 'yes', 'columns' => '', 'orderby' => '', 'order' => '' ), $atts );
 
 		if( isset( $atts['role'] ) ){
 			$atts['role[]'] = $atts['role'];

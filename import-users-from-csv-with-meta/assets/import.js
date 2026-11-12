@@ -173,7 +173,6 @@
                             nextFormData.append('action', 'acui_import_users_batch');
                             nextFormData.append('step', response.data.step);
                             nextFormData.append('row', response.data.row);
-                            nextFormData.append('file_path', response.data.file_path);
                             nextFormData.append('security', $this.$form.find('#security').val());
                             nextFormData.append('form', $this.$form.serialize());
                             $this.nextFormData = nextFormData;
@@ -185,7 +184,6 @@
                         nextFormData.append('action', 'acui_import_users_batch');
                         nextFormData.append('step', response.data.step);
                         nextFormData.append('row', response.data.row);
-                        nextFormData.append('file_path', response.data.file_path);
                         nextFormData.append('security', $this.$form.find('#security').val());
                         nextFormData.append('form', $this.$form.serialize());
 

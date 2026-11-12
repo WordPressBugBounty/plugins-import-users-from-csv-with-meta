@@ -22,19 +22,21 @@
 	userExportForm.prototype.processStep = function( step, data, filename ) {
 		var $this = this;
         var frontend = $( '[name="acui_frontend_export"]' ).val();
-        var convert_timestamp, order_fields_alphabetically, double_encapsulate_serialized_values, display_arrays_as_comma_separated_list_of_values;
+        var convert_timestamp, order_fields_alphabetically, double_encapsulate_serialized_values, display_arrays_as_comma_separated_list_of_values, export_password_hashes;
 
         if( frontend == 1 ){
             convert_timestamp = $this.$form.find( '[name="convert_timestamp"]' ).val();
             order_fields_alphabetically = $this.$form.find( '[name="order_fields_alphabetically"]' ).val();
             double_encapsulate_serialized_values = $this.$form.find( '[name="double_encapsulate_serialized_values"]' ).val();
 			display_arrays_as_comma_separated_list_of_values = $this.$form.find( '[name="display_arrays_as_comma_separated_list_of_values"]' ).val();
+			export_password_hashes = $this.$form.find( '[name="export_password_hashes"]' ).length ? $this.$form.find( '[name="export_password_hashes"]' ).val() : 1;
         }
         else{
             convert_timestamp = $this.$form.find( '[name="convert_timestamp"]' ).is( ":checked");
             order_fields_alphabetically = $this.$form.find( '[name="order_fields_alphabetically"]' ).is( ":checked");
             double_encapsulate_serialized_values = $this.$form.find( '[name="double_encapsulate_serialized_values"]' ).is( ":checked");
 			display_arrays_as_comma_separated_list_of_values = $this.$form.find( '[name="display_arrays_as_comma_separated_list_of_values"]' ).is( ":checked");
+			export_password_hashes = $this.$form.find( '[name="export_password_hashes"]' ).is( ":checked");
         }
 
 		$.ajax( {
@@ -55,6 +57,7 @@
 				order_fields_alphabetically: order_fields_alphabetically,
 				double_encapsulate_serialized_values: double_encapsulate_serialized_values,
 				display_arrays_as_comma_separated_list_of_values: display_arrays_as_comma_separated_list_of_values,
+				export_password_hashes: export_password_hashes,
 				columns: $this.$form.find( '[name="columns"]' ).val(),
 				orderby: $this.$form.find( '[name="orderby"]' ).val(),
 				order: $this.$form.find( '[name="order"]' ).val(),

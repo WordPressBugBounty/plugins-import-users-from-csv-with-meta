@@ -22,6 +22,7 @@ class ACUI_Batch_Exporter{
     protected $order_fields_alphabetically = false;
     protected $double_encapsulate_serialized_values = false;
 	protected $display_arrays_as_comma_separated_list_of_values = false;
+	protected $export_password_hashes = true;
     protected $filtered_columns = array();
     protected $orderby = '';
     protected $order = '';
@@ -37,7 +38,7 @@ class ACUI_Batch_Exporter{
         add_filter( 'acui_export_data', array( $this, 'maybe_order_row_alphabetically' ), 10, 3 );
 		add_filter( 'acui_export_data', array( $this, 'maybe_order_row_filtered_columns_parameter' ), 11, 5 );
         
-		$this->filename = uniqid( 'user-export-' . get_current_user_id() . '-' ) . ".csv";
+		$this->filename = 'user-export-' . get_current_user_id() . '-' . ACUI_Private_Files::random_token() . '.csv';
 		$this->user_data = array( "user_login", "user_email", "source_user_id", "user_pass", "user_nicename", "user_url", "user_registered", "display_name" );
         $this->accepted_order_by = array( 'ID', 'display_name', 'name', 'user_name', 'login', 'user_login', 'nicename', 'user_nicename', 'email', 'user_email', 'url', 'user_url', 'registered', 'user_registered', 'post_count' );
 		$this->woocommerce_default_user_meta_keys = array( 'billing_first_name', 'billing_last_name', 'billing_email', 'billing_phone', 'billing_country', 'billing_address_1', 'billing_city', 'billing_state', 'billing_postcode', 'shipping_first_name', 'shipping_last_name', 'shipping_country', 'shipping_address_1', 'shipping_address_2', 'shipping_city', 'shipping_state', 'shipping_postcode' );
@@ -253,6 +254,14 @@ class ACUI_Batch_Exporter{
         return $this->display_arrays_as_comma_separated_list_of_values;
     }
 
+    function set_export_password_hashes( $export_password_hashes ){
+        $this->export_password_hashes = filter_var( $export_password_hashes, FILTER_VALIDATE_BOOLEAN );
+    }
+
+    function get_export_password_hashes(){
+        return (bool) apply_filters( 'acui_export_password_hashes', $this->export_password_hashes );
+    }
+
     function set_filtered_columns( $filtered_columns ){
         if ( ! is_array( $filtered_columns ) ) {
             $filtered_columns = preg_replace( '/\s*,\s*/', ',', $filtered_columns );
@@ -269,7 +278,12 @@ class ACUI_Batch_Exporter{
     }
 
     function get_filtered_columns( $return = 'keys' ){
-        return ( $return == 'keys' ) ? array_keys( $this->filtered_columns ) : array_values( $this->filtered_columns );
+        $filtered_columns = $this->filtered_columns;
+
+        if( !$this->get_export_password_hashes() )
+            unset( $filtered_columns['user_pass'] );
+
+        return ( $return == 'keys' ) ? array_keys( $filtered_columns ) : array_values( $filtered_columns );
     }
 
     function set_orderby( $orderby ){
@@ -342,7 +356,7 @@ class ACUI_Batch_Exporter{
 		$this->set_time_limit( 0 );
 		$this->send_nocache_headers();
 		header( 'Content-Type: text/csv; charset=utf-8' );
-		header( 'Content-Disposition: attachment; filename=' . $this->get_filename() );
+		header( 'Content-Disposition: attachment; filename=' . $this->get_download_filename() );
 		header( 'Pragma: no-cache' );
 		header( 'Expires: 0' );
 	}
@@ -353,6 +367,15 @@ class ACUI_Batch_Exporter{
 
 	function get_filename() {
 		return sanitize_file_name( $this->filename );
+	}
+
+	function get_download_filename() {
+		$filename = $this->get_filename();
+
+		if( preg_match( '/^user-export-\d+-[a-z0-9]{32}\.csv$/', $filename ) )
+			$filename = 'user-export-' . wp_date( 'Y-m-d-His' ) . '.csv';
+
+		return apply_filters( 'acui_export_download_filename', $filename, $this->get_filename() );
 	}
 
 	function send_content( $csv_data ) {
@@ -469,8 +492,7 @@ class ACUI_Batch_Exporter{
 		if( !empty( $this->get_path() ) )
 			return $this->get_path();
 		
-		$upload_dir = wp_upload_dir();
-		return trailingslashit( $upload_dir['basedir'] ) . $this->get_filename();
+		return ACUI_Private_Files::get_path( $this->get_filename() );
 	}
 
     protected function get_headers_row_file_path() {
@@ -563,11 +585,16 @@ class ACUI_Batch_Exporter{
 	}
     
     function get_user_data(){
+        $user_data = $this->user_data;
+
+        if( !$this->get_export_password_hashes() )
+            $user_data = array_values( array_diff( $user_data, array( 'user_pass' ) ) );
+
         if( count( $this->get_filtered_columns() ) == 0 )
-            return $this->user_data;
+            return $user_data;
         
         $result = array();
-        foreach( $this->user_data as $column ){
+        foreach( $user_data as $column ){
             if( in_array( $column, $this->get_filtered_columns() ) )
                 $result[] = $column;
         }

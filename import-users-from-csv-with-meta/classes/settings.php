@@ -120,6 +120,10 @@ class ACUI_Settings{
                     'sanitization' => 'checkbox',
                     'default' => false
                 ),
+                'export_password_hashes' => array( 
+                    'sanitization' => 'checkbox',
+                    'default' => 'yes'
+                ),
             ),
             'export_backend' => array(),
             'export_backend' => array(),

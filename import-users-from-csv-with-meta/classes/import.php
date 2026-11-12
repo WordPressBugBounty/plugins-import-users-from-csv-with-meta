@@ -1143,6 +1143,10 @@ class ACUI_Import{
 
         // On first step, we might need to handle the upload if it's there
         if( $step == 1 ){
+            $previous_batch_file = get_transient( $batch_file_key );
+            if( is_array( $previous_batch_file ) && !empty( $previous_batch_file['temporary'] ) && !empty( $previous_batch_file['path'] ) )
+                @unlink( $previous_batch_file['path'] );
+
             delete_transient( $batch_file_key );
 
             if( !empty( $_FILES['uploadfile']['tmp_name'] ) ){
@@ -1159,9 +1163,9 @@ class ACUI_Import{
 
                     wp_send_json_error( array( 'message' => __( 'Invalid file type.', 'import-users-from-csv-with-meta' ) ) );
                 }
-                $upload_dir = wp_upload_dir();
-                $file = $upload_dir['basedir'] . '/acui-import-' . uniqid() . '.' . $original_ext;
-                move_uploaded_file( $_FILES['uploadfile']['tmp_name'], $file );
+                $file = ACUI_Private_Files::get_path( 'acui-import-' . get_current_user_id() . '-' . ACUI_Private_Files::random_token() . '.' . $original_ext );
+                if( !move_uploaded_file( $_FILES['uploadfile']['tmp_name'], $file ) )
+                    wp_send_json_error( array( 'message' => __( 'The uploaded file could not be saved.', 'import-users-from-csv-with-meta' ) ) );
                 $is_temporary_file = true;
             }
             elseif( !empty( $_POST['path_to_file'] ) ){
@@ -1291,7 +1295,6 @@ class ACUI_Import{
                 'log' => $log,
                 'results' => $results_data,
                 'errors_count' => $errors_count,
-                'file_path' => $file,
                 'addon_notice' => $this->get_no_email_addon_notice( $errors_for_log ),
             ) );
         }
@@ -1303,8 +1306,7 @@ class ACUI_Import{
                 'total_steps' => ceil( $total_rows / ACUI_IMPORT_BATCH_SIZE ),
                 'log' => $log,
                 'results' => $results_data,
-                'errors_count' => $errors_count,
-                'file_path' => $file
+                'errors_count' => $errors_count
             ) );
         }
     }

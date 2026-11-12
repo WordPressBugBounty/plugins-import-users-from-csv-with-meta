@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 2.5.13
+Stable tag: 2.5.14
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -115,6 +115,15 @@ By default they are sent to their WordPress profile page. If WooCommerce or WP U
 5. Extra profile information (user meta)
 
 == Changelog ==
+
+= 2.5.14 - 2026-11-11 =
+*   Security: the files of the export in batches and the CSV files uploaded for a manual import are no longer saved in the root of the uploads folder. They are now saved in a private folder with a random name inside uploads, protected with .htaccess, web.config and index files, so they cannot be downloaded from the browser even while the process is running
+*   Security: the names of these files are now random (wp_generate_password) instead of being based on uniqid(), which depends on the time
+*   Security: the files left behind by an export or an import that was not finished (closed tab, error in the browser...) are now removed by an hourly scheduled task after 6 hours (filter acui_private_files_max_age). The task also removes the files left in the root of the uploads folder by previous versions, and everything is removed when the plugin is deactivated
+*   When a new manual import starts, the file uploaded for the previous import of the same user is removed if it was not finished
+*   The path of the uploaded file is no longer sent to the browser during the import
+*   The exported file is downloaded with a name that includes the date instead of the internal random name (filter acui_export_download_filename)
+*   New option "Export password hashes" in the export screen to choose if the user_pass column with the hashed passwords is included. It is checked by default, so nothing changes if you never saved it. When it is unchecked, user_pass is not exported even if it is in the Columns field. In the shortcode it is the attribute export_password_hashes="no", and the filter acui_export_password_hashes can be used too
 
 = 2.5.13 - 2026-11-01 =
 *   Fixed the recurring import running the first batch again and again without end when the data of the previous batch was not available in the next one, which also made the cron log grow until the settings page could not be loaded. This happened mainly in sites with a persistent object cache, because the batch data was saved in transients
