@@ -416,7 +416,7 @@ class ACUI_Email_Options{
 
 		if( $typenow == 'acui_email_template' || $hook == 'tools_page_acui' ) {
 			wp_enqueue_media();
-			wp_register_script( 'acui-email-template-attachment-admin', esc_url( plugins_url( 'assets/email-template-attachment-admin.js', dirname( __FILE__ ) ) ), array( 'jquery' ) );
+			wp_register_script( 'acui-email-template-attachment-admin', esc_url( plugins_url( 'assets/email-template-attachment-admin.js', dirname( __FILE__ ) ) ), array( 'jquery' ), filemtime( plugin_dir_path( dirname( __FILE__ ) ) . 'assets/email-template-attachment-admin.js' ) );
 			wp_localize_script( 'acui-email-template-attachment-admin', 'email_template_attachment_admin',
 				array(
 					'title' => __( 'Choose or upload file', 'import-users-from-csv-with-meta' ),
@@ -428,7 +428,7 @@ class ACUI_Email_Options{
 		}
 
 		if( $hook == 'tools_page_acui' ){
-			wp_register_script( 'acui-email-options', esc_url( plugins_url( 'assets/email-options.js', dirname( __FILE__ ) ) ), array( 'jquery' ) );
+			wp_register_script( 'acui-email-options', esc_url( plugins_url( 'assets/email-options.js', dirname( __FILE__ ) ) ), array( 'jquery' ), filemtime( plugin_dir_path( dirname( __FILE__ ) ) . 'assets/email-options.js' ) );
 			wp_localize_script( 'acui-email-options', 'email_options',
 				array(
 					'security' => wp_create_nonce( "codection-security" ),

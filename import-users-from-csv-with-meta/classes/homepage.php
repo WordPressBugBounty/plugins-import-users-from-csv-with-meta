@@ -42,8 +42,113 @@ class ACUI_Homepage{
 			$delete_users_assign_posts_options = array( 0 => __( 'No user selected', 'import-users-from-csv-with-meta' ) );
 			$delete_users_assign_posts_option_selected = 0;
 		}
+
+		$wizard = ACUI_Wizard::is_active();
 ?>
-	<div class="wrap acui">	
+		<?php ob_start(); ?>
+		<?php if( $wizard ):
+			$acui_default_role = get_option( 'default_role', 'subscriber' );
+			$acui_role_names = ACUI_Helper::get_editable_roles();
+			$acui_saved_roles = array_values( array_filter( (array) $settings->get( 'role' ) ) );
+			$acui_role_custom = !empty( $acui_saved_roles ) && $acui_saved_roles !== array( $acui_default_role );
+		?>
+					<tr id="acui_wizard_role_row" class="form-field">
+						<th scope="row"><?php _e( 'Role of new users', 'import-users-from-csv-with-meta' ); ?></th>
+						<td>
+							<p class="acui-role-from-column" hidden><span class="dashicons dashicons-yes-alt" aria-hidden="true"></span> <?php printf( __( 'Each user gets the role written in the column %s of your file. Rows with an empty role are skipped: write a role in them, or no_role if they must not have any.', 'import-users-from-csv-with-meta' ), '<strong class="acui-role-column-name"></strong>' ); ?></p>
+							<div class="acui-role-choice">
+								<fieldset class="acui-file-source acui-role-source">
+									<legend class="screen-reader-text"><?php _e( 'Role of new users', 'import-users-from-csv-with-meta' ); ?></legend>
+									<label class="acui-file-source__option">
+										<input type="radio" name="acui_role_mode" value="default" <?php checked( !$acui_role_custom ); ?>>
+										<span class="acui-file-source__title"><?php printf( __( 'Default role of this site: %s', 'import-users-from-csv-with-meta' ), esc_html( isset( $acui_role_names[ $acui_default_role ] ) ? $acui_role_names[ $acui_default_role ] : $acui_default_role ) ); ?></span>
+										<span class="acui-file-source__hint"><?php printf( __( 'The one set in <a href="%s">Settings &gt; General</a>', 'import-users-from-csv-with-meta' ), esc_url( admin_url( 'options-general.php' ) ) ); ?></span>
+									</label>
+									<label class="acui-file-source__option">
+										<input type="radio" name="acui_role_mode" value="custom" <?php checked( $acui_role_custom ); ?>>
+										<span class="acui-file-source__title"><?php _e( 'Choose one or more roles', 'import-users-from-csv-with-meta' ); ?></span>
+										<span class="acui-file-source__hint"><?php _e( 'For example, Customer and Subscriber at the same time', 'import-users-from-csv-with-meta' ); ?></span>
+									</label>
+								</fieldset>
+								<div class="acui-role-custom"<?php echo $acui_role_custom ? '' : ' style="display:none;"'; ?>>
+									<?php ACUIHTML()->select( array(
+										'options' => $acui_role_names,
+										'name' => 'role[]',
+										'show_option_all' => false,
+										'show_option_none' => false,
+										'multiple' => true,
+										'placeholder' => __( 'Click to choose roles', 'import-users-from-csv-with-meta' ),
+										'selected' => $acui_role_custom ? $acui_saved_roles : array( $acui_default_role ),
+										'style' => 'width:100%;'
+									)); ?>
+								</div>
+							</div>
+						</td>
+					</tr>
+		<?php else: ?>
+					<tr class="form-field">
+						<th scope="row"><label for="role"><?php _e( 'Default role', 'import-users-from-csv-with-meta' ); ?></label></th>
+						<td>
+						<?php ACUIHTML()->select( array(
+                            'options' => ACUI_Helper::get_editable_roles(),
+                            'name' => 'role[]',
+                            'show_option_all' => false,
+                            'show_option_none' => true,
+							'multiple' => true,
+							'selected' => is_array( $settings->get( 'role' ) ) ? $settings->get( 'role' ) : array( $settings->get( 'role' ) ),
+							'style' => 'width:100%;'
+                        )); ?>
+						<p class="description"><?php _e( 'You can also import roles from a CSV column. Please read the Documentation tab to see how this can be done. WordPress core allows assigning multiple roles to a user; however, the default interface only displays one role, although some plugins solve this limitation.', 'import-users-from-csv-with-meta' ); ?></p>
+
+						</td>
+					</tr>
+		<?php endif; ?>
+		<?php $acui_row_role = ob_get_clean(); ?>
+		<?php ob_start(); ?>
+					<tr id="acui_update_existing_users_wrapper" class="form-field form-required">
+						<th scope="row"><label for="update_existing_users"><?php echo $wizard ? __( 'Users who already exist', 'import-users-from-csv-with-meta' ) : __( 'Update existing users?', 'import-users-from-csv-with-meta' ); ?></label></th>
+						<td>
+							<?php ACUIHTML()->select( array(
+								'options' => $wizard ? array( 'no' => __( 'Skip them, only create new users', 'import-users-from-csv-with-meta' ), 'yes' => __( 'Update them with the data in the file', 'import-users-from-csv-with-meta' ) ) : array( 'no' => __( 'No', 'import-users-from-csv-with-meta' ), 'yes' => __( 'Yes', 'import-users-from-csv-with-meta' ), ),
+								'name' => 'update_existing_users',
+								'show_option_all' => false,
+								'show_option_none' => false,
+								'selected' => $settings->get( 'update_existing_users' ),
+							)); ?>
+							<?php if( $wizard ): ?>
+							<p class="description"><?php _e( 'Users are matched by ID, username or email. Passwords, roles and emails of existing users only change if you allow it in More options.', 'import-users-from-csv-with-meta' ); ?></p>
+							<?php endif; ?>
+						</td>
+					</tr>
+		<?php $acui_row_existing = ob_get_clean(); ?>
+		<?php ob_start(); ?>
+					<tr id="acui_send_email_wrapper" class="form-field">
+						<th scope="row"><label for="user_login"><?php _e( 'Send email', 'import-users-from-csv-with-meta' ); ?></label></th>
+						<td>
+							<p id="sends_email_wrapper">
+								<?php ACUIHTML()->checkbox( array( 'name' => 'sends_email', 'label' => sprintf( __( 'Do you wish to send an email from this plugin with credentials and other data? <a href="%s">(email template found here)</a>', 'import-users-from-csv-with-meta' ), admin_url( 'tools.php?page=acui&tab=mail-options' ) ), 'current' => 'yes', 'compare_value' => $settings->get( 'sends_email' ) ) ); ?>
+							</p>
+							<p id="send_email_updated_wrapper">
+								<?php ACUIHTML()->checkbox( array( 'name' => 'send_email_updated', 'label' => __( 'Do you wish to send this mail also to users that are being updated? (not just to the one which are being created)', 'import-users-from-csv-with-meta' ), 'current' => 'yes', 'compare_value' => $settings->get( 'send_email_updated' ) ) ); ?>
+							</p>
+						</td>
+					</tr>
+		<?php $acui_row_email = ob_get_clean(); ?>
+		<?php ob_start(); ?>
+					<tr id="acui_empty_cell_wrapper" class="form-field form-required">
+						<th scope="row"><label for="empty_cell_action"><?php _e( 'What should the plugin do with empty cells?', 'import-users-from-csv-with-meta' ); ?></label></th>
+						<td>
+							<?php ACUIHTML()->select( array(
+								'options' => array( 'leave' => __( 'Leave the old value for this metadata', 'import-users-from-csv-with-meta' ), 'delete' => __( 'Delete the metadata', 'import-users-from-csv-with-meta' ) ),
+								'name' => 'empty_cell_action',
+								'show_option_all' => false,
+								'show_option_none' => false,
+								'selected' => $settings->get( 'empty_cell_action' ),
+							)); ?>
+						</td>
+					</tr>
+		<?php $acui_row_empty = ob_get_clean(); ?>
+	<div class="wrap acui<?php echo $wizard ? ' acui-wizard' : ''; ?>" data-acui-step="1">	
 		<style>
 		#acui_import_results{
 			display: none;
@@ -110,6 +215,14 @@ class ACUI_Homepage{
 		</style>
 		<?php do_action( 'acui_homepage_start' ); ?>
 
+		<p class="acui-mode-switch">
+			<?php if( $wizard ): ?>
+			<a href="<?php echo esc_url( ACUI_Wizard::switch_mode_url( 'classic' ) ); ?>"><?php _e( 'Switch to classic mode', 'import-users-from-csv-with-meta' ); ?></a>
+			<?php else: ?>
+			<a href="<?php echo esc_url( ACUI_Wizard::switch_mode_url( 'wizard' ) ); ?>"><?php _e( 'Try the new import assistant: match your columns, whatever their names', 'import-users-from-csv-with-meta' ); ?></a>
+			<?php endif; ?>
+		</p>
+
 		<div class="row">
 			<div class="main_bar">
 				<form method="POST" id="acui_form" enctype="multipart/form-data" action="" accept-charset="utf-8">
@@ -126,6 +239,88 @@ class ACUI_Homepage{
 				</div>
 
 				<div class="acui-import-options">
+				<?php if( $wizard ): ?>
+				<ol class="acui-wizard-steps">
+					<li data-step="1"><span class="acui-wizard-step-number">1</span><?php _e( 'File', 'import-users-from-csv-with-meta' ); ?></li>
+					<li data-step="2"><span class="acui-wizard-step-number">2</span><?php _e( 'Columns', 'import-users-from-csv-with-meta' ); ?></li>
+					<li data-step="3"><span class="acui-wizard-step-number">3</span><?php _e( 'Options', 'import-users-from-csv-with-meta' ); ?></li>
+					<li data-step="4"><span class="acui-wizard-step-number">4</span><?php _e( 'Preview', 'import-users-from-csv-with-meta' ); ?></li>
+					<li data-step="5"><span class="acui-wizard-step-number">5</span><?php _e( 'Import', 'import-users-from-csv-with-meta' ); ?></li>
+				</ol>
+
+				<div id="acui_wizard_columns" class="acui-wizard-panel">
+					<h2><?php _e( 'Match your columns', 'import-users-from-csv-with-meta' ); ?></h2>
+					<p class="description"><?php _e( 'We matched what we could recognise. Check the suggestions and choose what to do with the rest.', 'import-users-from-csv-with-meta' ); ?></p>
+					<p class="acui-wizard-file-facts"></p>
+					<div class="acui-wizard-table-wrapper">
+						<table class="widefat acui-wizard-map">
+							<thead>
+								<tr>
+									<th><?php _e( 'Column in your file', 'import-users-from-csv-with-meta' ); ?></th>
+									<th><?php _e( 'First values', 'import-users-from-csv-with-meta' ); ?></th>
+									<th><?php _e( 'Import as', 'import-users-from-csv-with-meta' ); ?></th>
+									<th><?php _e( 'Status', 'import-users-from-csv-with-meta' ); ?></th>
+								</tr>
+							</thead>
+							<tbody></tbody>
+						</table>
+					</div>
+					<fieldset class="acui-wizard-username" hidden>
+						<legend><?php _e( 'Your file has no username column. How should usernames be created?', 'import-users-from-csv-with-meta' ); ?></legend>
+						<label><input type="radio" name="acui_username_mode" value="email" checked> <?php _e( 'Use the email as username', 'import-users-from-csv-with-meta' ); ?></label>
+						<label><input type="radio" name="acui_username_mode" value="random"> <?php _e( 'Generate a random username, like user_123456', 'import-users-from-csv-with-meta' ); ?></label>
+					</fieldset>
+					<div class="acui-wizard-check" role="status"></div>
+					<input type="hidden" name="acui_wizard_token" id="acui_wizard_token" value="">
+				</div>
+
+				<div id="acui_wizard_preview" class="acui-wizard-panel">
+					<h2><?php _e( 'Preview', 'import-users-from-csv-with-meta' ); ?></h2>
+					<p class="description"><?php _e( 'This is what will happen. Nothing has been saved yet.', 'import-users-from-csv-with-meta' ); ?></p>
+					<div class="acui-log-cards acui-wizard-counts">
+						<div class="acui-log-card acui-log-card--created">
+							<span class="acui-log-card__number" id="acui_preview_created">0</span>
+							<span class="acui-log-card__label"><?php _e( 'Will be created', 'import-users-from-csv-with-meta' ); ?></span>
+						</div>
+						<div class="acui-log-card acui-log-card--updated">
+							<span class="acui-log-card__number" id="acui_preview_updated">0</span>
+							<span class="acui-log-card__label"><?php _e( 'Will be updated', 'import-users-from-csv-with-meta' ); ?></span>
+						</div>
+						<div class="acui-log-card acui-log-card--processed">
+							<span class="acui-log-card__number" id="acui_preview_ignored">0</span>
+							<span class="acui-log-card__label"><?php _e( 'Will be skipped', 'import-users-from-csv-with-meta' ); ?></span>
+						</div>
+						<div class="acui-log-card acui-log-card--no-errors" id="acui_preview_errors_card">
+							<span class="acui-log-card__number" id="acui_preview_errors">0</span>
+							<span class="acui-log-card__label"><?php _e( 'Have errors', 'import-users-from-csv-with-meta' ); ?></span>
+						</div>
+					</div>
+					<div class="acui-wizard-not-present" hidden></div>
+					<h3><?php _e( 'First rows', 'import-users-from-csv-with-meta' ); ?></h3>
+					<div class="acui-wizard-table-wrapper">
+						<table class="widefat acui-wizard-sample">
+							<thead>
+								<tr>
+									<th><?php _e( 'Row', 'import-users-from-csv-with-meta' ); ?></th>
+									<th><?php _e( 'Email', 'import-users-from-csv-with-meta' ); ?></th>
+									<th><?php _e( 'Username', 'import-users-from-csv-with-meta' ); ?></th>
+									<th><?php _e( 'Role', 'import-users-from-csv-with-meta' ); ?></th>
+									<th><?php _e( 'Result', 'import-users-from-csv-with-meta' ); ?></th>
+								</tr>
+							</thead>
+							<tbody></tbody>
+						</table>
+					</div>
+					<div class="acui-wizard-issues" hidden>
+						<h3></h3>
+						<ul></ul>
+						<p class="acui-wizard-issues-more"></p>
+						<p><a href="#" class="button acui-wizard-errors-download"><?php _e( 'Download the rows with errors (CSV)', 'import-users-from-csv-with-meta' ); ?></a></p>
+					</div>
+					<p class="description"><?php _e( 'The preview follows the same rules as the import. Add-ons that change data while importing may change some results.', 'import-users-from-csv-with-meta' ); ?></p>
+				</div>
+				<?php endif; ?>
+
 				<div class="acui-accordion">
 
 				<details id="acui_file_header" open>
@@ -135,20 +330,62 @@ class ACUI_Homepage{
 
 					<?php do_action( 'acui_homepage_before_file_rows' ); ?>
 
+					<?php
+					$acui_extensions = array_unique( array_map( 'strtolower', (array) apply_filters( 'acui_allowed_upload_extensions', array( 'csv' ) ) ) );
+					?>
 					<tr class="form-field form-required">
-						<th scope="row"><label for="uploadfile"><?php _e( 'CSV file <span class="description">(required)</span></label>', 'import-users-from-csv-with-meta' ); ?></th>
+						<th scope="row"><?php _e( 'File', 'import-users-from-csv-with-meta' ); ?> <span class="description"><?php _e( '(required)', 'import-users-from-csv-with-meta' ); ?></span></th>
 						<td>
+							<fieldset class="acui-file-source">
+								<legend class="screen-reader-text"><?php _e( 'Where is your file?', 'import-users-from-csv-with-meta' ); ?></legend>
+								<label class="acui-file-source__option">
+									<input type="radio" name="acui_file_source" value="upload" checked>
+									<span class="acui-file-source__title"><?php _e( 'Upload from your computer', 'import-users-from-csv-with-meta' ); ?></span>
+									<span class="acui-file-source__hint"><?php _e( 'Choose or drag a file', 'import-users-from-csv-with-meta' ); ?></span>
+								</label>
+								<label class="acui-file-source__option">
+									<input type="radio" name="acui_file_source" value="path">
+									<span class="acui-file-source__title"><?php _e( 'Use a URL or a file on this server', 'import-users-from-csv-with-meta' ); ?></span>
+									<span class="acui-file-source__hint"><?php _e( 'Google Sheets, a link to a CSV or a path in uploads', 'import-users-from-csv-with-meta' ); ?></span>
+								</label>
+							</fieldset>
+
 							<div id="upload_file">
-								<input type="file" name="uploadfile" id="uploadfile" size="35" class="uploadfile" />
-								<?php _e( '<em>or you can choose directly a file from your host or from an external URL', 'import-users-from-csv-with-meta' ) ?> <a href="#" class="toggle_upload_path"><?php _e( 'click here', 'import-users-from-csv-with-meta' ) ?></a>.</em>
+								<div class="acui-dropzone">
+									<input type="file" name="uploadfile" id="uploadfile" class="uploadfile acui-dropzone__input" accept="<?php echo esc_attr( '.' . implode( ',.', $acui_extensions ) ); ?>" />
+									<label for="uploadfile" class="acui-dropzone__label">
+										<span class="dashicons dashicons-upload" aria-hidden="true"></span>
+										<span class="acui-dropzone__text"><strong><?php _e( 'Drag your file here', 'import-users-from-csv-with-meta' ); ?></strong> <?php _e( 'or click to choose it', 'import-users-from-csv-with-meta' ); ?></span>
+										<span class="acui-dropzone__file" hidden></span>
+										<span class="acui-dropzone__formats"><?php printf( __( 'Accepted formats: %s', 'import-users-from-csv-with-meta' ), esc_html( strtoupper( implode( ', ', $acui_extensions ) ) ) ); ?></span>
+									</label>
+								</div>
 							</div>
+
 							<div id="introduce_path" style="display:none;">
-								<input placeholder="<?php printf( __( 'You have to enter the URL or the path to the file, i.e.: %s or %s' ,'import-users-from-csv-with-meta' ), $sample_path, $sample_url ); ?>" type="text" name="path_to_file" id="path_to_file" value="<?php echo $settings->get( 'path_to_file' ); ?>" style="width:70%;" />
-								<button type="button" class="button acui-check-path-btn" data-target="path_to_file"><?php _e( 'Check path', 'import-users-from-csv-with-meta' ); ?></button>
-								<em><?php _e( 'or you can upload it directly from your computer', 'import-users-from-csv-with-meta' ); ?>, <a href="#" class="toggle_upload_path"><?php _e( 'click here', 'import-users-from-csv-with-meta' ); ?></a>.</em>
-								<p class="description"><?php printf( __( 'A local path must point to a .csv file located inside your WordPress uploads folder: %s (subfolders are allowed). Files outside that folder are rejected for security reasons. Use a URL instead if the file lives elsewhere.', 'import-users-from-csv-with-meta' ), '<code>' . esc_html( $upload_dir['basedir'] ) . '</code>' ); ?></p>
+								<div class="acui-path-field">
+									<input type="text" name="path_to_file" id="path_to_file" value="<?php echo esc_attr( preg_match( '#^https?://[^/]*%#i', (string) $settings->get( 'path_to_file' ) ) ? '' : $settings->get( 'path_to_file' ) ); ?>" placeholder="https://example.com/users.csv" aria-describedby="acui_path_help" />
+									<button type="button" class="button acui-check-path-btn" data-target="path_to_file"><?php _e( 'Check', 'import-users-from-csv-with-meta' ); ?></button>
+								</div>
 								<p class="acui-path-check-result" data-target="path_to_file" style="display:none;"></p>
+								<ul id="acui_path_help" class="acui-path-help">
+									<li><?php _e( '<strong>A URL</strong> to a CSV file, for example <code>https://example.com/users.csv</code>', 'import-users-from-csv-with-meta' ); ?></li>
+									<li><?php _e( '<strong>Google Sheets</strong>: in File &gt; Share &gt; Publish to the web, choose "Comma-separated values (.csv)" and paste the link', 'import-users-from-csv-with-meta' ); ?></li>
+									<li><?php printf( __( '<strong>A file on this server</strong> inside the uploads folder, for example %s. Files outside that folder are rejected for security reasons.', 'import-users-from-csv-with-meta' ), '<code>' . esc_html( $sample_path ) . '</code>' ); ?></li>
+								</ul>
+								<p class="acui-recurring-hint"><span class="dashicons dashicons-update" aria-hidden="true"></span>
+								<?php if( function_exists( 'acui_ic_check_active' ) ): ?>
+									<?php printf( __( 'Does this file change often? <a href="%s">Create a recurring import task</a> and it will be imported automatically.', 'import-users-from-csv-with-meta' ), esc_url( admin_url( 'tools.php?page=acui&tab=cron-import&section=new_edit' ) ) ); ?>
+								<?php elseif( get_option( 'acui_cron_activated' ) ): ?>
+									<?php printf( __( 'You already import a file automatically in the <a href="%1$s">Recurring</a> tab. Do you need more files, each with its own schedule, role and rules, and an email to you when each run finishes? That is the <a href="%2$s" target="_blank">Recurring Import addon</a>.', 'import-users-from-csv-with-meta' ), esc_url( admin_url( 'tools.php?page=acui&tab=cron' ) ), esc_url( ACUIHelper()->premium_url( 'recurring-import-addon', 'wizard-path-option' ) ) ); ?>
+								<?php else: ?>
+									<?php printf( __( 'Does this file change often? Import it automatically from the <a href="%1$s">Recurring</a> tab, included for free for one file. For several files, each with its own schedule, role and rules, and an email to you when each run finishes, there is the <a href="%2$s" target="_blank">Recurring Import addon</a>.', 'import-users-from-csv-with-meta' ), esc_url( admin_url( 'tools.php?page=acui&tab=cron' ) ), esc_url( ACUIHelper()->premium_url( 'recurring-import-addon', 'wizard-path-option' ) ) ); ?>
+								<?php endif; ?>
+								</p>
 							</div>
+
+							<p class="acui-templates"><span class="dashicons dashicons-media-spreadsheet" aria-hidden="true"></span> <?php _e( 'No file yet? Download a template with example data:', 'import-users-from-csv-with-meta' ); ?> <?php echo ACUI_CSV_Templates::get_links_html(); ?></p>
+
 							<?php if( !is_plugin_active( 'import-export-users-customers-file-formats/import-export-users-customers-file-formats.php' ) ): ?>
 							<p class="description"><?php printf( __( 'You can also import <strong>XLSX, XLS or ODS</strong> files with the <a href="%s" target="_blank">File Formats addon</a>.', 'import-users-from-csv-with-meta' ), esc_url( ACUIHelper()->premium_url( 'file-formats-addon', 'homepage-file-field' ) ) ); ?></p>
 							<?php endif; ?>
@@ -161,29 +398,30 @@ class ACUI_Homepage{
 				</table>
 				</details>
 
-				<details id="acui_roles_header" open>
+				<?php if( $wizard ): ?>
+				<details id="acui_main_options_header" open>
+				<summary><span class="acui-summary-label"><?php _e( 'Main options', 'import-users-from-csv-with-meta' ); ?></span><span class="acui-summary-chevron">▼</span></summary>
+				<table id="acui_main_options_wrapper" class="form-table">
+					<tbody>
+					<?php echo $acui_row_role . $acui_row_existing . $acui_row_email . $acui_row_empty; ?>
+					</tbody>
+				</table>
+				</details>
+
+				<button type="button" class="button-link acui-wizard-more-toggle" aria-expanded="false" aria-controls="acui_roles_header acui_options_header acui_update_users_header acui_users_not_present_header">
+					<span class="acui-wizard-more-closed"><?php _e( 'More options: passwords, roles and emails of existing users, users not present in the file', 'import-users-from-csv-with-meta' ); ?> ▸</span>
+					<span class="acui-wizard-more-open"><?php _e( 'Fewer options', 'import-users-from-csv-with-meta' ); ?> ▴</span>
+				</button>
+				<?php endif; ?>
+
+				<details id="acui_roles_header" open<?php echo $wizard ? ' class="acui-advanced"' : ''; ?>>
 				<summary><span class="acui-summary-label"><?php _e( 'Roles', 'import-users-from-csv-with-meta'); ?></span><span class="acui-summary-chevron">▼</span></summary>
 				<table id="acui_roles_wrapper" class="form-table">
 					<tbody>
 
 					<?php do_action( 'acui_homepage_before_roles_rows' ); ?>
 
-					<tr class="form-field">
-						<th scope="row"><label for="role"><?php _e( 'Default role', 'import-users-from-csv-with-meta' ); ?></label></th>
-						<td>
-						<?php ACUIHTML()->select( array(
-                            'options' => ACUI_Helper::get_editable_roles(),
-                            'name' => 'role[]',
-                            'show_option_all' => false,
-                            'show_option_none' => true,
-							'multiple' => true,
-							'selected' => is_array( $settings->get( 'role' ) ) ? $settings->get( 'role' ) : array( $settings->get( 'role' ) ),
-							'style' => 'width:100%;'
-                        )); ?>
-						<p class="description"><?php _e( 'You can also import roles from a CSV column. Please read the Documentation tab to see how this can be done. WordPress core allows assigning multiple roles to a user; however, the default interface only displays one role, although some plugins solve this limitation.', 'import-users-from-csv-with-meta' ); ?></p>
-
-						</td>
-					</tr>
+					<?php if( !$wizard ) echo $acui_row_role; ?>
 
 					<?php do_action( 'acui_homepage_after_roles_rows' ); ?>
 
@@ -191,37 +429,16 @@ class ACUI_Homepage{
 				</table>
 				</details>
 
-				<details id="acui_options_header">
+				<details id="acui_options_header"<?php echo $wizard ? ' class="acui-advanced"' : ''; ?>>
 				<summary><span class="acui-summary-label"><?php _e( 'Options', 'import-users-from-csv-with-meta'); ?></span><span class="acui-summary-chevron">▼</span></summary>
 				<table id="acui_options_wrapper" class="form-table">
 					<tbody>
 
 					<?php do_action( 'acui_homepage_before_options_rows' ); ?>
 
-					<tr id="acui_empty_cell_wrapper" class="form-field form-required">
-						<th scope="row"><label for="empty_cell_action"><?php _e( 'What should the plugin do with empty cells?', 'import-users-from-csv-with-meta' ); ?></label></th>
-						<td>
-							<?php ACUIHTML()->select( array(
-								'options' => array( 'leave' => __( 'Leave the old value for this metadata', 'import-users-from-csv-with-meta' ), 'delete' => __( 'Delete the metadata', 'import-users-from-csv-with-meta' ) ),
-								'name' => 'empty_cell_action',
-								'show_option_all' => false,
-								'show_option_none' => false,
-								'selected' => $settings->get( 'empty_cell_action' ),
-							)); ?>
-						</td>
-					</tr>
+					<?php if( !$wizard ) echo $acui_row_empty; ?>
 
-					<tr id="acui_send_email_wrapper" class="form-field">
-						<th scope="row"><label for="user_login"><?php _e( 'Send email', 'import-users-from-csv-with-meta' ); ?></label></th>
-						<td>
-							<p id="sends_email_wrapper">
-								<?php ACUIHTML()->checkbox( array( 'name' => 'sends_email', 'label' => sprintf( __( 'Do you wish to send an email from this plugin with credentials and other data? <a href="%s">(email template found here)</a>', 'import-users-from-csv-with-meta' ), admin_url( 'tools.php?page=acui&tab=mail-options' ) ), 'current' => 'yes', 'compare_value' => $settings->get( 'sends_email' ) ) ); ?>
-							</p>
-							<p id="send_email_updated_wrapper">
-								<?php ACUIHTML()->checkbox( array( 'name' => 'send_email_updated', 'label' => __( 'Do you wish to send this mail also to users that are being updated? (not just to the one which are being created)', 'import-users-from-csv-with-meta' ), 'current' => 'yes', 'compare_value' => $settings->get( 'send_email_updated' ) ) ); ?>
-							</p>
-						</td>
-					</tr>
+					<?php if( !$wizard ) echo $acui_row_email; ?>
 
 					<tr class="form-field form-required">
 						<th scope="row"><label for=""><?php _e( 'Force users to reset their passwords?', 'import-users-from-csv-with-meta' ); ?></label></th>
@@ -237,25 +454,14 @@ class ACUI_Homepage{
 				</table>
 				</details>
 
-				<details id="acui_update_users_header">
+				<details id="acui_update_users_header"<?php echo $wizard ? ' class="acui-advanced"' : ''; ?>>
 				<summary><span class="acui-summary-label"><?php _e( 'Update users', 'import-users-from-csv-with-meta'); ?></span><span class="acui-summary-chevron">▼</span></summary>
 				<table id="acui_update_users_wrapper" class="form-table">
 					<tbody>
 
 					<?php do_action( 'acui_homepage_before_update_users_rows' ); ?>
 
-					<tr id="acui_update_existing_users_wrapper" class="form-field form-required">
-						<th scope="row"><label for="update_existing_users"><?php _e( 'Update existing users?', 'import-users-from-csv-with-meta' ); ?></label></th>
-						<td>
-							<?php ACUIHTML()->select( array(
-								'options' => array( 'no' => __( 'No', 'import-users-from-csv-with-meta' ), 'yes' => __( 'Yes', 'import-users-from-csv-with-meta' ), ),
-								'name' => 'update_existing_users',
-								'show_option_all' => false,
-								'show_option_none' => false,
-								'selected' => $settings->get( 'update_existing_users' ),
-							)); ?>
-						</td>
-					</tr>
+					<?php if( !$wizard ) echo $acui_row_existing; ?>
 
 					<tr id="acui_update_emails_existing_users_wrapper" class="form-field form-required">
 						<th scope="row"><label for="update_emails_existing_users"><?php _e( 'Update emails?', 'import-users-from-csv-with-meta' ); ?></label></th>
@@ -303,7 +509,7 @@ class ACUI_Homepage{
 				</table>
 				</details>
 
-				<details id="acui_users_not_present_header">
+				<details id="acui_users_not_present_header"<?php echo $wizard ? ' class="acui-advanced"' : ''; ?>>
 				<summary><span class="acui-summary-label"><?php _e( 'Users not present in CSV file', 'import-users-from-csv-with-meta'); ?></span><span class="acui-summary-chevron">▼</span></summary>
 				<table id="acui_users_not_present_wrapper" class="form-table">
 					<tbody>
@@ -390,7 +596,18 @@ class ACUI_Homepage{
 
 				</div><?php /* .acui-accordion */ ?>
 
+				<div class="acui-wizard-extra">
 				<?php do_action( 'acui_tab_import_before_import_button' ); ?>
+				</div>
+
+				<?php if( $wizard ): ?>
+				<div class="acui-wizard-nav">
+					<button type="button" class="button acui-wizard-back"><?php _e( 'Back', 'import-users-from-csv-with-meta' ); ?></button>
+					<span class="acui-wizard-nav-info"></span>
+					<button type="button" class="button button-primary acui-wizard-next"><?php _e( 'Continue', 'import-users-from-csv-with-meta' ); ?></button>
+					<button type="submit" class="button button-primary acui-wizard-import" id="acui_wizard_import"><?php _e( 'Start importing', 'import-users-from-csv-with-meta' ); ?></button>
+				</div>
+				<?php endif; ?>
 
 				</div>
 				<?php wp_nonce_field( 'codection-security', 'security' ); ?>
@@ -439,7 +656,11 @@ class ACUI_Homepage{
 				</div>
 
 				<div class="sidebar_section sidebar-info">
+					<?php if( $wizard ): ?>
+					<p><?php _e( 'Your columns can have <strong>any name and any order</strong>: you match them with WordPress fields in the second step. The email is required to create users.', 'import-users-from-csv-with-meta' ); ?></p>
+					<?php else: ?>
 					<p><?php printf( __( 'The CSV must have at least <strong>2 columns: username and email</strong>, in that order. Extra columns are matched by their header name. Both fields are required unless you use <a href="%s">the Allow No Email addon</a>.', 'import-users-from-csv-with-meta' ), esc_url( ACUIHelper()->premium_url( 'allow-no-email-addon', 'homepage-sidebar' ) ) ); ?></p>
+					<?php endif; ?>
 					<p><?php _e( 'Read the documentation on how <strong>passwords are managed</strong>. This plugin is <strong>case sensitive</strong>.', 'import-users-from-csv-with-meta' ); ?></p>
 					<?php if( ( class_exists( 'WeDevs_Dokan' ) || function_exists( 'dokan' ) ) && !function_exists( 'acui_da_check_active' ) ): ?>
 					<p><?php printf( __( 'Using <strong>Dokan</strong>? Import your marketplace vendors with the <a href="%s" target="_blank">Dokan addon</a>.', 'import-users-from-csv-with-meta' ), esc_url( ACUIHelper()->premium_url( 'dokan-addon', 'homepage-sidebar-dokan' ) ) ); ?></p>
@@ -523,9 +744,33 @@ class ACUI_Homepage{
 			check_delete_users_checked();
 		});
 
-		$( '.toggle_upload_path' ).click( function( e ){
+		$( 'input[name="acui_file_source"]' ).on( 'change', function(){
+			var path = $( 'input[name="acui_file_source"]:checked' ).val() === 'path';
+			$( '#upload_file' ).toggle( !path );
+			$( '#introduce_path' ).toggle( path );
+		} );
+
+		function acui_show_file_name(){
+			var input = document.getElementById( 'uploadfile' );
+			var name = ( input && input.files && input.files.length ) ? input.files[0].name : '';
+			$( '.acui-dropzone__file' ).text( name ).prop( 'hidden', name === '' );
+			$( '.acui-dropzone' ).toggleClass( 'acui-dropzone--filled', name !== '' );
+		}
+
+		$( '#uploadfile' ).on( 'change', acui_show_file_name );
+
+		$( '.acui-dropzone' ).on( 'dragenter dragover', function( e ){
 			e.preventDefault();
-			$( '#upload_file,#introduce_path' ).toggle();
+			$( this ).addClass( 'acui-dropzone--over' );
+		} ).on( 'dragleave dragend drop', function(){
+			$( this ).removeClass( 'acui-dropzone--over' );
+		} ).on( 'drop', function( e ){
+			e.preventDefault();
+			var files = e.originalEvent.dataTransfer ? e.originalEvent.dataTransfer.files : null;
+			if( files && files.length ){
+				document.getElementById( 'uploadfile' ).files = files;
+				$( '#uploadfile' ).trigger( 'change' );
+			}
 		} );
 
 		$( '.acui-check-path-btn' ).click( function( e ){
@@ -558,7 +803,25 @@ class ACUI_Homepage{
 			win.focus();
 		} );
 
-		$( '#role' ).select2({ width: '80%' });
+		function acui_init_role_select(){
+			if( $( '#role' ).data( 'select2' ) )
+				$( '#role' ).select2( 'destroy' );
+
+			$( '#role' ).select2({
+				width: $( '#acui_wizard_role_row' ).length ? '100%' : '80%',
+				placeholder: $( '#role' ).attr( 'data-placeholder' ) || ''
+			});
+		}
+
+		acui_init_role_select();
+
+		$( 'input[name="acui_role_mode"]' ).on( 'change', function(){
+			var custom = $( 'input[name="acui_role_mode"]:checked' ).val() === 'custom';
+			$( '.acui-role-custom' ).toggle( custom );
+
+			if( custom )
+				acui_init_role_select();
+		} );
 
         $( '#change_role_not_present_role' ).select2({ width: '80%' });
 

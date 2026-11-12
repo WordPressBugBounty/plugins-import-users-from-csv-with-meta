@@ -15,7 +15,7 @@ class ACUI_Exporter{
 	}
 
     static function enqueue(){
-        wp_enqueue_script( 'acui_export_js', plugins_url( 'assets/export.js', dirname( __FILE__ ) ), false, ACUI_VERSION, true );
+        wp_enqueue_script( 'acui_export_js', plugins_url( 'assets/export.js', dirname( __FILE__ ) ), false, filemtime( plugin_dir_path( dirname( __FILE__ ) ) . 'assets/export.js' ), true );
         wp_localize_script( 'acui_export_js', 'acui_export_js_object', array(
             'ajaxurl' => admin_url( 'admin-ajax.php' ),
             'starting_process' => __( 'Starting process', 'import-users-from-csv-with-meta' ),

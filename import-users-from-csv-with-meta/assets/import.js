@@ -154,6 +154,14 @@
                             $('#acui_import_log').before(response.data.addon_notice);
                         }
 
+                        if (response.data.recurring_notice) {
+                            $('#acui_import_log').before(response.data.recurring_notice);
+                        }
+
+                        if (response.data.review_notice) {
+                            $('#acui_import_log').before(response.data.review_notice);
+                        }
+
                         // Scroll down to show results below datatable
                         $("html, body").animate({ scrollTop: $('#acui_import_results').offset().top - 40 }, "slow");
                     } else {
@@ -208,6 +216,20 @@
             $('.wrap.acui').removeClass('acui-importing');
         });
     };
+
+    $(document).on('click', '.acui-review-notice [data-acui-review]', function () {
+        var $notice = $(this).closest('.acui-review-notice');
+
+        $.post(acui_import_js_object.ajaxurl, {
+            action: 'acui_review_notice',
+            security: acui_import_js_object.review_nonce,
+            answer: $(this).data('acui-review')
+        });
+
+        $notice.slideUp('fast', function () {
+            $notice.remove();
+        });
+    });
 
     $.fn.user_import_form = function () {
         new userImportForm(this);

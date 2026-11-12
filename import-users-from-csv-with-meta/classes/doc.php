@@ -264,9 +264,8 @@ class ACUI_Doc{
 
 	static function section_example(){
 		return
-			__( 'Download this', 'import-users-from-csv-with-meta' )
-			. ' <a href="' . esc_url( plugins_url( 'test.csv', dirname( __FILE__ ) ) ) . '">.csv ' . __( 'file', 'import-users-from-csv-with-meta' ) . '</a> '
-			. __( 'to test', 'import-users-from-csv-with-meta' );
+			__( 'Download a template with example data, open it with Excel, LibreOffice or Google Sheets, replace the example rows with your users and import it:', 'import-users-from-csv-with-meta' )
+			. ' ' . ACUI_CSV_Templates::get_links_html();
 	}
 
 	static function section_support(){

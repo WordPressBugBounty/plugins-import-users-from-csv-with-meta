@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 2.5.14
+Stable tag: 3.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -15,6 +15,16 @@ Bulk import and export WordPress users and WooCommerce customers from CSV, inclu
 **Try it out on your free dummy site: Click here => [https://demo.tastewp.com/import-users-from-csv-with-meta](https://demo.tastewp.com/import-users-from-csv-with-meta)**
 
 Import, export and migrate WordPress users and WooCommerce customers from a CSV file. Bulk-create or update thousands of users in seconds, schedule automatic recurring imports from a local file or URL, and carry over roles, passwords and any custom meta field. Works with WooCommerce, BuddyPress, Advanced Custom Fields, Paid Membership Pro, WooCommerce Memberships, WooCommerce Subscriptions and many more.
+
+### **New in 3.0: a step by step import assistant**
+
+*   **Your file, your column names.** Upload any CSV and match its columns with WordPress and WooCommerce fields. Headers like "Correo electrónico", "E-mail", "Nombre", "Prénom" or "Telefon" are recognised automatically in English, Spanish, French, German, Italian and Portuguese, and the email column is detected by its content
+*   **See what will happen before it happens.** The preview tells you how many users will be created, updated or skipped, shows every row with an error and why, and warns you before any user is deleted
+*   **Download the rows with errors** as a CSV, fix them and import them again
+*   **Start from a template**: download a CSV with example data for users or WooCommerce customers, fill it in and import it
+*   **Files saved from Excel just work**: the encoding (UTF-8 or Windows-1252) and the delimiter are detected for you
+*   No username column? Use the email as username or generate one
+*   The classic screen is still one click away for those who prefer it
 
 *	Import CSV file with users directly to your WordPress or customers into WooCommerce
 *	Import thousands of users or customers in only some seconds
@@ -40,7 +50,7 @@ Moreover this plugin is compatible with many other plugins to be able to import 
 *   Paid Member Subscriptions: to import memberships
 *	Allow Multiple Accounts: plugin will allow the same rules importing than this plugin
 *	Groups: to assign users to groups while importing
-*	New User Approve: you can import users and approbe/wait for approve them
+*	New User Approve: you can import users and approve them or leave them waiting for approval
 *	Users Group: to assign users to groups while importing
 *	WP LMS Course: to enroll users in the courses while importing
 *	WP Members: to import memberships
@@ -74,11 +84,17 @@ Need more? These addons extend the plugin for specific needs:
 
 ### **Usage**
 
-Once the plugin is installed you can use it. Go to Tools menu and there, there will be a section called _Insert users from CSV_. Just choose your CSV file and go!
+Once the plugin is installed, go to _Tools > Import and export users and customers_ and follow the steps:
+
+1. **File**: choose your CSV from your computer, from a path inside your uploads folder or from a URL
+2. **Columns**: check how each column of your file will be imported
+3. **Options**: choose the default role, what to do with users who already exist and whether to send the welcome email
+4. **Preview**: see how many users will be created, updated or skipped, and the rows with errors
+5. **Import**: the users are imported in batches, so large files do not time out
 
 ### **CSV generation**
 
-You can generate CSV file with all users inside it, using a standar spreadsheet software like: Microsoft Excel, LibreOffice Calc, OpenOffice Calc or Gnumeric.
+You can generate a CSV file with all the users inside it using any standard spreadsheet software like: Microsoft Excel, LibreOffice Calc, OpenOffice Calc or Gnumeric.
 
 You have to create the file filled with information (or take it from another database) and you will only have to choose CSV file when you "Save as..." the file. As example, a CSV file is included with the plugin.
 
@@ -116,8 +132,35 @@ By default they are sent to their WordPress profile page. If WooCommerce or WP U
 
 == Changelog ==
 
+= 3.0.0 - 2026-11-12 =
+*   New import assistant in five steps: file, columns, options, preview and import. It is the default screen for the import, and the classic screen can be used with the "Switch to classic mode" link (the choice is saved for each user)
+*   Column mapping: the columns of the file can have any name and any order. Each column is matched with a WordPress field (username, email, password, names, role, website, registration date, language, user ID...), a WooCommerce billing or shipping field, a custom field with the name you choose, or it can be ignored
+*   Explanations under the password, password hash and role fields in the column mapping: what happens with empty cells, with new users and with existing users. A column called password whose values look like encrypted passwords is suggested as a password hash, so they are not imported as plain text passwords by mistake
+*   The field of each column can be searched by typing, by its name or by its internal key (for example "city" or "billing_city"), and the key is shown next to each field
+*   Automatic detection of the columns by their name in English, Spanish, French, German, Italian and Portuguese, of the email column by its values, and of the classic format with the username in the first column and the email in the second one
+*   If the file has no username column, the email can be used as username or a random username can be generated
+*   Preview of the import: number of users that will be created, updated or skipped, the rows with errors and the reason, how many users not present in the file will be deleted or have their role changed, and a warning when they will not be deleted because some rows have errors. Nothing is saved until you start the import
+*   The rows with errors can be downloaded as a CSV file to fix them and import them again
+*   Files that are not saved in UTF-8 (like the CSV files saved by Excel in Windows-1252) are converted, so accents and other special characters are no longer lost when using the assistant
+*   Role of new users in the assistant: if a column of the file is imported as role, the assistant says that each user gets the role of that column. If not, you choose between the default role of the site (Settings > General) and one or more roles of your choice, so users can no longer be created without any role by accident when the default role setting was empty
+*   The options of the import are grouped in "Main options" (default role, users who already exist, emails and empty cells) and "More options", which opens automatically if the deletion or the role change of users not present in the file is active
+*   When the file comes from a URL or a path on the server, the assistant reminds that it can be imported automatically for free from the Recurring tab, and explains what the Recurring Import addon adds: unlimited tasks, each with its own schedule, role and rules, an email when each run finishes and a list to manage them. The same information appears after an import from a URL or a path. If the addon is already active, both places link to a new recurring import task instead
+*   Compatible with the File Formats addon (XLSX, XLS and ODS) and with the Allow No Email addon, which makes the email column optional
+*   New filters for developers: acui_wizard_active, acui_wizard_targets, acui_wizard_aliases, acui_wizard_email_required and acui_wizard_file_encoding
+*   Clearer choice of where the file comes from: "Upload from your computer", with an area where you can drag the file and that shows the accepted formats and the chosen file, or "Use a URL or a file on this server", with examples for a link to a CSV, Google Sheets and a file inside uploads.
+*   CSV templates with example data to download from the first step of the import and from the Documentation tab: basic users, WooCommerce customers (when WooCommerce is active) and an empty one with only the headers. They use example.com addresses and the roles of your site, and they open correctly in Excel. Add-ons can add their own templates with the filter acui_csv_templates
+*   More robust saving of the uploaded file: if it cannot be moved to the private folder inside uploads, the plugin tries to copy it and then uses a private folder inside the temporary folder of the server. If everything fails, the error shows the folders tried and the real reason given by the server (for example, a full disk quota) instead of "The uploaded file could not be saved"
+*   Tools > Site Health: new section in the Info tab with the private folder, the alternative folder, the maximum upload size and the last problem saving an uploaded file (folders tried and messages from the server), and a check in the Status tab that warns when an alternative way had to be used. It can be copied and sent to the hosting provider or to the support forum
+*   Clear messages when the upload itself fails: file larger than the maximum upload size (with the limit and what to do), partial upload, missing temporary folder or disk write error
+*   Fixed the saved path or URL of the file: anything that was not a URL was turned into a broken URL (for example "http://directly%20a%20file%20from%20your"), and paths with spaces were saved with %20 so the file could not be found. Now only values starting with http:// or https:// are saved as URLs, and broken values saved by previous versions are not shown
+*   The test.csv sample file included in the plugin now uses example.com addresses instead of realistic names and emails
+*   The styles and scripts of the plugin are now loaded with the date of each file as version, so the browser and the caches always use the latest ones after an update
+*   The import screen can now be used on mobile devices: the sidebar is placed below the form on small screens
+*   After an import that creates or updates users without errors, a message asks if you want to leave a review on WordPress.org. It can be postponed for 30 days or closed forever, and it is never shown again once you answer (filter acui_show_review_notice)
+*   Fixed the message about the Allow No Email addon at the end of an import, which was hidden by the styles of the plugin since version 2.5.11
+
 = 2.5.14 - 2026-11-11 =
-*   Security: the files of the export in batches and the CSV files uploaded for a manual import are no longer saved in the root of the uploads folder. They are now saved in a private folder with a random name inside uploads, protected with .htaccess, web.config and index files, so they cannot be downloaded from the browser even while the process is running
+*   Security: the files of the export in batches and the CSV files uploaded for a manual import are no longer saved in the root of the uploads folder. They are now saved in a private folder with a random name inside uploads, protected with .htaccess, web.config and index files, so they cannot be downloaded from the browser even while the process is running (reported by Ankesh Singh)
 *   Security: the names of these files are now random (wp_generate_password) instead of being based on uniqid(), which depends on the time
 *   Security: the files left behind by an export or an import that was not finished (closed tab, error in the browser...) are now removed by an hourly scheduled task after 6 hours (filter acui_private_files_max_age). The task also removes the files left in the root of the uploads folder by previous versions, and everything is removed when the plugin is deactivated
 *   When a new manual import starts, the file uploaded for the previous import of the same user is removed if it was not finished

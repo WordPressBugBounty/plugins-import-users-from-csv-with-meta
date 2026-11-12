@@ -202,9 +202,15 @@ class ACUI_Settings{
                 return ( $value != 'yes' ) ? 'no' : 'yes';
 
             case 'url_path':
-                $url_sanitized = sanitize_url( $value );
-                $path_sanitized = sanitize_file_name( $value );
-                return empty( $url_sanitized ) ? $path_sanitized : $url_sanitized;
+                $value = trim( (string) $value );
+
+                if( $value === '' )
+                    return '';
+
+                if( preg_match( '#^https?://#i', $value ) )
+                    return sanitize_url( $value );
+
+                return wp_normalize_path( sanitize_text_field( $value ) );
 
         }
     }

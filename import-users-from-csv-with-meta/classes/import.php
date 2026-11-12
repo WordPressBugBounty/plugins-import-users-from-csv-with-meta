@@ -21,7 +21,7 @@ class ACUI_Import{
     }
 
     static function enqueue(){
-        wp_enqueue_script( 'acui_import_js', plugins_url( 'assets/import.js', dirname( __FILE__ ) ), array( 'jquery' ), ACUI_VERSION, true );
+        wp_enqueue_script( 'acui_import_js', plugins_url( 'assets/import.js', dirname( __FILE__ ) ), array( 'jquery' ), filemtime( plugin_dir_path( dirname( __FILE__ ) ) . 'assets/import.js' ), true );
         wp_localize_script( 'acui_import_js', 'acui_import_js_object', array(
             'ajaxurl' => admin_url( 'admin-ajax.php' ),
             'starting_process' => __( 'Starting process', 'import-users-from-csv-with-meta' ),
@@ -39,6 +39,7 @@ class ACUI_Import{
             'new_import'       => __( 'New import', 'import-users-from-csv-with-meta' ),
             'log_url'          => admin_url( 'tools.php?page=acui&tab=log' ),
             'import_url'       => admin_url( 'tools.php?page=acui&tab=homepage' ),
+            'review_nonce'     => wp_create_nonce( 'acui_review_notice' ),
         ) );
     }
 
@@ -1091,6 +1092,9 @@ class ACUI_Import{
             $role_default = array( $role_default );
         array_walk( $role_default, 'sanitize_text_field' );
         $role_default = array_values( array_filter( $role_default ) );
+
+        if( isset( $form_data['acui_role_mode'] ) && $form_data['acui_role_mode'] === 'default' )
+            $role_default = array( get_option( 'default_role', 'subscriber' ) );
         $settings['role_default'] = $role_default;
         
         $settings['update_emails_existing_users'] = isset( $form_data["update_emails_existing_users"] ) ? sanitize_text_field( $form_data["update_emails_existing_users"] ) : 'yes';
@@ -1149,7 +1153,19 @@ class ACUI_Import{
 
             delete_transient( $batch_file_key );
 
-            if( !empty( $_FILES['uploadfile']['tmp_name'] ) ){
+            $wizard_file = ACUI_Wizard::build_import_file( wp_unslash( $_POST ) );
+
+            if( is_wp_error( $wizard_file ) )
+                wp_send_json_error( array( 'message' => $wizard_file->get_error_message() ) );
+
+            if( $wizard_file ){
+                $file = $wizard_file;
+                $is_temporary_file = true;
+            }
+            elseif( !empty( $_FILES['uploadfile']['error'] ) && (int) $_FILES['uploadfile']['error'] !== UPLOAD_ERR_NO_FILE ){
+                wp_send_json_error( array( 'message' => ACUI_Private_Files::upload_error_message( $_FILES['uploadfile']['error'] ) ) );
+            }
+            elseif( !empty( $_FILES['uploadfile']['tmp_name'] ) ){
                 $original_ext = strtolower( pathinfo( $_FILES['uploadfile']['name'], PATHINFO_EXTENSION ) );
                 $allowed_extensions = apply_filters( 'acui_allowed_upload_extensions', array( 'csv' ) );
                 if( !in_array( $original_ext, $allowed_extensions, true ) ){
@@ -1163,9 +1179,9 @@ class ACUI_Import{
 
                     wp_send_json_error( array( 'message' => __( 'Invalid file type.', 'import-users-from-csv-with-meta' ) ) );
                 }
-                $file = ACUI_Private_Files::get_path( 'acui-import-' . get_current_user_id() . '-' . ACUI_Private_Files::random_token() . '.' . $original_ext );
-                if( !move_uploaded_file( $_FILES['uploadfile']['tmp_name'], $file ) )
-                    wp_send_json_error( array( 'message' => __( 'The uploaded file could not be saved.', 'import-users-from-csv-with-meta' ) ) );
+                $file = ACUI_Private_Files::save_upload( $_FILES['uploadfile'], 'acui-import-' . get_current_user_id() . '-' . ACUI_Private_Files::random_token() . '.' . $original_ext );
+                if( is_wp_error( $file ) )
+                    wp_send_json_error( array( 'message' => $file->get_error_message() ) );
                 $is_temporary_file = true;
             }
             elseif( !empty( $_POST['path_to_file'] ) ){
@@ -1296,6 +1312,8 @@ class ACUI_Import{
                 'results' => $results_data,
                 'errors_count' => $errors_count,
                 'addon_notice' => $this->get_no_email_addon_notice( $errors_for_log ),
+                'recurring_notice' => $this->get_recurring_import_notice( $form_data, $results_data ),
+                'review_notice' => ACUI_Review_Notice::get_html( $results_data, isset( $state['errors_totals'] ) ? $state['errors_totals'] : array() ),
             ) );
         }
         else{
@@ -1324,6 +1342,39 @@ class ACUI_Import{
             . sprintf( _n( '%d row was skipped because it has no email.', '%d rows were skipped because they have no email.', $rows_without_email, 'import-users-from-csv-with-meta' ), $rows_without_email ) . ' '
             . sprintf( __( 'With the <a href="%s" target="_blank">Allow No Email addon</a> you can import users without an email address.', 'import-users-from-csv-with-meta' ), esc_url( ACUIHelper()->premium_url( 'allow-no-email-addon', 'import-result-no-email' ) ) )
             . '</p></div>';
+    }
+
+    function get_recurring_import_notice( $form_data, $results ){
+        if( !isset( $form_data['acui_file_source'] ) || $form_data['acui_file_source'] !== 'path' )
+            return '';
+
+        if( ( (int) $results['created'] + (int) $results['updated'] ) === 0 )
+            return '';
+
+        if( function_exists( 'acui_ic_check_active' ) ){
+            $text = __( 'Do you need to repeat this import? Create a recurring import task with the same file and it will run by itself.', 'import-users-from-csv-with-meta' );
+            $button = '<a href="' . esc_url( admin_url( 'tools.php?page=acui&tab=cron-import&section=new_edit' ) ) . '" class="button">' . __( 'Create a recurring task', 'import-users-from-csv-with-meta' ) . '</a>';
+        }
+        else{
+            $addon_button = '<a href="' . esc_url( ACUIHelper()->premium_url( 'recurring-import-addon', 'import-result-recurring' ) ) . '" target="_blank" class="button button-primary">' . __( 'See the Recurring Import addon', 'import-users-from-csv-with-meta' ) . '</a>';
+            $advantages = '<ul class="acui-recurring-notice__list">'
+                . '<li>' . __( 'Unlimited tasks: several files or URLs, not just one', 'import-users-from-csv-with-meta' ) . '</li>'
+                . '<li>' . __( 'Each task with its own schedule, role, users not present rules and file handling', 'import-users-from-csv-with-meta' ) . '</li>'
+                . '<li>' . __( 'An email to you or your team when each run finishes, with your own subject and text', 'import-users-from-csv-with-meta' ) . '</li>'
+                . '<li>' . __( 'A list to pause, edit, run or delete each task', 'import-users-from-csv-with-meta' ) . '</li>'
+                . '</ul>';
+
+            if( get_option( 'acui_cron_activated' ) ){
+                $text = __( 'You already import one file automatically with the free recurring import. With the <strong>Recurring Import addon</strong> you get:', 'import-users-from-csv-with-meta' ) . $advantages;
+                $button = $addon_button;
+            }
+            else{
+                $text = __( 'Do you want this import to repeat by itself? The free <strong>recurring import</strong> does it for one file. If you need more, the <strong>Recurring Import addon</strong> adds:', 'import-users-from-csv-with-meta' ) . $advantages;
+                $button = '<a href="' . esc_url( admin_url( 'tools.php?page=acui&tab=cron' ) ) . '" class="button">' . __( 'Set up the free recurring import', 'import-users-from-csv-with-meta' ) . '</a> ' . $addon_button;
+            }
+        }
+
+        return '<div class="acui-recurring-notice"><span class="dashicons dashicons-update" aria-hidden="true"></span><div class="acui-recurring-notice__text">' . $text . '</div><div class="acui-recurring-notice__actions">' . $button . '</div></div>';
     }
 
     function get_file_formats_addon_url( $extension ){
