@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 3.0.0
+Stable tag: 3.1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -12,101 +12,213 @@ Bulk import and export WordPress users and WooCommerce customers from CSV, inclu
 
 == Description ==
 
-**Try it out on your free dummy site: Click here => [https://demo.tastewp.com/import-users-from-csv-with-meta](https://demo.tastewp.com/import-users-from-csv-with-meta)**
+**Try it on a free demo site: [https://demo.tastewp.com/import-users-from-csv-with-meta](https://demo.tastewp.com/import-users-from-csv-with-meta)**
 
-Import, export and migrate WordPress users and WooCommerce customers from a CSV file. Bulk-create or update thousands of users in seconds, schedule automatic recurring imports from a local file or URL, and carry over roles, passwords and any custom meta field. Works with WooCommerce, BuddyPress, Advanced Custom Fields, Paid Membership Pro, WooCommerce Memberships, WooCommerce Subscriptions and many more.
+Import, export and migrate WordPress users and WooCommerce customers with a CSV file. A step by step assistant matches the columns of any file with WordPress and WooCommerce fields, shows you a preview of what will happen and imports thousands of users in batches, keeping their roles, passwords and custom fields.
 
-### **New in 3.0: a step by step import assistant**
+✅ Tested with WordPress 7.1 and WooCommerce 11.3
 
-*   **Your file, your column names.** Upload any CSV and match its columns with WordPress and WooCommerce fields. Headers like "Correo electrónico", "E-mail", "Nombre", "Prénom" or "Telefon" are recognised automatically in English, Spanish, French, German, Italian and Portuguese, and the email column is detected by its content
-*   **See what will happen before it happens.** The preview tells you how many users will be created, updated or skipped, shows every row with an error and why, and warns you before any user is deleted
+✅ More than 70,000 active installations
+
+✅ Free, with optional premium add-ons for special needs
+
+### 🆕 New in 3.1
+
+*   **Export WooCommerce guest customers**: the customers who bought without creating an account, with the billing and shipping details of their last order. Import the file later to create an account for each of them
+*   **Transform values while importing**: replace a text ("United States" → "US"), add a prefix to phone numbers, change upper or lower case or fill empty cells, without editing the file
+*   **Add a field with the same value for every user**, for data that is not in the file
+*   **Choose the columns of the export** by checking them, drag them to change their order and rename them
+*   **Export specific users**, searching them by email, username or name, and sort or limit the export
+*   **Export to Excel (XLSX), OpenDocument (ODS) or XML** with the File Formats addon, also from the shortcode and the recurring exports
+*   **History** of the last 100 imports and exports, with who made them, the file and the result
+
+### 📥 Import users and customers
+
+*   **Any column names, any order.** Columns like "E-mail", "Correo electrónico", "Prénom" or "Telefon" are recognised automatically in six languages, and the email column is detected by its content
+*   **Preview before importing**: how many users will be created, updated or skipped, every row with an error and why, and a warning before any user is deleted. Nothing is saved until you start the import
 *   **Download the rows with errors** as a CSV, fix them and import them again
-*   **Start from a template**: download a CSV with example data for users or WooCommerce customers, fill it in and import it
+*   **Update existing users** matched by ID, username or email, or skip them
+*   **Keep passwords** when you migrate from another WordPress site, or generate new ones
+*   **Roles**: one or several roles per user from a column of the file, or a default role
+*   **Welcome email** with a customizable template, wildcards and a test button
+*   **Large files** are imported in batches, so they do not time out
 *   **Files saved from Excel just work**: the encoding (UTF-8 or Windows-1252) and the delimiter are detected for you
-*   No username column? Use the email as username or generate one
-*   The classic screen is still one click away for those who prefer it
+*   **Templates**: download a CSV with example data for users or WooCommerce customers
+*   **From your computer, a URL, Google Sheets or a file on the server**
+*   Import from the front-end with the `[import-users]` shortcode
 
-*	Import CSV file with users directly to your WordPress or customers into WooCommerce
-*	Import thousands of users or customers in only some seconds
-*   Export users or customers to a CSV file, filtering by role or registered date
-*	You can also import meta-data like data from WooCommerce customers
-*	You can assign roles while importing.
-*	Send a mail to every new user, this mails can be saved as templates and are fully customizable, before sending you can test it
-*	You can also update users if the user is already in your WordPress
-*	Create a cron task to import users periodically
-*	Edit the metadata (you will be able to edit the metadata imported using metakeys directly in the profile of each user)
-*	Extend the plugin using the hooks we provide
-*   Compatible with WPML [read the documentation](https://wpml.org/documentation/plugins-compatibility/import-users-from-csv-with-meta-and-wpml/) to see how you can translate the front-end import and export users page and send translated email notifications to users
+### 📤 Export users and customers
 
-Moreover this plugin is compatible with many other plugins to be able to import and include them data, subscriptions, memberships, etc. Take a look:
+*   Filter by role, registration date or specific users
+*   Choose, order and rename the columns, or export all of them, custom fields included
+*   Include WooCommerce guest customers
+*   Export password hashes so users keep their passwords in another site
+*   Sort the users and split big exports into several files
+*   Export from the front-end with the `[export-users]` shortcode
 
-*	WooCommerce: to import the customer data
-*	WooCommerce Memberships: to import memberships
-*	WooCommerce Subscriptions: to create subscriptions associated with users while they are being imported
-*	BuddyPress: to import custom BuddyPress avatars, fields, groups and roles
-*   Advanced Custom Fields: to import data to the fields you define there
-*	Paid Membership Pro: to import memberships, included compatibility with PMPro version 3
-*	Indeed Ultimate Membership Pro: to import memberships
-*   Paid Member Subscriptions: to import memberships
-*	Allow Multiple Accounts: plugin will allow the same rules importing than this plugin
-*	Groups: to assign users to groups while importing
-*	New User Approve: you can import users and approve them or leave them waiting for approval
-*	Users Group: to assign users to groups while importing
-*	WP LMS Course: to enroll users in the courses while importing
-*	WP Members: to import memberships
-*	WP Users Group: to assign users to groups while importing
-*	WooCommerce Membership by RightPress: to create memberships while users are being imported
-*   WP Private Content Plus: To import and export the groups to which users are assigned
+### ⏱️ Automation
 
-If you have some problem or doubt:
+*   **Recurring import** from a file or a URL every hour, day or week, to keep your users in sync with a CRM, an ERP or any external list
+*   **History** of every import and export, and a log of each recurring run
+*   Hooks to extend everything: [list of actions and filters](https://codection.com/import-users-csv-meta/listado-de-hooks-de-import-and-exports-users-and-customers/)
 
-*	Read our documentation
-*	Ask anything in support forum, we try to give the best support
+### 🔌 Works with your plugins
 
-### **Common use cases**
+*   **WooCommerce**: billing and shipping fields, and guest customers
+*   **WooCommerce Subscriptions**: create subscriptions while users are imported
+*   **WooCommerce Memberships** and **WooCommerce Membership by RightPress**: memberships
+*   **Paid Memberships Pro** (including version 3), **Indeed Ultimate Membership Pro**, **Paid Member Subscriptions** and **WP Members**: membership levels
+*   **BuddyPress**: avatars, fields, groups and roles
+*   **Advanced Custom Fields**: your own fields
+*   **WPML**: translated front-end pages and emails ([documentation](https://wpml.org/documentation/plugins-compatibility/import-users-from-csv-with-meta-and-wpml/))
+*   **Groups**, **Users Group**, **WP Users Group** and **WP Private Content Plus**: groups
+*   **New User Approve**: approve imported users or leave them pending
+*   **WP LMS Course**: enroll users in courses
+*   **Allow Multiple Accounts**: same rules while importing
 
-*   Migrate users from one WordPress site to another
-*   Bulk create or update WooCommerce customers from a spreadsheet
-*   Sync users automatically from an external CRM or ERP via CSV
-*   Onboard members to a membership site (Paid Membership Pro, WooCommerce Memberships)
-*   Periodically import subscribers or students from an external list
-*   Import users from the frontend using a shortcode
+### 💬 What users say
 
-### **Premium addons**
+> "The final import of all 900+ users was quick and precise. Everything smooth like oil."
+> — Paolo Beccari
 
-Need more? These addons extend the plugin for specific needs:
+> "I imported 31,000 users successfully, thanks to this plugin."
+> — tbhpshop
 
-*   [Allow No Email](https://import-wp.com/plugins/allow-no-email-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): import users that do not have an email address
-*   [File Formats](https://import-wp.com/plugins/file-formats-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): import users directly from XLSX, XLS and ODS spreadsheets, no need to convert them to CSV
-*   [Recurring Import](https://import-wp.com/plugins/recurring-import-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): unlimited scheduled import tasks, each one with its own file, period, role and notification email
-*   [Recurring Export](https://import-wp.com/plugins/recurring-export-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): schedule automatic exports of your users and customers
+> "I needed to import users, send them login details, and add them to specific Paid Memberships Pro membership levels, all of which it did flawlessly."
+> — David Robinson
+
+> "It even managed to import the custom roles that I created using the Members plugin."
+> — Arischvaran Puvanesvaran
+
+> "I've used this for years, importing classlists and updating classlists each term with my courses."
+> — wpnovice2
+
+> "The next morning, I had my fix in a new version. Amazing, personalized support."
+> — pierre1wp
+
+[Read all the reviews](https://wordpress.org/support/plugin/import-users-from-csv-with-meta/reviews/)
+
+### ⭐ Premium add-ons
+
+*   [Allow No Email](https://import-wp.com/plugins/allow-no-email-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): import users who do not have an email address
+*   [File Formats](https://import-wp.com/plugins/file-formats-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): import XLSX, XLS and ODS spreadsheets and XML files directly, without converting them to CSV, and export to XLSX, ODS and XML
+*   [Recurring Import](https://import-wp.com/plugins/recurring-import-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): unlimited scheduled import tasks, each with its own file, period, role and notification email, and the columns of each file mapped like in the import assistant
+*   [Recurring Export](https://import-wp.com/plugins/recurring-export-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): unlimited scheduled export tasks, each saved to a folder of your server or sent by FTP, with its own filters, sorting and columns, WooCommerce guest customers and the XLSX, ODS and XML formats of the File Formats add-on
 *   [Dokan](https://import-wp.com/plugins/dokan-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): import Dokan marketplace vendors
 
-### **Usage**
+### 🧭 How it works
 
-Once the plugin is installed, go to _Tools > Import and export users and customers_ and follow the steps:
+Go to _Tools > Import and export users and customers_ and follow the five steps:
 
-1. **File**: choose your CSV from your computer, from a path inside your uploads folder or from a URL
-2. **Columns**: check how each column of your file will be imported
-3. **Options**: choose the default role, what to do with users who already exist and whether to send the welcome email
-4. **Preview**: see how many users will be created, updated or skipped, and the rows with errors
-5. **Import**: the users are imported in batches, so large files do not time out
+1. **File**: choose a CSV from your computer, a URL, Google Sheets or a file in your uploads folder
+2. **Columns**: check how each column will be imported, and transform values if you need to
+3. **Options**: default role, existing users and welcome email
+4. **Preview**: see what will happen and fix the rows with errors
+5. **Import**: the users are imported in batches, and the result is saved in the history
 
-### **CSV generation**
+### 🛟 Need help?
 
-You can generate a CSV file with all the users inside it using any standard spreadsheet software like: Microsoft Excel, LibreOffice Calc, OpenOffice Calc or Gnumeric.
+*   Read the questions below and the Documentation tab of the plugin
+*   Ask in the [support forum](https://wordpress.org/support/plugin/import-users-from-csv-with-meta)
+*   Premium support, migrations and custom development: [contacto@codection.com](mailto:contacto@codection.com)
 
-You have to create the file filled with information (or take it from another database) and you will only have to choose CSV file when you "Save as..." the file. As example, a CSV file is included with the plugin.
+### More plugins by Codection
 
-### **Some considerations**
+*   [Clean Login](https://wordpress.org/plugins/clean-login/) (free): front-end login, registration and profile forms
+*   [Payment Schedule for WooCommerce Subscriptions](https://import-wp.com/plugins/payment-schedule-for-woocommerce-subscriptions/) (premium)
+*   [First payment date for WooCommerce Subscriptions](https://wordpress.org/plugins/first-payment-date-for-woocommerce-subscriptions/) (free)
+*   [Products Restricted Users for WooCommerce](https://wordpress.org/plugins/woo-products-restricted-users/) (free)
+*   RedSys, Bizum and Ceca payment gateways for [WooCommerce](https://codection.com/plugin/redsys-gateway-for-woocommerce/), [Contact Form 7](https://codection.com/plugin/redsys-gateway-for-contact-form-7/), [Gravity Forms](https://codection.com/plugin/redsys-bizum-gateway-for-gravity-forms/), [WPForms](https://codection.com/plugin/redsys-gateway-for-wpforms/), [GiveWP](https://codection.com/plugin/redsys-bizum-for-givewp/), [Easy Digital Downloads](https://codection.com/plugin/redsys-gateway-for-edd-pro/) and more (premium)
 
-Plugin will automatically detect:
+== Installation ==
 
-* Charset and set it to **UTF-8** to prevent problems with non-ASCII characters.
-* It also will **auto detect line-ending** to prevent problems with different OS.
-* Finally, it will **detect the delimiter** being used in CSV file
+1. Install **Import and export users and customers** from _Plugins > Add New_, or upload the ZIP file in _Plugins > Add New > Upload Plugin_
+2. Activate it
+3. Go to _Tools > Import and export users and customers_
 
 == Frequently Asked Questions ==
+
+= What file formats can I import? =
+
+CSV files, in UTF-8 or in the Windows-1252 encoding used by Excel, with any delimiter (comma, semicolon, tab...). The encoding and the delimiter are detected automatically. To import XLSX, XLS or ODS spreadsheets or XML files directly, use the [File Formats add-on](https://import-wp.com/plugins/file-formats-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme).
+
+= Can I export to Excel? =
+
+The export creates a CSV file that Excel, LibreOffice and Google Sheets open directly. With the [File Formats add-on](https://import-wp.com/plugins/file-formats-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme-faq-export) you can also choose Excel (XLSX), OpenDocument (ODS) or XML in the "File format" option of the export, in the shortcode (`[export-users format="xlsx"]`) and in the recurring exports.
+
+= Do my columns need special names? =
+
+No. In the second step of the assistant you match each column with a WordPress field, a WooCommerce field or a custom field, and most columns are recognised automatically. Columns you do not need can be ignored. If you use the classic screen, the first two columns must be the username and the email.
+
+= Can I import WooCommerce customers? =
+
+Yes. Use columns for the billing and shipping fields (billing_first_name, billing_phone, shipping_address_1...) or match your own columns with them in the assistant. You can download a WooCommerce template with example data from the first step.
+
+= Can I export WooCommerce guest customers? =
+
+Yes, since version 3.1. Check "WooCommerce guest customers" in the Export tab: you get one row per billing email with the details of the last order. Emails that already belong to a registered user are skipped. If you import that file, an account is created for each guest with the email as username.
+
+= Can I migrate users from another WordPress site and keep their passwords? =
+
+Yes. Export the users with "Export password hashes" checked, and import the file in the new site matching the user_pass column as "Password hash (from another WordPress)". Users keep the password they already had.
+
+= What happens with users who already exist? =
+
+Users are matched by ID, username or email. In the third step you choose whether to update them or skip them. Their passwords, roles and emails only change if you allow it in More options.
+
+= How are passwords managed? =
+
+If the file has no password column, new users get a random password, which they can receive in the welcome email or change with "Lost your password?". If a cell has a value, that will be the password. Existing users only get a new password if you allow it in More options.
+
+= Can I change some values while importing? =
+
+Yes, since version 3.1. In the second step, use "Transform the value" under any column to replace a text, add a text before or after, change upper or lower case or set a value for empty cells. You can also add a field with the same value for every user. The preview shows the result before importing.
+
+= Can I send a welcome email to the new users? =
+
+Yes. The email can be customized in Settings > Mail options, with wildcards for the username, the password, the login URL and any field, and you can send a test email. You can also turn off the automatic emails of WordPress.
+
+= How many users can I import? =
+
+The import runs in batches, so files with tens of thousands of users can be imported without timeouts. Some users have imported more than 30,000 users at once.
+
+= Can I import from a URL or Google Sheets? =
+
+Yes. In the first step choose "Use a URL or a file on this server" and paste the link to the CSV, the link of a Google Sheet or a path inside your uploads folder.
+
+= Can I schedule automatic imports? =
+
+Yes. The Recurring tab imports a file or a URL periodically (hourly, daily, weekly...), so you can keep your users in sync with an external system. The free version has one recurring task, and its file must have the classic format (username in the first column and email in the second one). The [Recurring Import add-on](https://import-wp.com/plugins/recurring-import-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme) adds unlimited tasks, each with its own file, interval, role and notification email, and lets you map the columns of each file like in the import assistant, so it can keep its own column names and order.
+
+The import runs as the user selected in "User that runs the cron", so it can only do what that user is allowed to do. If the settings are saved by a user who cannot edit other users (`edit_users`), the import always runs as that same user.
+
+= Can I schedule automatic exports? =
+
+Yes, with the [Recurring Export add-on](https://import-wp.com/plugins/recurring-export-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme).
+
+= Can I delete the users who are not in the file? =
+
+Yes, in More options of the third step. You can also change their role instead. The preview tells you how many users will be deleted, and nothing is deleted if the import has errors.
+
+= Can I import users without an email address? =
+
+WordPress requires an email for every user. The [Allow No Email add-on](https://import-wp.com/plugins/allow-no-email-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme) removes that requirement.
+
+= Can I import users with custom fields (ACF, BuddyPress, memberships...)? =
+
+Yes. Import any custom field matching the column with "Custom field" in the assistant, or using the field name as the column header. ACF, BuddyPress, Paid Memberships Pro, WooCommerce Memberships, WooCommerce Subscriptions and the other plugins listed above have their own integrations.
+
+= Can I import users by their WordPress ID? =
+
+Yes, with a column matched as "WordPress user ID". If the ID exists and the username is the same, the user is updated. WordPress does not allow creating users with an ID of your choice, so IDs that do not exist give an error. Use it only if the file comes from the same site.
+
+= Can I import serialized data and lists? =
+
+Yes. Serialized values are imported as they are. To import a list as an array, separate the items with two colons (::) inside the cell.
+
+= Where can I see what was imported? =
+
+In the Log tab. History shows the last 100 imports and exports with the user, the file, the result and the errors, Backend shows the detail of the last manual import, and Recurring shows the last recurring import.
 
 = I get a "too many redirects" error on my site, how can I solve it? =
 
@@ -122,15 +234,49 @@ If you want to change how many redirects are allowed before the plugin gives up,
 
 By default they are sent to their WordPress profile page. If WooCommerce or WP User Manager are active, they are sent to the password section of the account page of those plugins instead. You can point them anywhere else using the `acui_force_reset_password_edit_profile_url` filter, and you can add your own exceptions (pages where the redirection must not happen) using `acui_force_reset_password_redirect_condition`.
 
+= Can you do the import for me? =
+
+Yes. At Codection we help you to import, migrate, synchronize or update your users. Write to [contacto@codection.com](mailto:contacto@codection.com).
+
+= How can I report security bugs? =
+
+You can report security bugs through the Patchstack Vulnerability Disclosure Program. The Patchstack team help validate, triage and handle any security vulnerabilities. [Report a security vulnerability.](https://patchstack.com/database/vdp/import-users-from-csv-with-meta)
+
+= This plugin saved me a lot of time. Can I help? =
+
+Thank you! A review in wordpress.org helps a lot, and you can also [buy us a coffee](https://codection.com/go/donate-import-users-from-csv-with-meta/).
+
 == Screenshots ==
 
-1. Import dialog
-2. Recurring import dialog
-3. Export dialog
-4. File sample
-5. Extra profile information (user meta)
+1. Step 1: choose a CSV from your computer, a URL, Google Sheets or a file on the server, or start from a template
+2. Step 2: the columns of any file are matched with WordPress and WooCommerce fields, values can be transformed and fields with the same value for every user can be added
+3. Step 3: role of the new users, users who already exist and welcome email
+4. Step 4: preview of the import, with the transformed values, the users that will be created or updated and the rows with errors
+5. Result of the import
+6. Export with filters, WooCommerce guest customers and the column picker
+7. History of the imports and exports
+8. Welcome email template
 
 == Changelog ==
+
+= 3.1.0 - 2026-11-12 =
+*   New option in the export to include WooCommerce guest customers, the customers who bought without creating an account. Each guest is exported once per billing email (emails written in upper and lower case are joined), with the billing and shipping details of their last order, the date of their first order as registration date and the customer role. Emails that already belong to a registered user and orders in the trash are skipped, and the date filter is applied to the date of the first order. It works with the new order storage (HPOS) and with the classic one (filters acui_export_guest_emails, acui_export_guest_keys and acui_export_guest_data)
+*   The exported file with guest customers can be imported to create an account for each of them: in the import assistant, an empty cell in the username column now uses the email as username, in the same way as when the file has no username column, instead of generating a random username
+*   New field "Specific users" in the export to search users by email, username or name and export only them. When it is used, the role and date filters are ignored
+*   New options in the export to sort the users by username, user ID, email, display name or registration date, in ascending or descending order. Until now the order could only be changed in the [export-users] shortcode
+*   New options in the export to skip a number of rows and to export at most a number of rows, so a big export can be split into several files. They apply to the whole file, guest customers included
+*   New column picker in the export: choose between all columns or only some of them, search them, check the ones you want, drag them to change their order and write the name each column will have in the file, without having to write the list by hand. The list is still saved in the same format, so saved settings, the [export-users] shortcode and the Recurring Export addon keep working, and it can still be edited as text (filter acui_export_available_columns)
+*   The new export options are saved with the rest of the export settings
+*   The messages about the File Formats addon now mention XML files too, which the addon can import since its version 1.0.6
+*   New History in Log > History: the last 100 imports and exports (manual, front-end and recurring imports, and exports from the backend and the [export-users] shortcode) with the date, the user, the file, the result (created, updated, deleted and skipped users, or exported rows), the number of errors and warnings, the first 20 messages and the filters used in each export. It can be cleared with a button (filters acui_history_max_entries and acui_history_entry)
+*   New transformations in the column mapping of the import assistant, so the file does not have to be edited before importing it: replace a text (for example "España" with "ES" or "cliente" with "customer"), add a text before or after the value (for example "+34" before the phone numbers, not added to empty cells or to values that already have it), convert to upper or lower case, or set a value for the empty cells
+*   New option in the import assistant to add a field with the same value for every user, for fields that are not in the file (for example the billing country or a custom field)
+*   The preview of the import shows the transformed values and the fields with the same value for every user under the email of each row, so you can check them before importing (filter acui_wizard_mapping)
+*   New "File format" option in the export and format attribute in the [export-users] shortcode. CSV is always available and, with the File Formats addon 1.1, also Excel (XLSX), OpenDocument (ODS) and XML. The delimiter is only shown for CSV (filters acui_export_formats and acui_export_convert_file, new methods ACUI_Batch_Exporter::save_export_file() and replace_extension() for the Recurring Export addon)
+*   The messages about the Recurring Import addon (Recurring tab, end of an import from a URL or a path, first step of the assistant and readme) now say that it maps the columns of each file like in the import assistant, and the Recurring tab explains that its file must have the classic format and lists the accepted extensions
+*   The column mapping of the import assistant can now be reused by other tools: ACUI_Wizard::build_mapped_file() applies a mapping saved by column name (with transformations and fields with the same value for every user) to a file, and ACUI_Wizard::describe_file() returns its columns, examples and suggested fields. The Recurring Import addon 1.1 uses them to map the columns of each task
+*   The exported file is now sent from disk instead of being loaded in memory, with its size in the download headers
+*   Local paths and URLs to import can also point to XLSX, XLS, ODS or XML files when the File Formats addon is active (until now only .csv was accepted, also in the import assistant and the recurring import). The messages list the accepted extensions
 
 = 3.0.0 - 2026-11-12 =
 *   New import assistant in five steps: file, columns, options, preview and import. It is the default screen for the import, and the classic screen can be used with the "Switch to classic mode" link (the choice is saved for each user)
@@ -1972,154 +2118,5 @@ Michael Finkenberger
 
 == Upgrade Notice ==
 
-= 1.0 =
-*   First installation
-
-== Frequently Asked Questions ==
-
-= Can I import users from an Excel or LibreOffice file? =
-
-The plugin natively supports CSV files. If you need to import directly from Excel (XLSX, XLS) or LibreOffice (ODS) files without converting them first, the [File Formats Addon](https://import-wp.com/plugins/file-formats-addon/) adds support for those formats.
-
-= What format should my CSV file be? =
-
-You should fill the first two columns with the next values: Username, Email.
-
-The next columns are totally customizable and you can use whatever you want. All rows must contains same columns. User profile will be adapted to the kind of data you have selected. If you want to disable the extra profile information, please deactivate this plugin after make the import.
-
-= Can I import users by their WordPress ID? =
-
-You can use a column called id in order to make inserts or updates of an user using the ID used by WordPress in the wp_users table. We have two different cases:
-
-*	If id doesn't exist in your users table: WordPress core does not allow us insert it, so it will throw an error of kind: invalid_user_id
-*	If id exists: plugin check if username is the same, if yes, it will update the data, if not, it ignores the cell to avoid problems
-
-= Passwords =
-
-We can use a column called "Password" to manage a string that contains user passwords. We have different options for this case:
-
-*	If you don't create a column for passwords: passwords will be generated automatically
-*	If you create a column for passwords: if cell is empty, password won't be updated; if cell has a value, it will be used
-
-= Serialized data =
-
-Plugin can import serialized data. You have to use the serialized string directly in the CSV cell in order the plugin will be able to understand it as an serialized data instead as any other string.
-
-= Lists =
-
-Plugin can import lists as an array. Use this separator: :: two colons, inside the cell in order to split the string in a list of items.
-
-= WordPress default profile data =
-
-You can use those labels if you want to set data adapted to the WordPress default user columns (the ones who use the function wp_update_user)
-
-*	user_nicename: A string that contains a URL-friendly name for the user. The default is the user's username.
-*	user_url: A string containing the user's URL for the user's web site.
-*	display_name: A string that will be shown on the site. Defaults to user's username. It is likely that you will want to change this, for both appearance and security through 	*	obscurity (that is if you don't use and delete the default admin user).
-*	nickname: The user's nickname, defaults to the user's username.
-* 	first_name: The user's first name.
-*	last_name: The user's last name.
-*	description: A string containing content about the user.
-*	jabber: User's Jabber account.
-*	aim: User's AOL IM account.
-*	yim: User's Yahoo IM account.
-*	user_registered: Using the WordPress format for this kind of data Y-m-d H:i:s.
-
-= Multiple imports =
-
-You can upload as many files as you want, but all must have the same columns. If you upload another file, the columns will change to the form of last file uploaded.
-
-= Export =
-
-You can export a file with all your users data using "Export" tab. There you will be able to find some filters and options to prepare your export.
-
-= Hooks: actions and filter =
-If you want to extend this plugin or use this plugin with any other, [here you have a list with all hooks available in the plugin](https://codection.com/import-users-csv-meta/listado-de-hooks-de-import-and-exports-users-and-customers/).
-
-= This plugin saved me a lot of time and work. Where can I donate? =
-
-Thanks, donations help us to continue improving our plugins and allow us to give the best support in the forums [Donate Here via PayPal.](https://codection.com/go/donate-import-users-from-csv-with-meta/)     
-
-= I'm not sure I will be able to import all users with correct data and roles. Will you do it for me? =
-
-Of course! In Codection we help you to import, migrate, synchronized, update or any other operation you will need to do with your users. Contact us at contacto@codection.com for more information.
-
-= Free and premium support =
-
-You can get:
-
-*	Free support [in WordPress forums](https://wordpress.org/support/plugin/import-users-from-csv-with-meta)
-*	Premium support [writing directly to contacto@codection.com](mailto:contacto@codection.com).
-
-= Customizations, addons, develops... =
-[Write us directly to contacto@codection.com](mailto:contacto@codection.com).
-
-= Can I migrate users from another WordPress site? =
-
-Yes. Export users from your old site using the Export tab, then import the resulting CSV into your new site. Hashed passwords can be transferred using the user_pass column so users keep their existing passwords without needing to reset them.
-
-= Can I bulk create WooCommerce customers? =
-
-Yes. Add WooCommerce billing and shipping fields as columns in your CSV (e.g. billing_first_name, billing_email, shipping_address_1) and the plugin will populate them automatically when importing users with the customer role.
-
-= Can I import users with custom fields (ACF, BuddyPress, etc.)? =
-
-Yes. The plugin has addons for Advanced Custom Fields, BuddyPress/BuddyBoss, Paid Membership Pro, WooCommerce Memberships, WooCommerce Subscriptions and many others. Custom meta fields not covered by an addon can still be imported by using the meta key as the column header.
-
-= Can I import users without an email address? =
-
-By default WordPress requires an email for every user. If you need to import users without one, the [Allow No Email Addon](https://import-wp.com/plugins/allow-no-email-addon/) removes that requirement.
-
-= Can I update existing users without creating duplicates? =
-
-Yes. The plugin checks for existing users by username and email before inserting. If a match is found the user is updated instead of created. You can also control whether passwords and roles are overwritten on update.
-
-= Can I schedule automatic exports? =
-
-Scheduled exports are available via the [Recurring Export Addon](https://import-wp.com/plugins/recurring-export-addon/). It lets you configure periodic CSV exports of your users or WooCommerce customers and send them to a file path or remote destination automatically.
-
-= Can I schedule automatic imports? =
-
-Yes. The Recurring Import tab lets you configure a periodic import from a file path or URL. The plugin will fetch and process the CSV automatically at the chosen interval (hourly, daily, weekly, etc.) without any manual action.
-
-The import runs as the user selected in "User that runs the cron", so it can only do what that user is allowed to do. If the settings are saved by a user who cannot edit other users (`edit_users`), for example a role that has only been given `create_users` to import users, the import always runs as that same user, whoever starts it, and the selector only offers their own account.
-
-The free version supports one recurring import task. If you need multiple simultaneous scheduled imports — each with its own file, interval, role and settings — the [Recurring Import Addon](https://import-wp.com/plugins/recurring-import-addon/) removes that limitation.
-
-= Can I sync users from an external system or CRM? =
-
-Yes. Point the recurring import at a URL that your external system generates and the plugin will pull and process it on every scheduled run, keeping your WordPress users in sync automatically.
-
-= How can I report security bugs? =
-
-You can report security bugs through the Patchstack Vulnerability Disclosure Program. The Patchstack team help validate, triage and handle any security vulnerabilities. [Report a security vulnerability.](https://patchstack.com/database/vdp/import-users-from-csv-with-meta)
-
-== Installation ==
-
-### **Installation**
-
-*   Install **Import and export users and customers** automatically through the WordPress Dashboard or by uploading the ZIP file in the _plugins_ directory.
-*   Then, after the package is uploaded and extracted, click&nbsp;_Activate Plugin_.
-
-Now going through the points above, you should now see a new&nbsp;_Import users from CSV_&nbsp;menu item under Tool menu in the sidebar of the admin panel, see figure below of how it looks like.
-
-If you get any error after following through the steps above please contact us through item support comments so we can get back to you with possible helps in installing the plugin and more.
-
-Please read documentation before start using this plugin.
-
-== Other plugins by Codection ==
-
-*	[RedSys Gateway for WooCommerce Pro](https://codection.com/producto/redsys-gateway-for-woocommerce) (premium)
-*	[Ceca Gateway for WooCommerce Pro](https://codection.com/producto/ceca-gateway-for-woocommerce-pro/) (premium)
-*	[RedSys Gateway for Contact Form 7](https://codection.com/producto/redsys-gateway-for-contact-form-7/) (premium)
-*	[Ceca Gateway for Contact Form 7](https://codection.com/producto/ceca-gateway-for-contact-form-7/) (premium)
-*	[RedSys & Bizum Gateway for Gravity Forms](https://codection.com/plugin/redsys-bizum-gateway-for-gravity-forms/) (premium)
-*	[RedSys & Bizum Gateway for WPForms](https://codection.com/plugin/redsys-gateway-for-wpforms/) (premium)
-*	[RedSys & Bizum for GiveWP](https://codection.com/plugin/redsys-bizum-for-givewp/) (premium)
-*	[RedSys Link Generator](https://codection.com/plugin/redsys-link-generator/) (premium)
-*	[RedSys & Bizum Gateway for EDD Pro](https://codection.com/plugin/redsys-gateway-for-edd-pro/) (premium)
-*	[RedSys Gateway for WP Booking Calendar Pro](https://codection.com/producto/redsys-gateway-for-wp-booking-calendar-pro/) (premium)
-*	[Clean Login](https://wordpress.org/plugins/clean-login/) (free)
-*	[Products Restricted Users for WooCommerce](https://wordpress.org/plugins/woo-products-restricted-users/) (free)
-*	[First payment date for WooCommerce Subscriptions](https://wordpress.org/plugins/first-payment-date-for-woocommerce-subscriptions/) (free)
-*	[Payment Schedule for WooCommerce Subscriptions](https://import-wp.com/payment-schedule-for-woocommerce-subscriptions) (premium)
+= 3.1.0 =
+Export WooCommerce guest customers, choose the columns and the file format of the export, transform values while importing and see the history of imports and exports.

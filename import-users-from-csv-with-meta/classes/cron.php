@@ -281,6 +281,17 @@ class ACUI_Cron{
 
 		update_option( 'acui_cron_execution_log', $log, false );
 
+		ACUI_History::add( array(
+			'type' => 'import',
+			'source' => 'cron',
+			'file' => $entry['file'],
+			'created' => $entry['created'],
+			'updated' => $entry['updated'],
+			'deleted' => $entry['deleted'],
+			'ignored' => max( 0, $entry['ignored'] - $entry['errors'] ),
+			'errors' => $entry['errors'],
+		) );
+
 		// Save the HTML output of this run for the Log > Recurring sub-tab
 		update_option( 'acui_last_cron_import_log', array(
 			'date'   => current_time( 'mysql' ),
@@ -508,7 +519,7 @@ class ACUI_Cron{
 		<div style="display:flex;align-items:center;justify-content:space-between;background:#fff;border-left:4px solid #2271b1;border-radius:3px;box-shadow:0 1px 3px rgba(0,0,0,.1);padding:16px 20px;margin:16px 0 24px;gap:20px;">
 			<div>
 				<strong><?php _e( 'Need multiple import tasks with different schedules?', 'import-users-from-csv-with-meta' ); ?></strong>
-				<p style="margin:4px 0 0;color:#50575e;"><?php _e( 'With the <strong>Recurring Import Addon</strong> you can create unlimited tasks, each with its own file, period, role and notification email.', 'import-users-from-csv-with-meta' ); ?></p>
+				<p style="margin:4px 0 0;color:#50575e;"><?php _e( 'With the <strong>Recurring Import Addon</strong> you can create unlimited tasks, each with its own file, period, role and notification email, and map the columns of each file like in the import assistant.', 'import-users-from-csv-with-meta' ); ?></p>
 			</div>
 			<a href="<?php echo esc_url( ACUIHelper()->premium_url( 'recurring-import-addon', 'cron-tab' ) ); ?>" target="_blank" style="white-space:nowrap;background:#2271b1;color:#fff;border-radius:3px;padding:8px 18px;font-size:13px;font-weight:600;text-decoration:none;"><?php _e( 'Get the addon', 'import-users-from-csv-with-meta' ); ?></a>
 		</div>
@@ -555,7 +566,11 @@ class ACUI_Cron{
                         <?php ACUIHTML()->text( array( 'name' => 'path_to_file', 'value' => $path_to_file, 'class' => '', 'placeholder' => __( 'Insert complete path to the file', 'import-users-from-csv-with-meta' ) ) ); ?>
 						<button type="button" class="button acui-check-path-btn" data-target="path_to_file"><?php _e( 'Check path', 'import-users-from-csv-with-meta' ); ?></button>
 						<p class="description"><?php printf( __( 'You have to enter the URL or the path to the file, i.e.: %s or %s' ,'import-users-from-csv-with-meta' ), $sample_path, $sample_url ); ?></p>
-						<p class="description"><?php printf( __( 'A local path must point to a .csv file located inside your WordPress uploads folder: %s (subfolders are allowed). Files outside that folder are rejected for security reasons. Use a URL instead if the file lives elsewhere.', 'import-users-from-csv-with-meta' ), '<code>' . esc_html( $upload_dir['basedir'] ) . '</code>' ); ?></p>
+						<p class="description"><?php printf( __( 'A local path must point to a file (%1$s) located inside your WordPress uploads folder: %2$s (subfolders are allowed). Files outside that folder are rejected for security reasons. Use a URL instead if the file lives elsewhere.', 'import-users-from-csv-with-meta' ), esc_html( implode( ', ', array_unique( array_map( 'strtolower', (array) apply_filters( 'acui_allowed_upload_extensions', array( 'csv' ) ) ) ) ) ), '<code>' . esc_html( $upload_dir['basedir'] ) . '</code>' ); ?></p>
+						<p class="description"><?php _e( 'The file must have the classic format: the username in the first column, the email in the second one and the rest of the columns named with the field they fill.', 'import-users-from-csv-with-meta' ); ?>
+						<?php if( !function_exists( 'acui_ic_check_active' ) ): ?>
+						<?php printf( __( 'To import it with its own column names and order, mapping the columns like in the import assistant, use the <a href="%s" target="_blank">Recurring Import addon</a>.', 'import-users-from-csv-with-meta' ), esc_url( ACUIHelper()->premium_url( 'recurring-import-addon', 'cron-tab-mapping' ) ) ); ?>
+						<?php endif; ?></p>
 						<p class="acui-path-check-result" data-target="path_to_file" style="display:none;"></p>
 					</td>
 				</tr>

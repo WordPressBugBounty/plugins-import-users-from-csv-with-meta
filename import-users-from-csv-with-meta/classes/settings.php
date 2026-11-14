@@ -92,11 +92,39 @@ class ACUI_Settings{
                     'sanitization' => 'text',
                     'default' => ''
                 ),
-                'to' => array( 
+                'to' => array(
                     'sanitization' => 'text',
                     'default' => ''
                 ),
-                'delimiter' => array( 
+                'users' => array(
+                    'sanitization' => 'array_text',
+                    'default' => array()
+                ),
+                'include_guests' => array(
+                    'sanitization' => 'checkbox',
+                    'default' => false
+                ),
+                'orderby' => array(
+                    'sanitization' => 'text',
+                    'default' => ''
+                ),
+                'order' => array(
+                    'sanitization' => 'text',
+                    'default' => 'ASC'
+                ),
+                'offset_rows' => array(
+                    'sanitization' => 'text',
+                    'default' => ''
+                ),
+                'max_rows' => array(
+                    'sanitization' => 'text',
+                    'default' => ''
+                ),
+                'format' => array(
+                    'sanitization' => 'text',
+                    'default' => 'csv'
+                ),
+                'delimiter' => array(
                     'sanitization' => 'text',
                     'default' => ''
                 ),

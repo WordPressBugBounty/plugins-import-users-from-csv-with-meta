@@ -151,6 +151,10 @@ class ACUI_Import{
                 ACUI_Log::admin_gui_cron();
             break;
 
+            case 'log-history':
+                ACUI_History::admin_gui();
+            break;
+
             case 'help':
                 ACUI_Help::message();
             break;
@@ -165,7 +169,7 @@ class ACUI_Import{
         $import_tab_ids   = apply_filters( 'acui_import_tab_ids', array( 'homepage', 'frontend', 'cron', 'cron-log' ) );
         $export_tab_ids   = apply_filters( 'acui_export_tab_ids', array( 'export', 'frontend-export', 'cron-export' ) );
         $settings_tab_ids = apply_filters( 'acui_settings_tab_ids', array( 'mail-options', 'columns', 'meta-keys', 'tools' ) );
-        $log_tab_ids      = apply_filters( 'acui_log_tab_ids', array( 'log', 'log-cron' ) );
+        $log_tab_ids      = apply_filters( 'acui_log_tab_ids', array( 'log', 'log-cron', 'log-history' ) );
 
         $all_tabs = array(
             'homepage'        => __( 'Import', 'import-users-from-csv-with-meta' ),
@@ -182,6 +186,7 @@ class ACUI_Import{
             'tools'           => __( 'Tools', 'import-users-from-csv-with-meta' ),
             'log'             => __( 'Log', 'import-users-from-csv-with-meta' ),
             'log-cron'        => __( 'Log recurring', 'import-users-from-csv-with-meta' ),
+            'log-history'     => __( 'History', 'import-users-from-csv-with-meta' ),
             'help'            => __( 'More...', 'import-users-from-csv-with-meta' ),
         );
 
@@ -224,7 +229,7 @@ class ACUI_Import{
         }
 
         foreach( $all_tabs as $tab => $name ){
-            if( in_array( $tab, $grouped ) || in_array( $tab, array( 'log', 'log-cron', 'doc', 'help' ) ) ) continue;
+            if( in_array( $tab, $grouped ) || in_array( $tab, array( 'log', 'log-cron', 'log-history', 'doc', 'help' ) ) ) continue;
             $class  = ( $tab === $current ) ? ' nav-tab-active' : '';
             $href   = apply_filters( 'acui_tab_href', '?page=acui&tab=' . $tab, $tab );
             $target = apply_filters( 'acui_tab_target', '_self', $tab );
@@ -283,6 +288,7 @@ class ACUI_Import{
             $log_subtabs = array(
                 'log'     => __( 'Backend', 'import-users-from-csv-with-meta' ),
                 'log-cron' => __( 'Recurring', 'import-users-from-csv-with-meta' ),
+                'log-history' => __( 'History', 'import-users-from-csv-with-meta' ),
             );
             echo '<div class="wp-clearfix"><ul class="acui-subsubsub">';
             foreach( $log_subtabs as $tab => $name ){
@@ -362,12 +368,14 @@ class ACUI_Import{
 
             $is_google_sheet_export_csv = ( strpos( $path_to_file, 'docs.google.com/spreadsheets' ) && strpos( $path_to_file, 'output=csv' ) ) || ( strpos( $path_to_file, 'drive.google.com' ) && strpos( $path_to_file, 'export=download' ) );
 
-            if( pathinfo( $path_to_file, PATHINFO_EXTENSION ) != 'csv' && !$is_google_sheet_export_csv ){
+            $extension = strtolower( pathinfo( (string) wp_parse_url( $path_to_file, PHP_URL_PATH ), PATHINFO_EXTENSION ) );
+
+            if( !$is_google_sheet_export_csv && !$this->is_allowed_local_extension( 'file.' . $extension ) ){
                 echo "<p>" . __( 'Error, the file is not a CSV', 'import-users-from-csv-with-meta' ) . "</p>";
 
-                $addon_url = $this->get_file_formats_addon_url( pathinfo( $path_to_file, PATHINFO_EXTENSION ) );
+                $addon_url = $this->get_file_formats_addon_url( $extension );
                 if( $addon_url )
-                    echo "<p>" . sprintf( __( 'XLSX, XLS and ODS files can be imported with the <a href="%s" target="_blank">File Formats addon</a>.', 'import-users-from-csv-with-meta' ), esc_url( $addon_url ) ) . "</p>";
+                    echo "<p>" . sprintf( __( 'XLSX, XLS, ODS and XML files can be imported with the <a href="%s" target="_blank">File Formats addon</a>.', 'import-users-from-csv-with-meta' ), esc_url( $addon_url ) ) . "</p>";
                 return false;
             }
 
@@ -377,6 +385,9 @@ class ACUI_Import{
                 echo "<p>" . sprintf( __( 'Error, problems downloading the file from the URL: %s', 'import-users-from-csv-with-meta' ), $path_to_file->get_error_message() ) . "</p>";
                 return false;
             }
+
+            if( !$is_google_sheet_export_csv && 'csv' !== $extension && @rename( $path_to_file, $path_to_file . '.' . $extension ) )
+                $path_to_file .= '.' . $extension;
         }
 
         return $path_to_file;
@@ -507,7 +518,7 @@ class ACUI_Import{
             return false;
         }
         elseif( !$is_url && !$this->is_allowed_local_csv( $path_to_file ) ){
-            echo "<p>" . __( 'Error, the local path must point to a .csv file located inside the WordPress uploads directory', 'import-users-from-csv-with-meta' ) . "</p>";
+            echo "<p>" . sprintf( __( 'Error, the local path must point to a file (%s) located inside the WordPress uploads directory', 'import-users-from-csv-with-meta' ), implode( ', ', array_unique( array_map( 'strtolower', (array) apply_filters( 'acui_allowed_upload_extensions', array( 'csv' ) ) ) ) ) ) . "</p>";
             echo sprintf( __( 'Reload or try <a href="%s">a new import here</a>', 'import-users-from-csv-with-meta' ), get_admin_url( null, 'tools.php?page=acui&tab=homepage' ) );
             return false;
         }
@@ -515,8 +526,14 @@ class ACUI_Import{
         return $path_to_file;
     }
 
+    function is_allowed_local_extension( $path_to_file ){
+        $allowed_extensions = array_map( 'strtolower', (array) apply_filters( 'acui_allowed_upload_extensions', array( 'csv' ) ) );
+
+        return in_array( strtolower( pathinfo( $path_to_file, PATHINFO_EXTENSION ) ), $allowed_extensions, true );
+    }
+
     function is_allowed_local_csv( $path_to_file ){
-        if( strtolower( pathinfo( $path_to_file, PATHINFO_EXTENSION ) ) !== 'csv' )
+        if( !$this->is_allowed_local_extension( $path_to_file ) )
             return false;
 
         $upload_dir = wp_upload_dir();
@@ -555,8 +572,8 @@ class ACUI_Import{
         if( wp_http_validate_url( $path_to_file ) !== false )
             return array( 'status' => 'url', 'message' => __( 'This is a URL. It will be downloaded at import time and is not restricted to the uploads folder.', 'import-users-from-csv-with-meta' ) );
 
-        if( strtolower( pathinfo( $path_to_file, PATHINFO_EXTENSION ) ) !== 'csv' )
-            return array( 'status' => 'invalid', 'message' => __( 'The path must point to a .csv file.', 'import-users-from-csv-with-meta' ) );
+        if( !$this->is_allowed_local_extension( $path_to_file ) )
+            return array( 'status' => 'invalid', 'message' => sprintf( __( 'The path must point to a file with one of these extensions: %s.', 'import-users-from-csv-with-meta' ), implode( ', ', array_unique( array_map( 'strtolower', (array) apply_filters( 'acui_allowed_upload_extensions', array( 'csv' ) ) ) ) ) ) );
 
         if( !file_exists( $path_to_file ) )
             return array( 'status' => 'invalid', 'message' => __( 'The file cannot be found at that path on the server.', 'import-users-from-csv-with-meta' ) );
@@ -585,14 +602,22 @@ class ACUI_Import{
             wp_die( __( 'Nonce check failed', 'import-users-from-csv-with-meta' ) ); 
         }
 
+        global $errors;
+        $result = null;
+
         if( empty( $_FILES['uploadfile']['name'] ) ){
             $path_to_file = $this->manage_file_upload( $form_data["path_to_file"] );
+            $history_name = wp_basename( sanitize_text_field( (string) $form_data["path_to_file"] ) );
 
             if( $path_to_file !== false )
-                $this->import_users( $path_to_file, $form_data, $is_cron, $is_frontend );        
+                $result = $this->import_users( $path_to_file, $form_data, $is_cron, $is_frontend );        
         }else{
-            $this->import_users( sanitize_text_field( $_FILES['uploadfile']['tmp_name'] ), $form_data, $is_cron, $is_frontend );
+            $history_name = sanitize_file_name( wp_unslash( $_FILES['uploadfile']['name'] ) );
+            $result = $this->import_users( sanitize_text_field( $_FILES['uploadfile']['tmp_name'] ), $form_data, $is_cron, $is_frontend );
         }
+
+        if( !$is_cron && is_array( $result ) && !empty( $result['done'] ) )
+            ACUI_History::add_import( $is_frontend ? 'frontend' : 'manual', $history_name, $result['results'], $errors );
     }
     
     function fileupload_process_batch_cron( $form_data, $step = 1, $initial_row = 0 ){
@@ -1153,6 +1178,8 @@ class ACUI_Import{
 
             delete_transient( $batch_file_key );
 
+            $wizard_state = get_option( ACUI_Wizard::state_key() );
+            $history_name = ( is_array( $wizard_state ) && !empty( $wizard_state['name'] ) ) ? $wizard_state['name'] : '';
             $wizard_file = ACUI_Wizard::build_import_file( wp_unslash( $_POST ) );
 
             if( is_wp_error( $wizard_file ) )
@@ -1166,6 +1193,7 @@ class ACUI_Import{
                 wp_send_json_error( array( 'message' => ACUI_Private_Files::upload_error_message( $_FILES['uploadfile']['error'] ) ) );
             }
             elseif( !empty( $_FILES['uploadfile']['tmp_name'] ) ){
+                $history_name = sanitize_file_name( wp_unslash( $_FILES['uploadfile']['name'] ) );
                 $original_ext = strtolower( pathinfo( $_FILES['uploadfile']['name'], PATHINFO_EXTENSION ) );
                 $allowed_extensions = apply_filters( 'acui_allowed_upload_extensions', array( 'csv' ) );
                 if( !in_array( $original_ext, $allowed_extensions, true ) ){
@@ -1173,7 +1201,7 @@ class ACUI_Import{
 
                     if( $addon_url )
                         wp_send_json_error( array(
-                            'message'   => __( 'Invalid file type. XLSX, XLS and ODS files can be imported with the File Formats addon. Do you want to see it?', 'import-users-from-csv-with-meta' ),
+                            'message'   => __( 'Invalid file type. XLSX, XLS, ODS and XML files can be imported with the File Formats addon. Do you want to see it?', 'import-users-from-csv-with-meta' ),
                             'addon_url' => $addon_url,
                         ) );
 
@@ -1185,11 +1213,12 @@ class ACUI_Import{
                 $is_temporary_file = true;
             }
             elseif( !empty( $_POST['path_to_file'] ) ){
+                $history_name = wp_basename( sanitize_text_field( wp_unslash( $_POST['path_to_file'] ) ) );
                 $file = $this->manage_file_upload( $_POST['path_to_file'] );
             }
 
             if( !empty( $file ) )
-                set_transient( $batch_file_key, array( 'path' => $file, 'temporary' => $is_temporary_file ), HOUR_IN_SECONDS );
+                set_transient( $batch_file_key, array( 'path' => $file, 'temporary' => $is_temporary_file, 'name' => isset( $history_name ) ? $history_name : '' ), HOUR_IN_SECONDS );
         }
         else{
             $batch_file = get_transient( $batch_file_key );
@@ -1299,6 +1328,9 @@ class ACUI_Import{
             ), false );
             delete_transient( 'acui_import_log_accumulate' );
 
+            $batch_file_info = get_transient( $batch_file_key );
+            ACUI_History::add_import( 'manual', ( is_array( $batch_file_info ) && !empty( $batch_file_info['name'] ) ) ? $batch_file_info['name'] : '', $results_data, $errors_for_log, count( $users_ignored ) );
+
             // Clean up file if it was our temporary one
             if( $is_temporary_file )
                 @unlink( $file );
@@ -1359,6 +1391,7 @@ class ACUI_Import{
             $addon_button = '<a href="' . esc_url( ACUIHelper()->premium_url( 'recurring-import-addon', 'import-result-recurring' ) ) . '" target="_blank" class="button button-primary">' . __( 'See the Recurring Import addon', 'import-users-from-csv-with-meta' ) . '</a>';
             $advantages = '<ul class="acui-recurring-notice__list">'
                 . '<li>' . __( 'Unlimited tasks: several files or URLs, not just one', 'import-users-from-csv-with-meta' ) . '</li>'
+                . '<li>' . __( 'The columns mapped like in this assistant, so the file can keep its own column names and order', 'import-users-from-csv-with-meta' ) . '</li>'
                 . '<li>' . __( 'Each task with its own schedule, role, users not present rules and file handling', 'import-users-from-csv-with-meta' ) . '</li>'
                 . '<li>' . __( 'An email to you or your team when each run finishes, with your own subject and text', 'import-users-from-csv-with-meta' ) . '</li>'
                 . '<li>' . __( 'A list to pause, edit, run or delete each task', 'import-users-from-csv-with-meta' ) . '</li>'
@@ -1378,7 +1411,7 @@ class ACUI_Import{
     }
 
     function get_file_formats_addon_url( $extension ){
-        if( defined( 'ACUI_FFA_VERSION' ) ||!in_array( strtolower( $extension ), array( 'xlsx', 'xls', 'ods' ), true ) )
+        if( defined( 'ACUI_FFA_VERSION' ) ||!in_array( strtolower( $extension ), array( 'xlsx', 'xls', 'ods', 'xml' ), true ) )
             return '';
 
         return ACUIHelper()->premium_url( 'file-formats-addon', 'import-error-file-type' );

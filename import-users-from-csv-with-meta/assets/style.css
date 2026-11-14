@@ -606,6 +606,109 @@ details.acui-log-section[open] > .acui-log-section__summary .acui-log-section__c
     color: #996800;
 }
 
+.acui-wizard-map .acui-wizard-tf{
+    margin-top: 6px;
+}
+
+.acui-wizard-map .acui-wizard-tf-toggle{
+    font-size: 12px;
+}
+
+.acui-wizard-map .acui-wizard-tf-fields{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    max-width: 280px;
+    padding: 6px;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    background: #f6f7f7;
+}
+
+.acui-wizard-map .acui-wizard-tf-fields[hidden]{
+    display: none;
+}
+
+.acui-wizard-map .acui-wizard-tf-fields select.acui-wizard-tf-type{
+    flex: 1 1 auto;
+    width: auto;
+    max-width: 230px;
+}
+
+.acui-wizard-map .acui-wizard-tf-fields input[type="text"]{
+    display: inline-block;
+    flex: 1 1 100px;
+    width: auto;
+    min-width: 0;
+    margin-top: 0;
+}
+
+.acui-wizard-map .acui-wizard-tf-help{
+    flex-basis: 100%;
+    color: #646970;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.acui-wizard-tf-remove,
+.acui-wizard-fixed-remove{
+    text-decoration: none;
+}
+
+.acui-wizard-tf-remove .dashicons,
+.acui-wizard-fixed-remove .dashicons{
+    color: #b32d2e;
+}
+
+.acui-wizard-fixed{
+    margin: 12px 0;
+}
+
+.acui-wizard-fixed-list{
+    margin: 0;
+}
+
+.acui-wizard-fixed-item{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 8px;
+    padding: 8px;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    background: #fff;
+}
+
+.acui-wizard-fixed-field{
+    flex: 0 1 280px;
+    min-width: 200px;
+}
+
+.acui-wizard-fixed-field .acui-wizard-fixed-meta{
+    display: block;
+    width: 100%;
+    margin-top: 6px;
+}
+
+.acui-wizard-fixed-value{
+    flex: 1 1 160px;
+    max-width: 280px;
+}
+
+.acui-wizard-fixed-add .dashicons{
+    margin-top: 3px;
+    font-size: 16px;
+}
+
+.acui-wizard-row-changes{
+    display: block;
+    margin-top: 2px;
+    color: #646970;
+    font-size: 12px;
+}
+
 .acui-wizard-pill{
     display: inline-block;
     padding: 2px 8px;
@@ -1083,4 +1186,107 @@ details.acui-log-section[open] > .acui-log-section__summary .acui-log-section__c
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+}
+
+.acui-history{
+    margin-top: 20px;
+}
+
+.acui-history-table-wrapper{
+    overflow-x: auto;
+}
+
+.acui-history-table{
+    min-width: 720px;
+}
+
+.acui-history-table td{
+    vertical-align: top;
+}
+
+.acui-history-type{
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.acui-history-type--import{
+    background: #f0f6fc;
+    color: #135e96;
+}
+
+.acui-history-type--export{
+    background: #edfaef;
+    color: #007017;
+}
+
+.acui-history-source{
+    display: block;
+    margin-top: 4px;
+    color: #646970;
+    font-size: 12px;
+}
+
+.acui-history-file{
+    word-break: break-all;
+}
+
+.acui-history-badge{
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.acui-history-badge--error{
+    background: #fcf0f1;
+    color: #b32d2e;
+}
+
+.acui-history-badge--warning{
+    background: #fcf9e8;
+    color: #996800;
+}
+
+.acui-history-details{
+    margin-top: 6px;
+}
+
+.acui-history-details summary{
+    color: #2271b1;
+    cursor: pointer;
+}
+
+.acui-history-filters,
+.acui-history-messages{
+    margin: 6px 0 0;
+    font-size: 12px;
+}
+
+.acui-history-messages li{
+    margin-bottom: 4px;
+    padding-left: 8px;
+    border-left: 3px solid #c3c4c7;
+}
+
+.acui-history-messages .acui-history-message--error{
+    border-left-color: #d63638;
+}
+
+.acui-history-messages .acui-history-message--warning{
+    border-left-color: #dba617;
+}
+
+.acui-history-row{
+    margin-right: 6px;
+    color: #646970;
+    font-weight: 600;
+}
+
+.acui-history-clear{
+    margin-top: 12px;
 }

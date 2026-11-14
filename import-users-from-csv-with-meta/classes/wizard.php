@@ -97,6 +97,33 @@ class ACUI_Wizard{
                 'row_n' => __( 'Row %s', 'import-users-from-csv-with-meta' ),
                 /* translators: %s: number of rows */
                 'skipped_info' => __( '%s rows will be skipped', 'import-users-from-csv-with-meta' ),
+                'tf_add' => __( 'Transform the value', 'import-users-from-csv-with-meta' ),
+                'tf_remove' => __( 'Remove transformation', 'import-users-from-csv-with-meta' ),
+                'tf_types' => array(
+                    'replace' => __( 'Replace text', 'import-users-from-csv-with-meta' ),
+                    'prefix' => __( 'Add before', 'import-users-from-csv-with-meta' ),
+                    'suffix' => __( 'Add after', 'import-users-from-csv-with-meta' ),
+                    'upper' => __( 'UPPERCASE', 'import-users-from-csv-with-meta' ),
+                    'lower' => __( 'lowercase', 'import-users-from-csv-with-meta' ),
+                    'empty' => __( 'Value for empty cells', 'import-users-from-csv-with-meta' ),
+                ),
+                'tf_placeholders' => array(
+                    'replace' => array( __( 'Text to find', 'import-users-from-csv-with-meta' ), __( 'Replace with', 'import-users-from-csv-with-meta' ) ),
+                    'prefix' => array( __( 'Text to add before', 'import-users-from-csv-with-meta' ), '' ),
+                    'suffix' => array( __( 'Text to add after', 'import-users-from-csv-with-meta' ), '' ),
+                    'empty' => array( __( 'Value for the empty cells', 'import-users-from-csv-with-meta' ), '' ),
+                ),
+                'tf_help' => array(
+                    'replace' => __( 'Every appearance of the text is replaced, without distinguishing upper and lower case. Leave the second box empty to remove the text.', 'import-users-from-csv-with-meta' ),
+                    'prefix' => __( 'Not added to empty cells or to values that already start with this text.', 'import-users-from-csv-with-meta' ),
+                    'suffix' => __( 'Not added to empty cells or to values that already end with this text.', 'import-users-from-csv-with-meta' ),
+                    'empty' => __( 'Cells with a value are not changed.', 'import-users-from-csv-with-meta' ),
+                ),
+                'need_tf_text' => __( 'Write the text of each transformation you added, or remove it.', 'import-users-from-csv-with-meta' ),
+                'fixed_add' => __( 'Add a field with the same value for every user', 'import-users-from-csv-with-meta' ),
+                'fixed_value' => __( 'Value', 'import-users-from-csv-with-meta' ),
+                'fixed_remove' => __( 'Remove', 'import-users-from-csv-with-meta' ),
+                'need_fixed_value' => __( 'Write the value of each field added with the same value for every user, or remove it.', 'import-users-from-csv-with-meta' ),
             ),
         ) );
     }
@@ -394,7 +421,7 @@ class ACUI_Wizard{
 
                 if( $addon_url )
                     wp_send_json_error( array(
-                        'message' => __( 'Invalid file type. XLSX, XLS and ODS files can be imported with the File Formats addon. Do you want to see it?', 'import-users-from-csv-with-meta' ),
+                        'message' => __( 'Invalid file type. XLSX, XLS, ODS and XML files can be imported with the File Formats addon. Do you want to see it?', 'import-users-from-csv-with-meta' ),
                         'addon_url' => $addon_url,
                     ) );
 
@@ -432,9 +459,14 @@ class ACUI_Wizard{
 
         $readable = apply_filters( 'acui_import_file_path', $file, wp_unslash( $_POST ) );
 
-        if( $readable === $file && in_array( strtolower( pathinfo( $file, PATHINFO_EXTENSION ) ), array( 'xlsx', 'xls', 'ods', 'odf' ), true ) ){
+        $readable_extension = strtolower( pathinfo( $file, PATHINFO_EXTENSION ) );
+
+        if( $readable === $file && in_array( $readable_extension, array( 'xlsx', 'xls', 'ods', 'odf', 'xml' ), true ) ){
             foreach( $delete as $path )
                 @unlink( $path );
+
+            if( $readable_extension === 'xml' )
+                wp_send_json_error( array( 'message' => __( 'The XML file could not be read. Check that it is a valid XML file with one element for each user, or save it as CSV and try again.', 'import-users-from-csv-with-meta' ) ) );
 
             wp_send_json_error( array( 'message' => __( 'The spreadsheet could not be read. Check that it is not damaged or protected with a password, or save it as CSV and try again.', 'import-users-from-csv-with-meta' ) ) );
         }
@@ -456,6 +488,7 @@ class ACUI_Wizard{
 
         update_option( self::state_key(), array(
             'token' => $token,
+            'name' => $name !== '' ? $name : wp_basename( $file ),
             'path' => $readable,
             'delete' => $delete,
             'delimiter' => $analysis['delimiter'],
@@ -544,13 +577,74 @@ class ACUI_Wizard{
         return $state;
     }
 
+    static function get_transform_types(){
+        return array( 'replace', 'prefix', 'suffix', 'upper', 'lower', 'empty' );
+    }
+
+    static function clean_value( $value ){
+        return str_replace( "\0", '', strip_tags( is_scalar( $value ) ? (string) $value : '' ) );
+    }
+
+    static function get_transform( $data, $index ){
+        $type = isset( $data['acui_tf'][ $index ] ) ? sanitize_key( $data['acui_tf'][ $index ] ) : '';
+
+        if( !in_array( $type, self::get_transform_types(), true ) )
+            return null;
+
+        $transform = array(
+            'type' => $type,
+            'a' => isset( $data['acui_tf_a'][ $index ] ) ? self::clean_value( $data['acui_tf_a'][ $index ] ) : '',
+            'b' => isset( $data['acui_tf_b'][ $index ] ) ? self::clean_value( $data['acui_tf_b'][ $index ] ) : '',
+        );
+
+        if( !in_array( $type, array( 'upper', 'lower' ), true ) && $transform['a'] === '' )
+            return new WP_Error( 'acui_wizard_transform', __( 'Write the text of each transformation you added, or remove it.', 'import-users-from-csv-with-meta' ) );
+
+        return $transform;
+    }
+
+    static function apply_transform( $value, $transform ){
+        if( empty( $transform ) )
+            return $value;
+
+        $value = (string) $value;
+        $a = $transform['a'];
+        $mb = function_exists( 'mb_strtoupper' );
+
+        switch( $transform['type'] ){
+            case 'replace':
+                return str_ireplace( $a, $transform['b'], $value );
+
+            case 'prefix':
+                if( trim( $value ) === '' || stripos( $value, $a ) === 0 )
+                    return $value;
+                return $a . $value;
+
+            case 'suffix':
+                if( trim( $value ) === '' || ( strlen( $value ) >= strlen( $a ) && strcasecmp( substr( $value, -strlen( $a ) ), $a ) === 0 ) )
+                    return $value;
+                return $value . $a;
+
+            case 'upper':
+                return $mb ? mb_strtoupper( $value, 'UTF-8' ) : strtoupper( $value );
+
+            case 'lower':
+                return $mb ? mb_strtolower( $value, 'UTF-8' ) : strtolower( $value );
+
+            case 'empty':
+                return trim( $value ) === '' ? $a : $value;
+        }
+
+        return $value;
+    }
+
     static function get_mapping( $data, $state ){
         $map = ( isset( $data['acui_map'] ) && is_array( $data['acui_map'] ) ) ? $data['acui_map'] : array();
         $meta_keys = ( isset( $data['acui_map_meta'] ) && is_array( $data['acui_map_meta'] ) ) ? $data['acui_map_meta'] : array();
         $username_mode = ( isset( $data['acui_username_mode'] ) && $data['acui_username_mode'] === 'random' ) ? 'random' : 'email';
         $target_keys = self::get_target_keys();
 
-        $mapping = array( 'email' => null, 'login' => null, 'others' => array(), 'username_mode' => $username_mode );
+        $mapping = array( 'email' => null, 'login' => null, 'others' => array(), 'username_mode' => $username_mode, 'transforms' => array(), 'fixed' => array() );
         $names = array();
 
         for( $i = 0; $i < (int) $state['columns']; $i++ ){
@@ -584,6 +678,14 @@ class ACUI_Wizard{
 
             $names[ $lower ] = true;
 
+            $transform = self::get_transform( $data, $i );
+
+            if( is_wp_error( $transform ) )
+                return $transform;
+
+            if( $transform )
+                $mapping['transforms'][ $i ] = $transform;
+
             if( $lower === 'user_email' )
                 $mapping['email'] = $i;
             elseif( $lower === 'user_login' )
@@ -592,10 +694,45 @@ class ACUI_Wizard{
                 $mapping['others'][ $i ] = $name;
         }
 
+        $fixed_keys = ( isset( $data['acui_fixed_key'] ) && is_array( $data['acui_fixed_key'] ) ) ? $data['acui_fixed_key'] : array();
+
+        foreach( $fixed_keys as $n => $key ){
+            $key = sanitize_text_field( $key );
+
+            if( $key === '' )
+                continue;
+
+            if( $key === '__meta' )
+                $name = isset( $data['acui_fixed_meta'][ $n ] ) ? trim( wp_strip_all_tags( $data['acui_fixed_meta'][ $n ] ) ) : '';
+            elseif( in_array( $key, $target_keys, true ) && !in_array( $key, array( 'user_login', 'user_email' ), true ) )
+                $name = $key;
+            else
+                continue;
+
+            if( $name === '' )
+                return new WP_Error( 'acui_wizard_meta_key', __( 'Write the field name for every column imported as a custom field.', 'import-users-from-csv-with-meta' ) );
+
+            $lower = strtolower( $name );
+
+            if( in_array( $lower, array( 'username', 'user_login', 'email', 'user_email' ), true ) )
+                continue;
+
+            if( isset( $names[ $lower ] ) )
+                return new WP_Error( 'acui_wizard_duplicated', sprintf( __( 'Two columns are imported as the same field (%s). Choose a different one for one of them.', 'import-users-from-csv-with-meta' ), $name ) );
+
+            $value = isset( $data['acui_fixed_value'][ $n ] ) ? self::clean_value( $data['acui_fixed_value'][ $n ] ) : '';
+
+            if( $value === '' )
+                return new WP_Error( 'acui_wizard_fixed_value', __( 'Write the value of each field added with the same value for every user, or remove it.', 'import-users-from-csv-with-meta' ) );
+
+            $names[ $lower ] = true;
+            $mapping['fixed'][] = array( 'name' => $name, 'value' => $value );
+        }
+
         if( $mapping['email'] === null && self::email_required() )
             return new WP_Error( 'acui_wizard_email', __( 'Choose which column holds the email. It is required to create users.', 'import-users-from-csv-with-meta' ) );
 
-        return $mapping;
+        return apply_filters( 'acui_wizard_mapping', $mapping, $data, $state );
     }
 
     static function prepare_file( $data ){
@@ -618,6 +755,20 @@ class ACUI_Wizard{
             @unlink( $state['prepared'] );
 
         $output_path = ACUI_Private_Files::get_path( 'acui-import-' . get_current_user_id() . '-' . ACUI_Private_Files::random_token() . '.csv' );
+        $changed = self::write_mapped_file( $state, $mapping, $output_path );
+
+        if( is_wp_error( $changed ) )
+            return $changed;
+
+        $state['prepared'] = $output_path;
+        $state['prepared_hash'] = $hash;
+        $state['changed_columns'] = $changed;
+        update_option( self::state_key(), $state, false );
+
+        return $output_path;
+    }
+
+    static function write_mapped_file( $state, $mapping, $output_path ){
         $output = @fopen( $output_path, 'w' );
 
         if( !$output )
@@ -627,10 +778,24 @@ class ACUI_Wizard{
         $encoding = isset( $state['encoding'] ) ? $state['encoding'] : 'UTF-8';
         $columns = (int) $state['columns'];
         $others = $mapping['others'];
+        $fixed = $mapping['fixed'];
+        $transforms = $mapping['transforms'];
         $manager = new SplFileObject( $state['path'] );
         $manager->fgetcsv( $state['delimiter'], '"', $escape );
+        $header = array_merge( array( 'Username', 'Email' ), array_values( $others ), wp_list_pluck( $fixed, 'name' ) );
+        $changed = array();
 
-        fputcsv( $output, array_merge( array( 'Username', 'Email' ), array_values( $others ) ), ',', '"', $escape );
+        foreach( array_keys( $others ) as $position => $i ){
+            if( isset( $transforms[ $i ] ) && strtolower( $others[ $i ] ) !== 'role' )
+                $changed[] = $position + 2;
+        }
+
+        foreach( array_keys( $fixed ) as $position ){
+            if( strtolower( $fixed[ $position ]['name'] ) !== 'role' )
+                $changed[] = count( $others ) + 2 + $position;
+        }
+
+        fputcsv( $output, $header, ',', '"', $escape );
 
         while( !$manager->eof() ){
             $row = $manager->fgetcsv( $state['delimiter'], '"', $escape );
@@ -639,7 +804,7 @@ class ACUI_Wizard{
                 continue;
 
             if( count( $row ) !== $columns ){
-                fputcsv( $output, array_fill( 0, count( $others ) + 3, '' ), ',', '"', $escape );
+                fputcsv( $output, array_fill( 0, count( $header ) + 1, '' ), ',', '"', $escape );
                 continue;
             }
 
@@ -647,9 +812,12 @@ class ACUI_Wizard{
                 return self::to_utf8( $value, $encoding );
             }, $row );
 
+            foreach( $transforms as $i => $transform )
+                $row[ $i ] = self::apply_transform( $row[ $i ], $transform );
+
             $email = ( $mapping['email'] === null ) ? '' : $row[ $mapping['email'] ];
 
-            if( $mapping['login'] !== null )
+            if( $mapping['login'] !== null && trim( $row[ $mapping['login'] ] ) !== '' )
                 $login = $row[ $mapping['login'] ];
             else
                 $login = ( $mapping['username_mode'] === 'email' ) ? $email : '';
@@ -659,17 +827,114 @@ class ACUI_Wizard{
             foreach( $others as $i => $name )
                 $line[] = $row[ $i ];
 
+            foreach( $fixed as $field )
+                $line[] = $field['value'];
+
             fputcsv( $output, $line, ',', '"', $escape );
         }
 
         fclose( $output );
         unset( $manager );
 
-        $state['prepared'] = $output_path;
-        $state['prepared_hash'] = $hash;
-        update_option( self::state_key(), $state, false );
+        return $changed;
+    }
+
+    static function header_key( $header ){
+        $header = trim( (string) $header );
+
+        return function_exists( 'mb_strtolower' ) ? mb_strtolower( $header, 'UTF-8' ) : strtolower( $header );
+    }
+
+    static function rules_to_data( $rules, $headers ){
+        $data = array( 'acui_map' => array(), 'acui_map_meta' => array(), 'acui_tf' => array(), 'acui_tf_a' => array(), 'acui_tf_b' => array(), 'acui_fixed_key' => array(), 'acui_fixed_meta' => array(), 'acui_fixed_value' => array() );
+        $data['acui_username_mode'] = ( isset( $rules['username_mode'] ) && $rules['username_mode'] === 'random' ) ? 'random' : 'email';
+        $positions = array();
+        $missing = array();
+
+        foreach( $headers as $i => $header ){
+            $key = self::header_key( $header );
+
+            if( $key !== '' && !isset( $positions[ $key ] ) )
+                $positions[ $key ] = $i;
+        }
+
+        $columns = ( isset( $rules['columns'] ) && is_array( $rules['columns'] ) ) ? $rules['columns'] : array();
+
+        foreach( $columns as $column ){
+            if( empty( $column['header'] ) || empty( $column['target'] ) || $column['target'] === '__skip' )
+                continue;
+
+            $key = self::header_key( $column['header'] );
+
+            if( !isset( $positions[ $key ] ) ){
+                $missing[] = $column['header'];
+                continue;
+            }
+
+            $i = $positions[ $key ];
+            $data['acui_map'][ $i ] = $column['target'];
+            $data['acui_map_meta'][ $i ] = isset( $column['meta'] ) ? $column['meta'] : '';
+
+            if( !empty( $column['tf']['type'] ) ){
+                $data['acui_tf'][ $i ] = $column['tf']['type'];
+                $data['acui_tf_a'][ $i ] = isset( $column['tf']['a'] ) ? $column['tf']['a'] : '';
+                $data['acui_tf_b'][ $i ] = isset( $column['tf']['b'] ) ? $column['tf']['b'] : '';
+            }
+        }
+
+        $fixed = ( isset( $rules['fixed'] ) && is_array( $rules['fixed'] ) ) ? $rules['fixed'] : array();
+
+        foreach( array_values( $fixed ) as $n => $field ){
+            $data['acui_fixed_key'][ $n ] = isset( $field['key'] ) ? $field['key'] : '';
+            $data['acui_fixed_meta'][ $n ] = isset( $field['meta'] ) ? $field['meta'] : '';
+            $data['acui_fixed_value'][ $n ] = isset( $field['value'] ) ? $field['value'] : '';
+        }
+
+        return array( 'data' => $data, 'missing' => $missing );
+    }
+
+    static function build_mapped_file( $path, $rules ){
+        $wizard = new self();
+        $analysis = $wizard->analyze_file( $path );
+
+        if( is_wp_error( $analysis ) )
+            return $analysis;
+
+        $converted = self::rules_to_data( $rules, $analysis['headers'] );
+
+        if( !empty( $converted['missing'] ) )
+            return new WP_Error( 'acui_mapped_missing', sprintf( __( 'These columns of the mapping are not in the file: %s', 'import-users-from-csv-with-meta' ), implode( ', ', $converted['missing'] ) ) );
+
+        $state = array( 'path' => $path, 'delimiter' => $analysis['delimiter'], 'encoding' => $analysis['encoding'], 'columns' => count( $analysis['headers'] ) );
+        $mapping = self::get_mapping( $converted['data'], $state );
+
+        if( is_wp_error( $mapping ) )
+            return $mapping;
+
+        $output_path = ACUI_Private_Files::get_path( 'acui-mapped-' . ACUI_Private_Files::random_token() . '.csv' );
+        $changed = self::write_mapped_file( $state, $mapping, $output_path );
+
+        if( is_wp_error( $changed ) ){
+            @unlink( $output_path );
+            return $changed;
+        }
 
         return $output_path;
+    }
+
+    static function describe_file( $path ){
+        $wizard = new self();
+        $analysis = $wizard->analyze_file( $path );
+
+        if( is_wp_error( $analysis ) )
+            return $analysis;
+
+        return array(
+            'headers' => $analysis['headers'],
+            'samples' => $analysis['samples'],
+            'rows' => $analysis['rows'],
+            'suggestions' => self::suggest( $analysis['headers'], $analysis['samples'] ),
+        );
     }
 
     static function build_import_file( $data ){
@@ -732,6 +997,8 @@ class ACUI_Wizard{
         $manager = new SplFileObject( $path );
         $headers = $manager->fgetcsv( ',', '"', $escape );
         $headers_lower = array_map( 'strtolower', $headers );
+        $wizard_state = get_option( self::state_key() );
+        $changed_columns = ( is_array( $wizard_state ) && isset( $wizard_state['changed_columns'] ) ) ? (array) $wizard_state['changed_columns'] : array();
 
         if( $offset === 0 ){
             $preview = array(
@@ -806,16 +1073,25 @@ class ACUI_Wizard{
                     fputcsv( $errors_file, array_merge( array( $result['message'], $preview['row'] ), $row ), ',', '"', $escape );
             }
 
-            if( count( $preview['sample'] ) < 10 )
+            if( count( $preview['sample'] ) < 10 ){
+                $changes = array();
+
+                foreach( $changed_columns as $position ){
+                    if( isset( $headers[ $position ], $row[ $position ] ) && $row[ $position ] !== '' )
+                        $changes[] = $headers[ $position ] . ': ' . $row[ $position ];
+                }
+
                 $preview['sample'][] = array(
                     'row' => $preview['row'],
                     'email' => isset( $row[1] ) ? $row[1] : '',
+                    'changes' => $changes,
                     'login' => $result['login'],
                     'role' => $result['role'],
                     'result' => $result['result'],
                     'type' => $result['type'],
                     'message' => $result['message'],
                 );
+            }
 
             $processed++;
 

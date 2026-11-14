@@ -265,6 +265,10 @@ class ACUI_Homepage{
 							<tbody></tbody>
 						</table>
 					</div>
+					<div class="acui-wizard-fixed">
+						<ul class="acui-wizard-fixed-list"></ul>
+						<button type="button" class="button acui-wizard-fixed-add"><span class="dashicons dashicons-plus-alt2" aria-hidden="true"></span> <?php _e( 'Add a field with the same value for every user', 'import-users-from-csv-with-meta' ); ?></button>
+					</div>
 					<fieldset class="acui-wizard-username" hidden>
 						<legend><?php _e( 'Your file has no username column. How should usernames be created?', 'import-users-from-csv-with-meta' ); ?></legend>
 						<label><input type="radio" name="acui_username_mode" value="email" checked> <?php _e( 'Use the email as username', 'import-users-from-csv-with-meta' ); ?></label>
@@ -377,9 +381,9 @@ class ACUI_Homepage{
 								<?php if( function_exists( 'acui_ic_check_active' ) ): ?>
 									<?php printf( __( 'Does this file change often? <a href="%s">Create a recurring import task</a> and it will be imported automatically.', 'import-users-from-csv-with-meta' ), esc_url( admin_url( 'tools.php?page=acui&tab=cron-import&section=new_edit' ) ) ); ?>
 								<?php elseif( get_option( 'acui_cron_activated' ) ): ?>
-									<?php printf( __( 'You already import a file automatically in the <a href="%1$s">Recurring</a> tab. Do you need more files, each with its own schedule, role and rules, and an email to you when each run finishes? That is the <a href="%2$s" target="_blank">Recurring Import addon</a>.', 'import-users-from-csv-with-meta' ), esc_url( admin_url( 'tools.php?page=acui&tab=cron' ) ), esc_url( ACUIHelper()->premium_url( 'recurring-import-addon', 'wizard-path-option' ) ) ); ?>
+									<?php printf( __( 'You already import a file automatically in the <a href="%1$s">Recurring</a> tab. Do you need more files, each with its own schedule, role and rules, with the columns mapped like in this assistant and an email to you when each run finishes? That is the <a href="%2$s" target="_blank">Recurring Import addon</a>.', 'import-users-from-csv-with-meta' ), esc_url( admin_url( 'tools.php?page=acui&tab=cron' ) ), esc_url( ACUIHelper()->premium_url( 'recurring-import-addon', 'wizard-path-option' ) ) ); ?>
 								<?php else: ?>
-									<?php printf( __( 'Does this file change often? Import it automatically from the <a href="%1$s">Recurring</a> tab, included for free for one file. For several files, each with its own schedule, role and rules, and an email to you when each run finishes, there is the <a href="%2$s" target="_blank">Recurring Import addon</a>.', 'import-users-from-csv-with-meta' ), esc_url( admin_url( 'tools.php?page=acui&tab=cron' ) ), esc_url( ACUIHelper()->premium_url( 'recurring-import-addon', 'wizard-path-option' ) ) ); ?>
+									<?php printf( __( 'Does this file change often? Import it automatically from the <a href="%1$s">Recurring</a> tab, included for free for one file in the classic format. To keep the columns of this file mapped like in this assistant, or for several files, each with its own schedule, role and rules, and an email to you when each run finishes, there is the <a href="%2$s" target="_blank">Recurring Import addon</a>.', 'import-users-from-csv-with-meta' ), esc_url( admin_url( 'tools.php?page=acui&tab=cron' ) ), esc_url( ACUIHelper()->premium_url( 'recurring-import-addon', 'wizard-path-option' ) ) ); ?>
 								<?php endif; ?>
 								</p>
 							</div>
@@ -387,7 +391,7 @@ class ACUI_Homepage{
 							<p class="acui-templates"><span class="dashicons dashicons-media-spreadsheet" aria-hidden="true"></span> <?php _e( 'No file yet? Download a template with example data:', 'import-users-from-csv-with-meta' ); ?> <?php echo ACUI_CSV_Templates::get_links_html(); ?></p>
 
 							<?php if( !is_plugin_active( 'import-export-users-customers-file-formats/import-export-users-customers-file-formats.php' ) ): ?>
-							<p class="description"><?php printf( __( 'You can also import <strong>XLSX, XLS or ODS</strong> files with the <a href="%s" target="_blank">File Formats addon</a>.', 'import-users-from-csv-with-meta' ), esc_url( ACUIHelper()->premium_url( 'file-formats-addon', 'homepage-file-field' ) ) ); ?></p>
+							<p class="description"><?php printf( __( 'You can also import <strong>XLSX, XLS, ODS or XML</strong> files with the <a href="%s" target="_blank">File Formats addon</a>.', 'import-users-from-csv-with-meta' ), esc_url( ACUIHelper()->premium_url( 'file-formats-addon', 'homepage-file-field' ) ) ); ?></p>
 							<?php endif; ?>
 						</td>
 					</tr>

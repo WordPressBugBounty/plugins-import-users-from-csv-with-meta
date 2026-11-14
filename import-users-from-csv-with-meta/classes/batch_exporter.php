@@ -26,6 +26,11 @@ class ACUI_Batch_Exporter{
     protected $filtered_columns = array();
     protected $orderby = '';
     protected $order = '';
+    protected $users = array();
+    protected $include_guests = false;
+    protected $offset_rows = 0;
+    protected $max_rows = 0;
+    protected $format = 'csv';
 
     protected $user_data;
     protected $accepted_order_by;
@@ -109,6 +114,13 @@ class ACUI_Batch_Exporter{
 
 		foreach ( $this->get_user_meta_keys() as $key ) {
 			$row[ $key ] = $key;
+		}
+
+		if( $this->get_include_guests() ){
+			foreach( $this->get_guest_keys() as $key ){
+				if( !isset( $row[ $key ] ) && ( count( $this->get_filtered_columns() ) == 0 || in_array( $key, $this->get_filtered_columns() ) ) )
+					$row[ $key ] = $key;
+			}
 		}
 
 		$columns = apply_filters( 'acui_export_columns', $row, array( 
@@ -302,6 +314,164 @@ class ACUI_Batch_Exporter{
         return $this->order;
     }
 
+    function set_users( $users ){
+        if( !is_array( $users ) )
+            $users = explode( ',', (string) $users );
+
+        $this->users = array_values( array_filter( array_map( 'absint', $users ) ) );
+    }
+
+    function set_offset_rows( $offset_rows ){
+        $this->offset_rows = max( 0, (int) $offset_rows );
+    }
+
+    function get_offset_rows(){
+        return $this->offset_rows;
+    }
+
+    function set_max_rows( $max_rows ){
+        $this->max_rows = max( 0, (int) $max_rows );
+    }
+
+    function get_max_rows(){
+        return $this->max_rows;
+    }
+
+    function get_page_range(){
+        $start = $this->get_offset_rows() + ( $this->get_limit() == -1 ? 0 : ( $this->get_page() - 1 ) * $this->get_limit() );
+        $end = $this->get_offset_rows() + $this->get_total_rows();
+
+        if( $this->get_limit() != -1 )
+            $end = min( $end, $start + $this->get_limit() );
+
+        return array( $start, max( $start, $end ) );
+    }
+
+    function get_users_filter(){
+        return $this->users;
+    }
+
+    function set_include_guests( $include_guests ){
+        $this->include_guests = filter_var( $include_guests, FILTER_VALIDATE_BOOLEAN );
+    }
+
+    function get_include_guests(){
+        return $this->include_guests && class_exists( 'WooCommerce' ) && function_exists( 'wc_get_orders' );
+    }
+
+    function get_guest_keys(){
+        return apply_filters( 'acui_export_guest_keys', array( 'first_name', 'last_name', 'billing_first_name', 'billing_last_name', 'billing_company', 'billing_address_1', 'billing_address_2', 'billing_city', 'billing_postcode', 'billing_country', 'billing_state', 'billing_email', 'billing_phone', 'shipping_first_name', 'shipping_last_name', 'shipping_company', 'shipping_address_1', 'shipping_address_2', 'shipping_city', 'shipping_postcode', 'shipping_country', 'shipping_state', 'shipping_phone' ) );
+    }
+
+    function get_guest_emails( $recalculate = false ){
+        if( !$this->get_include_guests() )
+            return array();
+
+        $emails = $recalculate ? false : get_transient( 'acui_export_guest_emails' );
+
+        if( !is_array( $emails ) ){
+            $emails = $this->query_guest_emails();
+            set_transient( 'acui_export_guest_emails', $emails, HOUR_IN_SECONDS );
+        }
+
+        return $emails;
+    }
+
+    function query_guest_emails(){
+        global $wpdb;
+
+        $excluded_statuses = array( 'trash', 'auto-draft', 'draft', 'wc-checkout-draft' );
+        $placeholders = implode( ',', array_fill( 0, count( $excluded_statuses ), '%s' ) );
+        $having = array();
+        $having_values = array();
+
+        if( !empty( $this->get_from() ) ){
+            $having[] = 'first_order >= %s';
+            $having_values[] = $this->get_from() . ' 00:00:00';
+        }
+
+        if( !empty( $this->get_to() ) ){
+            $having[] = 'first_order <= %s';
+            $having_values[] = $this->get_to() . ' 23:59:59';
+        }
+
+        $having_sql = empty( $having ) ? '' : ' HAVING ' . implode( ' AND ', $having );
+
+        if( class_exists( '\Automattic\WooCommerce\Utilities\OrderUtil' ) && \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled() ){
+            $table = $wpdb->prefix . 'wc_orders';
+            $sql = "SELECT LOWER(billing_email) AS email, MIN(date_created_gmt) AS first_order FROM {$table} WHERE type = 'shop_order' AND customer_id = 0 AND billing_email <> '' AND status NOT IN ({$placeholders}) GROUP BY LOWER(billing_email){$having_sql} ORDER BY first_order ASC";
+        }
+        else{
+            $sql = "SELECT LOWER(email.meta_value) AS email, MIN(p.post_date_gmt) AS first_order FROM {$wpdb->posts} p INNER JOIN {$wpdb->postmeta} email ON email.post_id = p.ID AND email.meta_key = '_billing_email' LEFT JOIN {$wpdb->postmeta} customer ON customer.post_id = p.ID AND customer.meta_key = '_customer_user' WHERE p.post_type = 'shop_order' AND ( customer.meta_value IS NULL OR customer.meta_value IN ( '', '0' ) ) AND email.meta_value <> '' AND p.post_status NOT IN ({$placeholders}) GROUP BY LOWER(email.meta_value){$having_sql} ORDER BY first_order ASC";
+        }
+
+        $emails = $wpdb->get_col( $wpdb->prepare( $sql, array_merge( $excluded_statuses, $having_values ) ) );
+        $emails = array_values( array_unique( array_filter( array_map( 'trim', $emails ), 'is_email' ) ) );
+
+        $registered = array();
+        foreach( array_chunk( $emails, 500 ) as $chunk ){
+            $in = implode( ',', array_fill( 0, count( $chunk ), '%s' ) );
+            $found = $wpdb->get_col( $wpdb->prepare( "SELECT LOWER(user_email) FROM {$wpdb->users} WHERE user_email IN ({$in})", $chunk ) );
+            foreach( $found as $email )
+                $registered[ $email ] = true;
+        }
+
+        $guests = array();
+        foreach( $emails as $email ){
+            if( !isset( $registered[ $email ] ) )
+                $guests[] = $email;
+        }
+
+        return apply_filters( 'acui_export_guest_emails', $guests, $this );
+    }
+
+    function get_guest_row( $email ){
+        $orders = wc_get_orders( array(
+            'billing_email' => $email,
+            'type' => 'shop_order',
+            'limit' => -1,
+            'orderby' => 'date',
+            'order' => 'DESC',
+            'status' => array_keys( wc_get_order_statuses() ),
+        ) );
+
+        $orders = array_values( array_filter( $orders, function( $order ){
+            return is_a( $order, 'WC_Order' ) && 0 == $order->get_customer_id();
+        } ) );
+
+        if( empty( $orders ) )
+            return array();
+
+        $last = $orders[0];
+        $first = $orders[ count( $orders ) - 1 ];
+        $data = array(
+            'user_login' => '',
+            'user_email' => $email,
+            'source_user_id' => '',
+            'user_pass' => '',
+            'user_nicename' => '',
+            'user_url' => '',
+            'user_registered' => $first->get_date_created() ? $first->get_date_created()->date( 'Y-m-d H:i:s' ) : '',
+            'display_name' => trim( $last->get_billing_first_name() . ' ' . $last->get_billing_last_name() ),
+            'role' => wp_roles()->is_role( 'customer' ) ? 'customer' : '',
+            'first_name' => $last->get_billing_first_name(),
+            'last_name' => $last->get_billing_last_name(),
+            'shipping_phone' => method_exists( $last, 'get_shipping_phone' ) ? $last->get_shipping_phone() : '',
+        );
+
+        foreach( array( 'first_name', 'last_name', 'company', 'address_1', 'address_2', 'city', 'postcode', 'country', 'state', 'email', 'phone' ) as $field ){
+            $getter = 'get_billing_' . $field;
+            $data[ 'billing_' . $field ] = $last->$getter();
+        }
+
+        foreach( array( 'first_name', 'last_name', 'company', 'address_1', 'address_2', 'city', 'postcode', 'country', 'state' ) as $field ){
+            $getter = 'get_shipping_' . $field;
+            $data[ 'shipping_' . $field ] = $last->$getter();
+        }
+
+        return apply_filters( 'acui_export_guest_data', $data, $email, $orders );
+    }
+
     function get_total_rows( $recalculate_total_rows = false ){
         $total_rows = ( $recalculate_total_rows ) ? 0 : get_transient( 'acui_export_total_rows' );
 		
@@ -342,7 +512,86 @@ class ACUI_Batch_Exporter{
         nocache_headers();
     }
 
-	function send_headers() {
+	static function get_formats(){
+		$formats = apply_filters( 'acui_export_formats', array() );
+		$formats = is_array( $formats ) ? $formats : array();
+
+		return array_merge( array( 'csv' => 'CSV' ), array_change_key_case( $formats, CASE_LOWER ) );
+	}
+
+	function set_format( $format ){
+		$format = sanitize_key( (string) $format );
+		$this->format = array_key_exists( $format, self::get_formats() ) ? $format : 'csv';
+	}
+
+	function get_format(){
+		return $this->format;
+	}
+
+	function build_export_file(){
+		$csv_path = $this->get_file_path() . '.export.csv';
+		$output = @fopen( $csv_path, 'w' );
+
+		if( !$output )
+			return false;
+
+		fwrite( $output, $this->get_headers_row_file() );
+
+		$input = @fopen( $this->get_file_path(), 'r' );
+		if( $input ){
+			stream_copy_to_stream( $input, $output );
+			fclose( $input );
+		}
+
+		fclose( $output );
+
+		$file = array( 'path' => $csv_path, 'mime' => 'text/csv; charset=utf-8', 'extension' => 'csv', 'temp_files' => array( $csv_path ) );
+
+		if( 'csv' === $this->get_format() )
+			return $file;
+
+		$converted = apply_filters( 'acui_export_convert_file', false, $csv_path, $this->get_format(), $this );
+
+		if( is_array( $converted ) && !empty( $converted['path'] ) && @file_exists( $converted['path'] ) ){
+			$file['path'] = $converted['path'];
+			$file['mime'] = !empty( $converted['mime'] ) ? $converted['mime'] : 'application/octet-stream';
+			$file['extension'] = $this->get_format();
+			$file['temp_files'][] = $converted['path'];
+		}
+
+		return $file;
+	}
+
+	function save_export_file( $destination ){
+		$file = $this->build_export_file();
+
+		if( false === $file )
+			return false;
+
+		$destination = self::replace_extension( $destination, $file['extension'] );
+
+		@unlink( $destination );
+		$saved = @copy( $file['path'], $destination );
+
+		foreach( $file['temp_files'] as $temp_file )
+			@unlink( $temp_file );
+
+		return $saved ? $destination : false;
+	}
+
+	static function replace_extension( $path, $extension ){
+		$current = strtolower( pathinfo( $path, PATHINFO_EXTENSION ) );
+
+		if( $current === $extension )
+			return $path;
+
+		if( '' === $current || array_key_exists( $current, self::get_formats() ) )
+			return ( '' === $current ? $path : substr( $path, 0, - strlen( $current ) - 1 ) ) . '.' . $extension;
+
+		return $path . '.' . $extension;
+	}
+
+	function send_headers( $content_type = 'text/csv; charset=utf-8', $filename = '' ) {
 		if ( function_exists( 'gc_enable' ) ) {
 			gc_enable();
 		}
@@ -355,8 +604,8 @@ class ACUI_Batch_Exporter{
 		ignore_user_abort( true );
 		$this->set_time_limit( 0 );
 		$this->send_nocache_headers();
-		header( 'Content-Type: text/csv; charset=utf-8' );
-		header( 'Content-Disposition: attachment; filename=' . $this->get_download_filename() );
+		header( 'Content-Type: ' . $content_type );
+		header( 'Content-Disposition: attachment; filename=' . ( '' === $filename ? $this->get_download_filename() : $filename ) );
 		header( 'Pragma: no-cache' );
 		header( 'Expires: 0' );
 	}
@@ -369,13 +618,16 @@ class ACUI_Batch_Exporter{
 		return sanitize_file_name( $this->filename );
 	}
 
-	function get_download_filename() {
+	function get_download_filename( $extension = '' ) {
 		$filename = $this->get_filename();
+		$extension = '' === $extension ? $this->get_format() : $extension;
 
 		if( preg_match( '/^user-export-\d+-[a-z0-9]{32}\.csv$/', $filename ) )
 			$filename = 'user-export-' . wp_date( 'Y-m-d-His' ) . '.csv';
 
-		return apply_filters( 'acui_export_download_filename', $filename, $this->get_filename() );
+		$filename = preg_replace( '/\.csv$/i', '', $filename ) . '.' . $extension;
+
+		return apply_filters( 'acui_export_download_filename', $filename, $this->get_filename(), $extension );
 	}
 
 	function send_content( $csv_data ) {
@@ -521,10 +773,27 @@ class ACUI_Batch_Exporter{
 	}
 
 	function export() {
-		$this->send_headers();
-		$this->send_content( $this->get_headers_row_file() . $this->get_file() );
+		$file = $this->build_export_file();
+
+		if( false === $file ){
+			$this->send_headers();
+			$this->send_content( $this->get_headers_row_file() . $this->get_file() );
+		}
+		else{
+			$this->send_headers( $file['mime'], $this->get_download_filename( $file['extension'] ) );
+			while( ob_get_level() )
+				ob_end_clean();
+
+			header( 'Content-Length: ' . filesize( $file['path'] ) );
+			readfile( $file['path'] );
+		}
 
 		do_action( 'acui_export_before_delete_file', $this->get_file_path() );
+
+		if( false !== $file ){
+			foreach( $file['temp_files'] as $temp_file )
+				@unlink( $temp_file );
+		}
 
 		@unlink( $this->get_file_path() );
 		@unlink( $this->get_headers_row_file_path() );
@@ -542,10 +811,27 @@ class ACUI_Batch_Exporter{
 	}
 
     function calculate_total(){
-        $total_rows = count( $this->get_user_id_list( true ) );
+        $total_users = count( $this->get_user_id_list( true ) );
+        $total_rows = max( 0, $total_users + count( $this->get_guest_emails( true ) ) - $this->get_offset_rows() );
+
+        if( $this->get_max_rows() > 0 )
+            $total_rows = min( $total_rows, $this->get_max_rows() );
+
+        set_transient( 'acui_export_total_users', $total_users, HOUR_IN_SECONDS );
         set_transient( 'acui_export_total_rows', $total_rows, HOUR_IN_SECONDS );
 
         return $total_rows;
+    }
+
+    function get_total_users(){
+        $total_users = get_transient( 'acui_export_total_users' );
+
+        if( false === $total_users ){
+            $total_users = count( $this->get_user_id_list( true ) );
+            set_transient( 'acui_export_total_users', $total_users, HOUR_IN_SECONDS );
+        }
+
+        return (int) $total_users;
     }
 
 	protected function write_csv_data( $data ) {
@@ -605,25 +891,36 @@ class ACUI_Batch_Exporter{
     function get_user_id_list( $calculate_total = false ){
         $args = array( 'fields' => array( 'ID' ), 'order' => $this->get_order() );
 
-        if( !$calculate_total && $this->get_limit() != -1 ){
-            $args['number'] = $this->get_limit();
-            $args['offset'] = ($this->get_page() - 1) * $this->get_limit();
+        if( !$calculate_total ){
+            list( $start, $end ) = $this->get_page_range();
+            $end = min( $end, $this->get_total_users() );
+
+            if( $start >= $end )
+                return array();
+
+            $args['number'] = $end - $start;
+            $args['offset'] = $start;
         }
 
-		if( !empty( $this->get_role() ) )
-			$args['role__in'] = $this->get_role();
+		if( !empty( $this->get_users_filter() ) ){
+			$args['include'] = $this->get_users_filter();
+		}
+		else{
+			if( !empty( $this->get_role() ) )
+				$args['role__in'] = $this->get_role();
 
-		$date_query = array();
+			$date_query = array();
 
-		if( !empty( $this->get_from() ) )
-			$date_query[] = array( 'after' => $this->get_from(), 'inclusive' => true );
-		
-		if( !empty( $this->get_to() ) )
-			$date_query[] = array( 'before' => $this->get_to(), 'inclusive' => true );
+			if( !empty( $this->get_from() ) )
+				$date_query[] = array( 'after' => $this->get_from(), 'inclusive' => true );
+			
+			if( !empty( $this->get_to() ) )
+				$date_query[] = array( 'before' => $this->get_to(), 'inclusive' => true );
 
-		if( !empty( $date_query ) ){
-			$date_query['inclusive'] = true;
-			$args['date_query'] = $date_query;
+			if( !empty( $date_query ) ){
+				$date_query['inclusive'] = true;
+				$args['date_query'] = $date_query;
+			}
 		}
 
         if( !empty( $this->get_orderby() ) ){
@@ -656,8 +953,8 @@ class ACUI_Batch_Exporter{
 	}
     
 	function prepare_data_to_export() {
-		$users = $this->get_user_id_list();
         $this->row_data = array();
+		$users = $this->get_user_id_list();
 
 		foreach ( $users as $user ) {
             $row = array();
@@ -677,6 +974,13 @@ class ACUI_Batch_Exporter{
 				$row[ $key ] = $this->prepare( $key, get_user_meta( $user, $key, true ), $this->get_datetime_format(), $user );
 			}
 
+			if( $this->get_include_guests() ){
+				foreach( array_values( $this->get_columns_to_export() ) as $key ){
+					if( !array_key_exists( $key, $row ) )
+						$row[ $key ] = $this->prepare( $key, get_user_meta( $user, $key, true ), $this->get_datetime_format(), $user );
+				}
+			}
+
             if( count( $this->get_filtered_columns() ) == 0 || in_array( 'user_email', $this->get_filtered_columns() ) || in_array( 'user_login', $this->get_filtered_columns() ) )
 			    $row = $this->maybe_fill_empty_data( $row, $user, $this->get_filtered_columns() );
 			
@@ -692,6 +996,51 @@ class ACUI_Batch_Exporter{
 				$row[ $key ] = apply_filters( 'acui_export_data_' . $key, $value );
 
             $this->row_data[] = array_values( $row );
+		}
+
+		if( $this->get_include_guests() )
+			$this->prepare_guests_to_export();
+	}
+
+	function prepare_guests_to_export(){
+		list( $start, $end ) = $this->get_page_range();
+		$total_users = $this->get_total_users();
+
+		if( $end <= $total_users )
+			return;
+
+		$from = max( $start, $total_users );
+		$emails = array_slice( $this->get_guest_emails(), $from - $total_users, $end - $from );
+
+		foreach( $emails as $email ){
+			$guest = $this->get_guest_row( $email );
+
+			if( empty( $guest ) )
+				continue;
+
+			$row = array();
+			foreach( array_values( $this->get_columns_to_export() ) as $key ){
+				if( !isset( $guest[ $key ] ) )
+					$row[ $key ] = '';
+				elseif( $key == 'role' )
+					$row[ $key ] = $guest[ $key ];
+				else
+					$row[ $key ] = $this->prepare( $key, $guest[ $key ], $this->get_datetime_format(), 0 );
+			}
+
+			$row = apply_filters( 'acui_export_data', $row, 0, array( 
+				'columns' => $this->get_columns_to_export(), 
+				'datetime_format' => $this->get_datetime_format(), 
+				'order_fields_alphabetically' => $this->get_order_fields_alphabetically(), 
+				'double_encapsulate_serialized_values' => $this->get_double_encapsulate_serialized_values(),
+				'filtered_columns' => $this->get_filtered_columns(),
+				'guest_email' => $email,
+			) );
+
+			foreach( $row as $key => $value )
+				$row[ $key ] = apply_filters( 'acui_export_data_' . $key, $value );
+
+			$this->row_data[] = array_values( $row );
 		}
 	}
 

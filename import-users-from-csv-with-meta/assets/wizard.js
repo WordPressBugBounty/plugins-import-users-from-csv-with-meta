@@ -134,6 +134,68 @@
         return $select.val(column.target);
     }
 
+    function buildTransform(index) {
+        var $type = $('<select class="acui-wizard-tf-type">').attr({ name: 'acui_tf[' + index + ']', 'aria-label': i18n.tf_add }).append($('<option>').val('').text('—'));
+
+        $.each(i18n.tf_types, function (key, label) {
+            $type.append($('<option>').val(key).text(label));
+        });
+
+        return $('<div class="acui-wizard-tf">').append(
+            $('<button type="button" class="button-link acui-wizard-tf-toggle">').text('+ ' + i18n.tf_add),
+            $('<div class="acui-wizard-tf-fields" hidden>').append(
+                $type,
+                $('<input type="text" class="acui-wizard-tf-a">').attr('name', 'acui_tf_a[' + index + ']'),
+                $('<span class="acui-wizard-tf-arrow" aria-hidden="true">→</span>'),
+                $('<input type="text" class="acui-wizard-tf-b">').attr('name', 'acui_tf_b[' + index + ']'),
+                $('<button type="button" class="button-link acui-wizard-tf-remove">').attr('aria-label', i18n.tf_remove).append('<span class="dashicons dashicons-no-alt" aria-hidden="true"></span>'),
+                $('<span class="acui-wizard-tf-help">')
+            )
+        );
+    }
+
+    function refreshTransform($tf) {
+        var type = $tf.find('.acui-wizard-tf-type').val();
+        var placeholders = i18n.tf_placeholders[type] || ['', ''];
+        var needsText = type !== '' && type !== 'upper' && type !== 'lower';
+
+        $tf.find('.acui-wizard-tf-a').toggle(needsText).attr('placeholder', placeholders[0]);
+        $tf.find('.acui-wizard-tf-b, .acui-wizard-tf-arrow').toggle(type === 'replace');
+        $tf.find('.acui-wizard-tf-b').attr('placeholder', placeholders[1]);
+        $tf.find('.acui-wizard-tf-help').text(i18n.tf_help[type] || '').toggle(!!i18n.tf_help[type]);
+    }
+
+    var fixedIndex = 0;
+
+    function addFixedRow() {
+        var n = fixedIndex++;
+        var $select = buildSelect(n, { header: i18n.fixed_add, target: '__meta' }).attr({ name: 'acui_fixed_key[' + n + ']', id: 'acui_fixed_key_' + n });
+
+        $select.find('option[value="user_login"], option[value="user_email"], option[value="__skip"]').remove();
+        $select.find('optgroup').filter(function () { return !$(this).children().length; }).remove();
+        $select.val('__meta');
+
+        var $item = $('<li class="acui-wizard-fixed-item">').append(
+            $('<span class="acui-wizard-fixed-field">').append(
+                $select,
+                $('<input type="text" class="acui-wizard-fixed-meta">').attr({ name: 'acui_fixed_meta[' + n + ']', placeholder: i18n.meta_key, 'aria-label': i18n.meta_key })
+            ),
+            $('<span class="acui-wizard-fixed-equals" aria-hidden="true">=</span>'),
+            $('<input type="text" class="acui-wizard-fixed-value">').attr({ name: 'acui_fixed_value[' + n + ']', placeholder: i18n.fixed_value, 'aria-label': i18n.fixed_value }),
+            $('<button type="button" class="button-link acui-wizard-fixed-remove">').attr('aria-label', i18n.fixed_remove).append('<span class="dashicons dashicons-no-alt" aria-hidden="true"></span>')
+        );
+
+        $wrap.find('.acui-wizard-fixed-list').append($item);
+        enhanceSelect($select);
+        refreshFixed($item);
+        $item.find('.acui-wizard-fixed-meta').trigger('focus');
+        validate();
+    }
+
+    function refreshFixed($item) {
+        $item.find('.acui-wizard-fixed-meta').toggle($item.find('select').val() === '__meta');
+    }
+
     function render() {
         var $tbody = $wrap.find('.acui-wizard-map tbody').empty();
 
@@ -142,7 +204,7 @@
         $.each(analysis.columns, function (index, column) {
             column.chosen = false;
 
-            var $meta = $('<input type="text">').attr({
+            var $meta = $('<input type="text" class="acui-wizard-meta">').attr({
                 name: 'acui_map_meta[' + index + ']',
                 id: 'acui_map_meta_' + index,
                 placeholder: i18n.meta_key,
@@ -152,7 +214,7 @@
             var $row = $('<tr>').attr('data-index', index).append(
                 $('<td>').append($('<strong>').text(column.header !== '' ? column.header : i18n.empty_header)),
                 $('<td class="acui-wizard-samples">').text(column.samples.length ? column.samples.join(' · ') : i18n.no_values).attr('title', column.samples.join('\n')),
-                $('<td class="acui-wizard-target">').append(buildSelect(index, column), $meta, $('<span class="acui-wizard-hint">'), $('<span class="acui-wizard-help">')),
+                $('<td class="acui-wizard-target">').append(buildSelect(index, column), $meta, $('<span class="acui-wizard-hint">'), $('<span class="acui-wizard-help">'), buildTransform(index)),
                 $('<td class="acui-wizard-status">')
             );
 
@@ -244,7 +306,8 @@
             hint = i18n.id_warning;
         }
 
-        $row.find('input[type="text"]').toggle(target === '__meta');
+        $row.find('.acui-wizard-meta').toggle(target === '__meta');
+        $row.find('.acui-wizard-tf').toggle(target !== '__skip');
         $row.find('.acui-wizard-hint').text(hint).toggle(hint !== '').toggleClass('acui-wizard-hint--warning', warning || (column.match === 'hash' && target === 'user_pass' && !column.chosen));
         $row.find('.acui-wizard-help').text(help).toggle(help !== '');
         $row.find('.acui-wizard-status').empty().append($('<span>').addClass('acui-wizard-pill acui-wizard-pill--' + pill).text(label));
@@ -256,6 +319,8 @@
         var hasEmail = false;
         var hasLogin = false;
         var missingMeta = false;
+        var missingTransform = false;
+        var missingFixed = false;
         var imported = 0;
         var ignored = 0;
         var error = '';
@@ -273,11 +338,16 @@
             imported++;
 
             if (target === '__meta') {
-                name = $.trim($row.find('input[type="text"]').val());
+                name = $.trim($row.find('.acui-wizard-meta').val());
                 if (name === '') {
                     missingMeta = true;
                     return;
                 }
+            }
+
+            var tfType = $row.find('.acui-wizard-tf-type').val();
+            if (tfType && tfType !== 'upper' && tfType !== 'lower' && $.trim($row.find('.acui-wizard-tf-a').val()) === '') {
+                missingTransform = true;
             }
 
             var key = name.toLowerCase();
@@ -299,6 +369,27 @@
             used[key] = true;
         });
 
+        $wrap.find('.acui-wizard-fixed-item').each(function () {
+            var $item = $(this);
+            var target = $item.find('select').val();
+            var name = target === '__meta' ? $.trim($item.find('.acui-wizard-fixed-meta').val()) : target;
+
+            if (name === '') {
+                missingMeta = true;
+                return;
+            }
+
+            if ($item.find('.acui-wizard-fixed-value').val() === '') {
+                missingFixed = true;
+            }
+
+            var key = name.toLowerCase();
+            if (used[key] && duplicated === '') {
+                duplicated = name;
+            }
+            used[key] = true;
+        });
+
         $wrap.find('.acui-wizard-username').prop('hidden', hasLogin);
 
         if (!hasEmail && acui_wizard.email_required) {
@@ -307,6 +398,10 @@
             error = format(i18n.duplicated, [duplicated]);
         } else if (missingMeta) {
             error = i18n.need_meta_key;
+        } else if (missingTransform) {
+            error = i18n.need_tf_text;
+        } else if (missingFixed) {
+            error = i18n.need_fixed_value;
         }
 
         $check.toggleClass('acui-wizard-check--error', error !== '').text(error !== '' ? error : format(i18n.ready, [imported, ignored]));
@@ -431,9 +526,15 @@
                 $result.append($('<span class="acui-wizard-row-message">').text(row.message));
             }
 
+            var $email = $('<td>').text(row.email);
+
+            if (row.changes && row.changes.length) {
+                $email.append($('<span class="acui-wizard-row-changes">').text(row.changes.join(' · ')));
+            }
+
             $tbody.append($('<tr>').append(
                 $('<td>').text(row.row),
-                $('<td>').text(row.email),
+                $email,
                 $('<td>').text(row.login !== '' ? row.login : i18n.random_username),
                 $('<td>').text(row.role),
                 $result
@@ -458,14 +559,55 @@
         $wrap.find('.acui-wizard-import').text(format(i18n.import_n, [Number(toImport).toLocaleString()])).prop('disabled', toImport === 0);
     }
 
-    $wrap.on('change', '.acui-wizard-map select', function () {
+    $wrap.on('change', '.acui-wizard-map select:not(.acui-wizard-tf-type)', function () {
         var $row = $(this).closest('tr');
         analysis.columns[$row.data('index')].chosen = true;
         refreshRow($row);
         validate();
     });
 
-    $wrap.on('input', '.acui-wizard-map input[type="text"]', validate);
+    $wrap.on('input', '.acui-wizard-map input[type="text"], .acui-wizard-fixed input[type="text"]', validate);
+
+    $wrap.on('click', '.acui-wizard-tf-toggle', function () {
+        var $tf = $(this).closest('.acui-wizard-tf');
+        $(this).prop('hidden', true);
+        $tf.find('.acui-wizard-tf-fields').prop('hidden', false);
+        $tf.find('.acui-wizard-tf-type').val('replace');
+        refreshTransform($tf);
+        $tf.find('.acui-wizard-tf-a').trigger('focus');
+        validate();
+    });
+
+    $wrap.on('change', '.acui-wizard-tf-type', function () {
+        var $tf = $(this).closest('.acui-wizard-tf');
+        if ($(this).val() === '') {
+            $tf.find('.acui-wizard-tf-remove').trigger('click');
+            return;
+        }
+        refreshTransform($tf);
+        validate();
+    });
+
+    $wrap.on('click', '.acui-wizard-tf-remove', function () {
+        var $tf = $(this).closest('.acui-wizard-tf');
+        $tf.find('.acui-wizard-tf-type').val('');
+        $tf.find('.acui-wizard-tf-a, .acui-wizard-tf-b').val('');
+        $tf.find('.acui-wizard-tf-fields').prop('hidden', true);
+        $tf.find('.acui-wizard-tf-toggle').prop('hidden', false);
+        validate();
+    });
+
+    $wrap.on('click', '.acui-wizard-fixed-add', addFixedRow);
+
+    $wrap.on('change', '.acui-wizard-fixed select', function () {
+        refreshFixed($(this).closest('.acui-wizard-fixed-item'));
+        validate();
+    });
+
+    $wrap.on('click', '.acui-wizard-fixed-remove', function () {
+        $(this).closest('.acui-wizard-fixed-item').remove();
+        validate();
+    });
 
     $form.on('change', '#uploadfile', function () {
         fileChanged = true;

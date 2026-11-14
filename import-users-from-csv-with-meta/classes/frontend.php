@@ -354,6 +354,12 @@ class ACUI_Frontend{
 			</tr>
 
 			<tr class="form-field">
+				<th scope="row"><label for=""><?php _e( 'Attribute format', 'import-users-from-csv-with-meta' ); ?></label></th>
+				<td><?php _e( 'You can use format attribute to choose the file format, allowed values are:', 'import-users-from-csv-with-meta' ); ?> <?php echo esc_html( strtoupper( implode( ', ', array_keys( ACUI_Batch_Exporter::get_formats() ) ) ) ); ?><?php if( count( ACUI_Batch_Exporter::get_formats() ) < 2 ): ?> (<?php printf( __( 'XLSX, ODS and XML with the <a href="%s" target="_blank">File Formats addon</a>', 'import-users-from-csv-with-meta' ), esc_url( ACUIHelper()->premium_url( 'file-formats-addon', 'export-shortcode-format' ) ) ); ?>)<?php endif; ?> <pre>[export-users format="xlsx"]</pre>
+				</td>
+			</tr>
+
+			<tr class="form-field">
 				<th scope="row"><label for=""><?php _e( 'Attribute delimiter', 'import-users-from-csv-with-meta' ); ?></label></th>
 				<td><?php _e( 'You can use delimiter attribute to set which delimiter is going to be used, allowed values are:', 'import-users-from-csv-with-meta' ); ?> COMMA, COLON, SEMICOLON, TAB <pre>[export-users delimiter="SEMICOLON"]</pre>
 				</td>
@@ -548,6 +554,10 @@ class ACUI_Frontend{
 				$date = DateTime::createFromFormat( 'Y-m-d', $value );
 				return ( $date && $date->format( 'Y-m-d' ) === $value ) ? $value : '';
 
+			case 'format':
+				$value = strtolower( $value );
+				return array_key_exists( $value, ACUI_Batch_Exporter::get_formats() ) ? $value : 'csv';
+
 			case 'delimiter':
 				return ( in_array( $value, array_keys( ACUI_Helper::get_csv_delimiters_titles() ) ) ) ? $value : 'COMMA';
 
@@ -573,7 +583,7 @@ class ACUI_Frontend{
 	}
 
     function shortcode_export( $atts ) {
-        $atts = shortcode_atts( array( 'role' => '', 'from' => '', 'to' => '', 'delimiter' => '', 'order_fields_alphabetically' => '', 'double_encapsulate_serialized_values' => '', 'display_arrays_as_comma_separated_list_of_values' => '', 'export_password_hashes' => 'yes', 'columns' => '', 'orderby' => '', 'order' => '' ), $atts );
+        $atts = shortcode_atts( array( 'role' => '', 'from' => '', 'to' => '', 'format' => 'csv', 'delimiter' => '', 'order_fields_alphabetically' => '', 'double_encapsulate_serialized_values' => '', 'display_arrays_as_comma_separated_list_of_values' => '', 'export_password_hashes' => 'yes', 'columns' => '', 'orderby' => '', 'order' => '' ), $atts );
 
 		if( isset( $atts['role'] ) ){
 			$atts['role[]'] = $atts['role'];
