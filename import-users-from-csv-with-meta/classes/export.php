@@ -151,6 +151,8 @@ class ACUI_Exporter{
 	<div class="acui-export-layout">
 	<div class="acui-export-main">
 
+	<?php do_action( 'acui_export_start' ); ?>
+
 	<div id="acui_export_results"></div>
 
 	<form id="acui-export-form" class="acui_exporter">

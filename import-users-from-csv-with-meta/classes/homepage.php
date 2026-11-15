@@ -666,6 +666,7 @@ class ACUI_Homepage{
 					<p><?php printf( __( 'The CSV must have at least <strong>2 columns: username and email</strong>, in that order. Extra columns are matched by their header name. Both fields are required unless you use <a href="%s">the Allow No Email addon</a>.', 'import-users-from-csv-with-meta' ), esc_url( ACUIHelper()->premium_url( 'allow-no-email-addon', 'homepage-sidebar' ) ) ); ?></p>
 					<?php endif; ?>
 					<p><?php _e( 'Read the documentation on how <strong>passwords are managed</strong>. This plugin is <strong>case sensitive</strong>.', 'import-users-from-csv-with-meta' ); ?></p>
+					<?php do_action( 'acui_homepage_sidebar_info' ); ?>
 					<?php if( ( class_exists( 'WeDevs_Dokan' ) || function_exists( 'dokan' ) ) && !function_exists( 'acui_da_check_active' ) ): ?>
 					<p><?php printf( __( 'Using <strong>Dokan</strong>? Import your marketplace vendors with the <a href="%s" target="_blank">Dokan addon</a>.', 'import-users-from-csv-with-meta' ), esc_url( ACUIHelper()->premium_url( 'dokan-addon', 'homepage-sidebar-dokan' ) ) ); ?></p>
 					<?php endif; ?>

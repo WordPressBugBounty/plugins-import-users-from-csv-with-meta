@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 3.1.0
+Stable tag: 3.1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -105,6 +105,7 @@ Import, export and migrate WordPress users and WooCommerce customers with a CSV 
 *   [Recurring Import](https://import-wp.com/plugins/recurring-import-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): unlimited scheduled import tasks, each with its own file, period, role and notification email, and the columns of each file mapped like in the import assistant
 *   [Recurring Export](https://import-wp.com/plugins/recurring-export-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): unlimited scheduled export tasks, each saved to a folder of your server or sent by FTP, with its own filters, sorting and columns, WooCommerce guest customers and the XLSX, ODS and XML formats of the File Formats add-on
 *   [Dokan](https://import-wp.com/plugins/dokan-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): import Dokan marketplace vendors
+*   [LearnDash](https://import-wp.com/plugins/learndash-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): move LearnDash students between sites with their groups, courses, lessons and topics completed, quiz results and completion dates
 
 ### 🧭 How it works
 
@@ -196,6 +197,10 @@ The import runs as the user selected in "User that runs the cron", so it can onl
 
 Yes, with the [Recurring Export add-on](https://import-wp.com/plugins/recurring-export-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme).
 
+= Can I move LearnDash students with their progress? =
+
+Yes, with the [LearnDash add-on](https://import-wp.com/plugins/learndash-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme-faq-learndash). It exports and imports their groups, enrolled courses, lessons and topics completed, quiz attempts and completed courses with their original dates, using course and lesson titles instead of IDs, so the file also works on a new site and can be filled by hand. Old progress is imported without emailing your students.
+
 = Can I delete the users who are not in the file? =
 
 Yes, in More options of the third step. You can also change their role instead. The preview tells you how many users will be deleted, and nothing is deleted if the import has errors.
@@ -258,6 +263,12 @@ Thank you! A review in wordpress.org helps a lot, and you can also [buy us a cof
 8. Welcome email template
 
 == Changelog ==
+
+= 3.1.1 - 2026-11-15 =
+*   The action acui_post_import_single_user now also receives the row number of the file as last parameter, so addons can add warnings to the right row of the import results
+*   The LearnDash help of the documentation tab explains the column course_courseID_access_from more clearly and is hidden when the LearnDash addon is active
+*   When LearnDash is active, the Import and Export tabs show what the new LearnDash addon does (move students with their groups, courses, lessons and topics completed, quiz attempts and completion dates). Each user can close it, and a short line stays in the sidebar of the Import tab. Nothing is shown when the addon is active
+*   New actions acui_export_start and acui_homepage_sidebar_info to add content at the start of the Export tab and in the sidebar of the Import tab
 
 = 3.1.0 - 2026-11-12 =
 *   New option in the export to include WooCommerce guest customers, the customers who bought without creating an account. Each guest is exported once per billing email (emails written in upper and lower case are joined), with the billing and shipping details of their last order, the date of their first order as registration date and the customer role. Emails that already belong to a registered user and orders in the trash are skipped, and the date filter is applied to the date of the first order. It works with the new order storage (HPOS) and with the classic one (filters acui_export_guest_emails, acui_export_guest_keys and acui_export_guest_data)
