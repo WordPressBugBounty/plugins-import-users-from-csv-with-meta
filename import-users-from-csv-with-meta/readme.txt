@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 3.1.1
+Stable tag: 3.1.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -73,6 +73,7 @@ Import, export and migrate WordPress users and WooCommerce customers with a CSV 
 *   **WPML**: translated front-end pages and emails ([documentation](https://wpml.org/documentation/plugins-compatibility/import-users-from-csv-with-meta-and-wpml/))
 *   **Groups**, **Users Group**, **WP Users Group** and **WP Private Content Plus**: groups
 *   **New User Approve**: approve imported users or leave them pending
+*   **Clean Login**: the login link of the welcome email takes your users to its login page
 *   **WP LMS Course**: enroll users in courses
 *   **Allow Multiple Accounts**: same rules while importing
 
@@ -263,6 +264,10 @@ Thank you! A review in wordpress.org helps a lot, and you can also [buy us a cof
 8. Welcome email template
 
 == Changelog ==
+
+= 3.1.2 - 2026-11-16 =
+*   The **loginurl** and **lostpasswordurl** wildcards of the emails take users to the login and lost password pages of Clean Login when it is active and its pages are published, instead of wp-login.php. The new filters acui_login_url and acui_lostpassword_url change them
+*   The Send email option of the import shows where the login link of the email goes, and suggests Clean Login, our free plugin, to welcome users on a login page with the look of the site
 
 = 3.1.1 - 2026-11-15 =
 *   The action acui_post_import_single_user now also receives the row number of the file as last parameter, so addons can add warnings to the right row of the import results

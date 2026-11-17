@@ -131,6 +131,7 @@ class ACUI_Homepage{
 							<p id="send_email_updated_wrapper">
 								<?php ACUIHTML()->checkbox( array( 'name' => 'send_email_updated', 'label' => __( 'Do you wish to send this mail also to users that are being updated? (not just to the one which are being created)', 'import-users-from-csv-with-meta' ), 'current' => 'yes', 'compare_value' => $settings->get( 'send_email_updated' ) ) ); ?>
 							</p>
+							<?php ACUIHelper()->clean_login_note(); ?>
 						</td>
 					</tr>
 		<?php $acui_row_email = ob_get_clean(); ?>

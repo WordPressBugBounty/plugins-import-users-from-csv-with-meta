@@ -302,6 +302,47 @@ class ACUI_Helper{
         return array( 'row' => $row, 'message' => $message, 'type' => $type );
     }
 
+    static function clean_login_url( $method ){
+        if( !class_exists( 'CleanLogin_Controller' ) || !method_exists( 'CleanLogin_Controller', $method ) )
+            return '';
+
+        $url = call_user_func( array( 'CleanLogin_Controller', $method ) );
+        if( empty( $url ) )
+            return '';
+
+        $post_id = url_to_postid( $url );
+        return ( !empty( $post_id ) && get_post_status( $post_id ) === 'publish' ) ? $url : '';
+    }
+
+    static function login_url(){
+        $url = self::clean_login_url( 'get_login_url' );
+        return apply_filters( 'acui_login_url', empty( $url ) ? wp_login_url() : $url );
+    }
+
+    static function lostpassword_url(){
+        $url = self::clean_login_url( 'get_restore_password_url' );
+        return apply_filters( 'acui_lostpassword_url', empty( $url ) ? wp_lostpassword_url() : $url );
+    }
+
+    static function clean_login_note(){
+        if( self::clean_login_url( 'get_login_url' ) !== '' ){
+            echo '<p class="description">' . __( 'The login link of the email (<code>**loginurl**</code>) takes your users to the login page of Clean Login.', 'import-users-from-csv-with-meta' ) . '</p>';
+            return;
+        }
+
+        if( class_exists( 'CleanLogin_Controller' ) || !current_user_can( 'install_plugins' ) )
+            return;
+
+        add_thickbox();
+        printf(
+            '<p class="description">%s</p>',
+            sprintf(
+                __( 'The login link of the email takes your users to wp-login.php. To welcome them on a login page with the look of your site, use <a href="%s" class="thickbox open-plugin-details-modal">Clean Login</a>, our free plugin.', 'import-users-from-csv-with-meta' ),
+                esc_url( admin_url( 'plugin-install.php?tab=plugin-information&plugin=clean-login&TB_iframe=true&width=772&height=700' ) )
+            )
+        );
+    }
+
     static function premium_url( $slug, $campaign ){
         $url = empty( $slug ) ? 'https://import-wp.com/' : 'https://import-wp.com/plugins/' . $slug . '/';
 

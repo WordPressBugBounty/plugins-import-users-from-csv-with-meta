@@ -357,8 +357,8 @@ class ACUI_Email_Options{
 		$string = str_replace( "**password**", $password, $string );
 		$string = str_replace( "**email**", $user_email, $string );
 
-		$string = str_replace( "**loginurl**", wp_login_url(), $string );
-		$string = str_replace( "**lostpasswordurl**", wp_lostpassword_url(), $string );
+		$string = str_replace( "**loginurl**", ACUIHelper()->login_url(), $string );
+		$string = str_replace( "**lostpasswordurl**", ACUIHelper()->lostpassword_url(), $string );
 
 		if( !is_wp_error( $key ) ){
 			if( is_multisite() ){
