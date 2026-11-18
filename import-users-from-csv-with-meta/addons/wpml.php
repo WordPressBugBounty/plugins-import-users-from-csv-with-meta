@@ -42,10 +42,10 @@ class ACUI_WPML{
 	}
 
 	function translated_subject( $body, $headers, $data, $created, $user_id ){
-		$locale = ACUI_Helper::get_value_from_row( 'locale', $headers, $data, $user_id );
+		$locale = ACUI_Helper::get_value_from_row( 'locale', $headers, $data );
 
 		if( empty( $locale ) )
-			return $body;
+			$locale = apply_filters( 'wpml_current_language', NULL );
 
 		$template_id = get_option( "acui_mail_template_id" );
 		$locale = substr( $locale, 0, 2 );

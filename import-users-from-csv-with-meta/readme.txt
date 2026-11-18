@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 3.1.2
+Stable tag: 3.1.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,7 +70,7 @@ Import, export and migrate WordPress users and WooCommerce customers with a CSV 
 *   **Paid Memberships Pro** (including version 3), **Indeed Ultimate Membership Pro**, **Paid Member Subscriptions** and **WP Members**: membership levels
 *   **BuddyPress**: avatars, fields, groups and roles
 *   **Advanced Custom Fields**: your own fields
-*   **WPML**: translated front-end pages and emails ([documentation](https://wpml.org/documentation/plugins-compatibility/import-users-from-csv-with-meta-and-wpml/))
+*   **WPML**: translated front-end pages and emails ([documentation](https://wpml.org/plugin/import-and-export-users-and-customers/))
 *   **Groups**, **Users Group**, **WP Users Group** and **WP Private Content Plus**: groups
 *   **New User Approve**: approve imported users or leave them pending
 *   **Clean Login**: the login link of the welcome email takes your users to its login page
@@ -264,6 +264,10 @@ Thank you! A review in wordpress.org helps a lot, and you can also [buy us a cof
 8. Welcome email template
 
 == Changelog ==
+
+= 3.1.3 - 2026-11-17 =
+*   WPML: when the file has no locale column, the subject of the email is also sent in the current WPML language, like the body. Thanks to the WPML compatibility team
+*   WPML documentation link of the readme updated
 
 = 3.1.2 - 2026-11-16 =
 *   The **loginurl** and **lostpasswordurl** wildcards of the emails take users to the login and lost password pages of Clean Login when it is active and its pages are published, instead of wp-login.php. The new filters acui_login_url and acui_lostpassword_url change them
