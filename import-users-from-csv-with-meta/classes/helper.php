@@ -207,7 +207,7 @@ class ACUI_Helper{
     function get_forbidden_meta_fields(){
         global $wpdb;
 
-        $acui_forbidden_meta_fields = array( "Username", "Email", "role", $wpdb->prefix . 'capabilities', $wpdb->prefix . 'user_level' );
+        $acui_forbidden_meta_fields = array( "Username", "Email", "role", $wpdb->prefix . 'capabilities', $wpdb->prefix . 'user_level', 'session_tokens' );
 
         return apply_filters( 'acui_forbidden_meta_fields', $acui_forbidden_meta_fields );
     }

@@ -1143,7 +1143,7 @@ class ACUI_Batch_Exporter{
         }
 
 	  	foreach( $usermeta as $key => $value) {
-			if( $value["meta_key"] == 'role' || $value["meta_key"] == 'source_user_id' )
+			if( $value["meta_key"] == 'role' || $value["meta_key"] == 'source_user_id' || $value["meta_key"] == 'session_tokens' )
 				continue;
 
             if( count( $this->get_filtered_columns() ) == 0 || in_array( $value["meta_key"], $this->get_filtered_columns() ) )

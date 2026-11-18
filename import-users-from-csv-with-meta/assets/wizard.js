@@ -542,13 +542,13 @@
         });
 
         $issues.prop('hidden', preview.issues_count === 0);
-        $issues.find('h3').text(format(i18n.issues_title, [Number(preview.issues_count).toLocaleString()]));
+        $issues.find('h3').text(Number(preview.issues_count) === 1 ? i18n.issues_title_one : format(i18n.issues_title, [Number(preview.issues_count).toLocaleString()]));
         $issues.find('ul').empty();
 
         $.each(preview.issues, function (index, issue) {
             $issues.find('ul').append($('<li>').append(
                 $('<span class="acui-wizard-issue-row">').text(format(i18n.row_n, [issue.row])),
-                $('<span>').append(resultPill(issue.type === 'error' ? 'errors' : (issue.type === 'notice' ? 'ignored' : 'updated'), issue.type)),
+                $('<span>').append($('<span>').addClass('acui-wizard-pill acui-wizard-pill--' + (issue.type === 'error' ? 'error' : (issue.type === 'notice' ? 'skip' : 'warning'))).text(i18n['issue_' + (issue.type === 'error' || issue.type === 'notice' ? issue.type : 'warning')])),
                 $('<span>').text(issue.message)
             ));
         });

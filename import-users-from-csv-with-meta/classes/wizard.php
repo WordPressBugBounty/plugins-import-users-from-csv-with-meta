@@ -91,6 +91,10 @@ class ACUI_Wizard{
                 'random_username' => __( '(random)', 'import-users-from-csv-with-meta' ),
                 /* translators: %s: number of rows */
                 'issues_title' => __( '%s rows need your attention', 'import-users-from-csv-with-meta' ),
+                'issues_title_one' => __( '1 row needs your attention', 'import-users-from-csv-with-meta' ),
+                'issue_error' => __( 'Error', 'import-users-from-csv-with-meta' ),
+                'issue_warning' => __( 'Warning', 'import-users-from-csv-with-meta' ),
+                'issue_notice' => __( 'Notice', 'import-users-from-csv-with-meta' ),
                 /* translators: %s: number of rows */
                 'issues_more' => __( 'And %s more.', 'import-users-from-csv-with-meta' ),
                 /* translators: %s: row number */
@@ -1053,6 +1057,7 @@ class ACUI_Wizard{
 
             $preview['row']++;
             $result = $this->simulate_row( $row, count( $headers ), $positions, $settings, $preview );
+            $result = apply_filters( 'acui_wizard_preview_row', $result, $headers, $row, $settings );
             $preview['counts'][ $result['result'] ]++;
 
             if( $result['type'] === 'error' )

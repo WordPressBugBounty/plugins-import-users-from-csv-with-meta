@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 3.1.3
+Stable tag: 3.1.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -68,7 +68,7 @@ Import, export and migrate WordPress users and WooCommerce customers with a CSV 
 *   **WooCommerce Subscriptions**: create subscriptions while users are imported
 *   **WooCommerce Memberships** and **WooCommerce Membership by RightPress**: memberships
 *   **Paid Memberships Pro** (including version 3), **Indeed Ultimate Membership Pro**, **Paid Member Subscriptions** and **WP Members**: membership levels
-*   **BuddyPress**: avatars, fields, groups and roles
+*   **BuddyPress and BuddyBoss**: avatars, fields, groups and roles (and much more with the add-on)
 *   **Advanced Custom Fields**: your own fields
 *   **WPML**: translated front-end pages and emails ([documentation](https://wpml.org/plugin/import-and-export-users-and-customers/))
 *   **Groups**, **Users Group**, **WP Users Group** and **WP Private Content Plus**: groups
@@ -107,6 +107,7 @@ Import, export and migrate WordPress users and WooCommerce customers with a CSV 
 *   [Recurring Export](https://import-wp.com/plugins/recurring-export-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): unlimited scheduled export tasks, each saved to a folder of your server or sent by FTP, with its own filters, sorting and columns, WooCommerce guest customers and the XLSX, ODS and XML formats of the File Formats add-on
 *   [Dokan](https://import-wp.com/plugins/dokan-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): import Dokan marketplace vendors
 *   [LearnDash](https://import-wp.com/plugins/learndash-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): move LearnDash students between sites with their groups, courses, lessons and topics completed, quiz results and completion dates
+*   [BuddyPress & BuddyBoss](https://import-wp.com/plugins/buddypress-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): move whole communities between sites in one package: complete profiles with visibility, photos and cover images, groups with roles and dates, profile types, connections, followers, account status and forums. Also imports groups and fixes members who do not appear in the members directory
 
 ### 🧭 How it works
 
@@ -202,6 +203,10 @@ Yes, with the [Recurring Export add-on](https://import-wp.com/plugins/recurring-
 
 Yes, with the [LearnDash add-on](https://import-wp.com/plugins/learndash-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme-faq-learndash). It exports and imports their groups, enrolled courses, lessons and topics completed, quiz attempts and completed courses with their original dates, using course and lesson titles instead of IDs, so the file also works on a new site and can be filled by hand. Old progress is imported without emailing your students.
 
+= Can I move a BuddyPress or BuddyBoss community to another site? =
+
+Yes, with the [BuddyPress & BuddyBoss add-on](https://import-wp.com/plugins/buddypress-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme-faq-buddypress). It creates one package with the users (and their passwords), profiles, photos and cover images, profile and group types, groups, memberships with their roles and dates, connections, followers and forum subscriptions, and imports it on the new site, even from BuddyPress to BuddyBoss. Nothing is posted to the activity stream and no emails are sent to your members.
+
 = Can I delete the users who are not in the file? =
 
 Yes, in More options of the third step. You can also change their role instead. The preview tells you how many users will be deleted, and nothing is deleted if the import has errors.
@@ -264,6 +269,17 @@ Thank you! A review in wordpress.org helps a lot, and you can also [buy us a cof
 8. Welcome email template
 
 == Changelog ==
+
+= 3.1.4 - 2026-11-17 =
+*   BuddyPress/BuddyBoss: the plugin no longer fails when the Extended Profiles or Groups components are disabled. Profile fields and groups are only imported, exported and documented when their component is active
+*   BuddyPress/BuddyBoss: the Moderator and Administrator group roles were not applied when importing from the WordPress admin, now they are. The role names are also accepted in lowercase and with spaces
+*   BuddyPress/BuddyBoss: the bp_group_id and bp_member_type columns are no longer saved as user meta too
+*   BuddyPress/BuddyBoss: profile fields are only read from the database when they are needed, not on every page of the site
+*   BuddyPress/BuddyBoss: classes are loaded by their own autoloader instead of fixed paths to the plugin folder, and the loading code that waited for bp_init has been removed because it never ran
+*   BuddyPress/BuddyBoss: the Import and Export tabs show what the new BuddyPress & BuddyBoss addon does, including how many members of the site do not appear in the members directory. Each user can close it, and a short line stays in the sidebar of the Import tab
+*   Security: the session_tokens field (open sessions of each user, with their IP and browser) is no longer exported, and it can no longer be written when importing. Importing an export of the same site logged out the user who was importing
+*   Import assistant: the warnings of the preview are labelled as warnings (they said "Update"), and "1 row needs your attention" is written in singular
+*   New filter acui_wizard_preview_row so add-ons can check each row in the preview of the import assistant
 
 = 3.1.3 - 2026-11-17 =
 *   WPML: when the file has no locale column, the subject of the email is also sent in the current WPML language, like the body. Thanks to the WPML compatibility team

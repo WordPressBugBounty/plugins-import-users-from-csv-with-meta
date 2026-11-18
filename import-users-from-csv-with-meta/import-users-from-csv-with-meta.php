@@ -3,7 +3,7 @@
 Plugin Name:	Import and export users and customers
 Plugin URI:		https://www.codection.com
 Description:	Using this plugin you will be able to import and export users or customers choosing many options and interacting with lots of other plugins
-Version:		3.1.3
+Version:		3.1.4
 Author:			codection
 Author URI: 	https://codection.com
 License:     	GPL2
@@ -14,7 +14,7 @@ Domain Path: /languages
 if ( ! defined( 'ABSPATH' ) ) 
 	exit;
 
-define( 'ACUI_VERSION', '3.1.3' );
+define( 'ACUI_VERSION', '3.1.4' );
 
 if( !defined( 'ACUI_IMPORT_BATCH_SIZE' ) )
 	define( 'ACUI_IMPORT_BATCH_SIZE', 100 );
@@ -29,15 +29,7 @@ class ImportExportUsersCustomers{
 	function on_init(){
 		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 
-		if( is_plugin_active( 'buddypress/bp-loader.php' ) || function_exists( 'bp_is_active' ) ){
-			if ( defined( 'BP_VERSION' ) )
-				$this->loader();
-			else
-				add_action( 'bp_init', array( $this, 'loader' ) );
-		}
-		else{
-			$this->loader();
-		}
+		$this->loader();
 
 		load_plugin_textdomain( 'import-users-from-csv-with-meta', false, plugin_basename( dirname( __FILE__ ) ) . '/languages' );
 	}
@@ -49,11 +41,7 @@ class ImportExportUsersCustomers{
 		add_filter( 'plugin_action_links', array( $this, 'action_links' ), 10, 2 );
 		add_filter( 'plugin_row_meta', array( $this, 'plugin_row_meta' ), 10, 2 );
 		add_filter( 'wp_check_filetype_and_ext', array( $this, 'wp_check_filetype_and_ext' ), PHP_INT_MAX, 4 );
-	
-		if( is_plugin_active( 'buddypress/bp-loader.php' ) && file_exists( plugin_dir_path( __DIR__ ) . 'buddypress/bp-xprofile/classes/class-bp-xprofile-group.php' ) ){
-			require_once( plugin_dir_path( __DIR__ ) . 'buddypress/bp-xprofile/classes/class-bp-xprofile-group.php' );	
-		}
-	
+
 		// classes
 		foreach ( glob( plugin_dir_path( __FILE__ ) . "classes/*.php" ) as $file ) {
 			include_once( $file );
