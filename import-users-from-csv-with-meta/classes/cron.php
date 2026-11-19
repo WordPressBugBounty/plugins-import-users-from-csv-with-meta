@@ -89,6 +89,7 @@ class ACUI_Cron{
 		else{
 			update_option( "acui_cron_activated", false );
 			as_unschedule_all_actions( 'acui_cron_process');
+			wp_clear_scheduled_hook( 'action_scheduler_run_queue', array( 'WP Cron' ) );
 		}
 
 		update_option( "acui_cron_send_mail", isset( $form_data["send-mail-cron"] ) && $form_data["send-mail-cron"] == "1" );
@@ -514,6 +515,8 @@ class ACUI_Cron{
 
 		<div class="acui-cron-layout">
 		<div class="acui-cron-main">
+
+		<?php do_action( 'acui_cron_start' ); ?>
 
 		<?php if( !function_exists( 'acui_ic_check_active' ) ): ?>
 		<div style="display:flex;align-items:center;justify-content:space-between;background:#fff;border-left:4px solid #2271b1;border-radius:3px;box-shadow:0 1px 3px rgba(0,0,0,.1);padding:16px 20px;margin:16px 0 24px;gap:20px;">

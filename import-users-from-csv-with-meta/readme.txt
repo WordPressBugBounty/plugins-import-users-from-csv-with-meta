@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 3.1.4
+Stable tag: 3.1.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -108,6 +108,7 @@ Import, export and migrate WordPress users and WooCommerce customers with a CSV 
 *   [Dokan](https://import-wp.com/plugins/dokan-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): import Dokan marketplace vendors
 *   [LearnDash](https://import-wp.com/plugins/learndash-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): move LearnDash students between sites with their groups, courses, lessons and topics completed, quiz results and completion dates
 *   [BuddyPress & BuddyBoss](https://import-wp.com/plugins/buddypress-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): move whole communities between sites in one package: complete profiles with visibility, photos and cover images, groups with roles and dates, profile types, connections, followers, account status and forums. Also imports groups and fixes members who do not appear in the members directory
+*   [Sync](https://import-wp.com/plugins/sync-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): keep users in sync between several WordPress sites in real time and in both directions (new users, emails, passwords, roles, WooCommerce addresses and any user meta), instead of exporting and importing files
 
 ### 🧭 How it works
 
@@ -207,6 +208,10 @@ Yes, with the [LearnDash add-on](https://import-wp.com/plugins/learndash-addon/?
 
 Yes, with the [BuddyPress & BuddyBoss add-on](https://import-wp.com/plugins/buddypress-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme-faq-buddypress). It creates one package with the users (and their passwords), profiles, photos and cover images, profile and group types, groups, memberships with their roles and dates, connections, followers and forum subscriptions, and imports it on the new site, even from BuddyPress to BuddyBoss. Nothing is posted to the activity stream and no emails are sent to your members.
 
+= Can I keep users in sync between two or more sites? =
+
+Yes, with the [Sync add-on](https://import-wp.com/plugins/sync-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme-faq-sync). Instead of exporting and importing files, every new user and every change of email, password, role, name, WooCommerce address or the user meta you choose reaches your other sites in seconds, in both directions. Conflicts are solved field by field, you decide what each site does when a user is deleted, and the users you already have are matched by email with the initial sync.
+
 = Can I delete the users who are not in the file? =
 
 Yes, in More options of the third step. You can also change their role instead. The preview tells you how many users will be deleted, and nothing is deleted if the import has errors.
@@ -269,6 +274,12 @@ Thank you! A review in wordpress.org helps a lot, and you can also [buy us a cof
 8. Welcome email template
 
 == Changelog ==
+
+= 3.1.5 - 2026-11-18 =
+*   New "Sync" tab that explains the new Sync add-on, which keeps users in sync between several sites in real time instead of exporting and importing files. It is also suggested in the export screen, in the recurring import screen when a recurring import is active (mentioning the site the file is downloaded from when it is a URL) and in the import sidebar. The suggestions can be dismissed
+*   New action acui_cron_start at the beginning of the recurring import screen
+*   Action Scheduler: added the WP-CLI commands of "wp action-scheduler action" (list, get, run, create, cancel, delete, next and generate) that were missing from the bundled library and made "wp action-scheduler action list" fail with a fatal error
+*   Action Scheduler: its WP-Cron event is removed when the recurring import is disabled or the plugin is deactivated, so WordPress no longer logs "Cron reschedule event error for hook: action_scheduler_run_queue" every minute. If another plugin uses Action Scheduler, it schedules the event again by itself
 
 = 3.1.4 - 2026-11-17 =
 *   BuddyPress/BuddyBoss: the plugin no longer fails when the Extended Profiles or Groups components are disabled. Profile fields and groups are only imported, exported and documented when their component is active
