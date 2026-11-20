@@ -51,7 +51,7 @@ class ACUI_CLI{
 				array( 'type' => 'assoc', 'name' => 'order', 'optional' => true, 'default' => 'ASC', 'options' => array( 'ASC', 'DESC' ) ),
 				array( 'type' => 'assoc', 'name' => 'datetime-format', 'optional' => true, 'description' => __( 'Convert timestamps to dates with this PHP format, for example "Y-m-d H:i:s".', 'import-users-from-csv-with-meta' ) ),
 				array( 'type' => 'flag', 'name' => 'include-guests', 'optional' => true, 'description' => __( 'Include WooCommerce guest customers.', 'import-users-from-csv-with-meta' ) ),
-				array( 'type' => 'flag', 'name' => 'no-password-hashes', 'optional' => true, 'description' => __( 'Do not export the password hashes.', 'import-users-from-csv-with-meta' ) ),
+				array( 'type' => 'flag', 'name' => 'password-hashes', 'optional' => true, 'description' => __( 'Export the password hashes (default). Use --no-password-hashes to leave them out.', 'import-users-from-csv-with-meta' ) ),
 				array( 'type' => 'flag', 'name' => 'arrays-as-list', 'optional' => true, 'description' => __( 'Write arrays as comma separated values instead of serialized data.', 'import-users-from-csv-with-meta' ) ),
 				array( 'type' => 'flag', 'name' => 'alphabetical', 'optional' => true, 'description' => __( 'Order the columns alphabetically.', 'import-users-from-csv-with-meta' ) ),
 			),
@@ -467,7 +467,7 @@ class ACUI_CLI{
 			$exporter->set_order_fields_alphabetically( $flag( 'alphabetical' ) );
 			$exporter->set_double_encapsulate_serialized_values( false );
 			$exporter->set_display_arrays_as_comma_separated_list_of_values( $flag( 'arrays-as-list' ) );
-			$exporter->set_export_password_hashes( !$flag( 'no-password-hashes' ) );
+			$exporter->set_export_password_hashes( (bool) WP_CLI\Utils\get_flag_value( $assoc_args, 'password-hashes', true ) );
 			$exporter->set_filtered_columns( isset( $assoc_args['columns'] ) ? array_values( array_filter( array_map( 'trim', explode( ',', $assoc_args['columns'] ) ) ) ) : array() );
 			$exporter->set_orderby( isset( $assoc_args['orderby'] ) ? $assoc_args['orderby'] : '' );
 			$exporter->set_order( isset( $assoc_args['order'] ) ? $assoc_args['order'] : 'ASC' );

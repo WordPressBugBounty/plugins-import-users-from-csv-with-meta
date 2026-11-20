@@ -12,6 +12,7 @@ class ACUI_Multisite{
 
 		add_filter( 'acui_restricted_fields', array( $this, 'restricted_fields' ), 10, 1 );
 		add_filter( 'acui_forbidden_meta_fields', array( $this, 'forbidden_meta_fields' ), 10, 1 );
+		add_filter( 'acui_not_meta_fields', array( $this, 'not_meta_fields' ), 10, 1 );
 		add_action( 'acui_documentation_after_plugins_activated', array( $this, 'documentation' ) );
 		add_action( 'acui_post_import_single_user', array( $this, 'assign' ), 10, 4 );
 		add_filter( 'acui_email_apply_wildcards', array( $this, 'email_apply_wildcards' ), 10, 2 );
@@ -36,6 +37,11 @@ class ACUI_Multisite{
 			$acui_forbidden_meta_fields[] = $prefix . 'user_level';
 		}
 		return $acui_forbidden_meta_fields;
+	}
+
+	function not_meta_fields( $acui_not_meta_fields ){
+		$acui_not_meta_fields[] = 'blogs';
+		return $acui_not_meta_fields;
 	}
 
 	function documentation(){
@@ -79,6 +85,9 @@ class ACUI_Multisite{
 		
 		foreach ( $user_blogs_csv as $blog_id ) {
 			$blog_id = (int) $blog_id;
+
+			if ( $blog_id <= 0 || ! get_site( $blog_id ) )
+				continue;
 
 			if ( ! is_super_admin() && ! current_user_can_for_blog( $blog_id, 'promote_users' ) )
 				continue;

@@ -56,6 +56,9 @@ class ACUI_Sync_Promo{
 	}
 
 	function card_export(){
+		if( class_exists( 'ACUI_Multisite_Promo' ) && ACUI_Multisite_Promo::show() )
+			return;
+
 		$this->card(
 			'export-sync-card',
 			__( 'Exporting users to import them in another site?', 'import-users-from-csv-with-meta' ),

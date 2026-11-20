@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 3.2.0
+Stable tag: 3.2.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -110,6 +110,7 @@ Import, export and migrate WordPress users and WooCommerce customers with a CSV 
 *   [BuddyPress & BuddyBoss](https://import-wp.com/plugins/buddypress-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): move whole communities between sites in one package: complete profiles with visibility, photos and cover images, groups with roles and dates, profile types, connections, followers, account status and forums. Also imports groups and fixes members who do not appear in the members directory
 *   [Sync](https://import-wp.com/plugins/sync-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): keep users in sync between several WordPress sites in real time and in both directions (new users, emails, passwords, roles, WooCommerce addresses and any user meta), instead of exporting and importing files
 *   [Ultimate Member](https://import-wp.com/plugins/ultimate-member-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): import and export complete Ultimate Member profiles: every field of your forms converted to its type, profile and cover photos with their thumbnails, image and file fields, account status with or without emails, privacy and members directory visibility
+*   [Multisite](https://import-wp.com/plugins/multisite-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): for WordPress Multisite networks: each column saved for one site or for the whole network, the same template on every site, a different role on each site, users removed from sites and every user of the network exported in one file, ready to be imported in another network
 
 ### 🧭 How it works
 
@@ -213,6 +214,10 @@ Yes, with the [BuddyPress & BuddyBoss add-on](https://import-wp.com/plugins/budd
 
 Yes, with the [Sync add-on](https://import-wp.com/plugins/sync-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme-faq-sync). Instead of exporting and importing files, every new user and every change of email, password, role, name, WooCommerce address or the user meta you choose reaches your other sites in seconds, in both directions. Conflicts are solved field by field, you decide what each site does when a user is deleted, and the users you already have are matched by email with the initial sync.
 
+= Can I keep different data and roles on each site of a Multisite network? =
+
+The free version adds the users to the sites of the blogs column, and every column is saved for the whole network. With the [Multisite add-on](https://import-wp.com/plugins/multisite-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme-faq-multisite) you decide column by column if the data belongs to one site or to the whole network, so the same template works on every site, you give each user a different role on each site (2:editor,3:author), remove users from sites and export every user of the network with their sites, roles and the data of each site in one file.
+
 = Can I import and export users from the command line? =
 
 Yes. The plugin adds WP-CLI commands: `wp acui import users.csv` imports a file (or a URL) with the same engine as the import screen, `--auto-map` matches the columns of the file like the import assistant and `--dry-run` shows what would happen without saving anything. `wp acui export --file=users.csv` exports the users, with filters by role, users and registration date and the columns you choose. `wp acui columns` lists the columns you can use, `wp acui history` shows the latest imports and exports, and `wp acui cron run` runs the recurring import from the crontab of your server. Run `wp help acui` to see every option.
@@ -283,6 +288,17 @@ Thank you! A review in wordpress.org helps a lot, and you can also [buy us a cof
 8. Welcome email template
 
 == Changelog ==
+
+= 3.2.2 - 2026-11-20 =
+*   WP-CLI: wp acui export --no-password-hashes gave the error "unknown --password-hashes parameter". It works now
+*   Multisite: the blogs column is no longer saved as a user field called "blogs", it is only used to add the users to the sites
+*   Multisite: the roles of network administrators can only be changed by an import made by another network administrator. Before, a site administrator could change them on their site
+*   Multisite: values in the blogs column that are not the ID of an existing site (like -3 or 0) are ignored. Before, the import tried to switch to that site and the rest of the import could fail
+*   Multisite: information about the new Multisite add-on in the import and export screens (with the columns of the last import that were saved for the whole network), in the sidebar, in the documentation and after an import, only for network administrators
+
+= 3.2.1 - 2026-11-20 =
+*   Black Friday notice for the premium addons, shown only from November 27 to November 30, 2026, on the plugin screen and the Plugins page. It can be dismissed and it does not come back
+*   New filter acui_show_black_friday_notice to hide it
 
 = 3.2.0 - 2026-11-19 =
 *   New WP-CLI commands: wp acui import, wp acui export, wp acui columns, wp acui history and wp acui cron run

@@ -903,9 +903,11 @@ class ACUI_Import{
 
         $user_object = new WP_User( $user_id );
 
+        $protected_user = !$created && ( !empty( array_intersect( apply_filters( 'acui_protected_roles', array( 'administrator' ) ), ACUIHelper()->get_roles_by_user_id( $user_id ) ) ) || ( is_multisite() && is_super_admin( $user_id ) && !is_super_admin() ) );
+
         if( $created || $settings['update_roles_existing_users'] != 'no' ){
             
-            if( empty( array_intersect( apply_filters( 'acui_protected_roles', array( 'administrator' ) ), ACUIHelper()->get_roles_by_user_id( $user_id ) ) ) || is_multisite() && is_super_admin( $user_id ) ){
+            if( !$protected_user ){
                 
                 $can_promote_users = ( $settings['caller_can_promote_users'] !== null ) ? (bool) $settings['caller_can_promote_users'] : current_user_can( 'promote_users' );
 
@@ -979,7 +981,7 @@ class ACUI_Import{
         }
 
         // Multisite add user to current blog
-        if( is_multisite() ){
+        if( is_multisite() && !( $protected_user && is_user_member_of_blog( $user_id, get_current_blog_id() ) ) ){
             if( $created || $settings['update_roles_existing_users'] != 'no' ){
                 if( empty( $role ) ){
                     if( !$created && $settings['update_roles_existing_users'] == 'yes_no_override' && is_user_member_of_blog( $user_id, get_current_blog_id() ) )
