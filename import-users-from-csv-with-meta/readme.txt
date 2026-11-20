@@ -4,7 +4,7 @@ Donate link: https://codection.com/go/donate-import-users-from-csv-with-meta/
 Tags: import users, export users, csv, migrate users, bulk import
 Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 3.1.5
+Stable tag: 3.2.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -109,6 +109,7 @@ Import, export and migrate WordPress users and WooCommerce customers with a CSV 
 *   [LearnDash](https://import-wp.com/plugins/learndash-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): move LearnDash students between sites with their groups, courses, lessons and topics completed, quiz results and completion dates
 *   [BuddyPress & BuddyBoss](https://import-wp.com/plugins/buddypress-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): move whole communities between sites in one package: complete profiles with visibility, photos and cover images, groups with roles and dates, profile types, connections, followers, account status and forums. Also imports groups and fixes members who do not appear in the members directory
 *   [Sync](https://import-wp.com/plugins/sync-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): keep users in sync between several WordPress sites in real time and in both directions (new users, emails, passwords, roles, WooCommerce addresses and any user meta), instead of exporting and importing files
+*   [Ultimate Member](https://import-wp.com/plugins/ultimate-member-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme): import and export complete Ultimate Member profiles: every field of your forms converted to its type, profile and cover photos with their thumbnails, image and file fields, account status with or without emails, privacy and members directory visibility
 
 ### 🧭 How it works
 
@@ -212,6 +213,14 @@ Yes, with the [BuddyPress & BuddyBoss add-on](https://import-wp.com/plugins/budd
 
 Yes, with the [Sync add-on](https://import-wp.com/plugins/sync-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme-faq-sync). Instead of exporting and importing files, every new user and every change of email, password, role, name, WooCommerce address or the user meta you choose reaches your other sites in seconds, in both directions. Conflicts are solved field by field, you decide what each site does when a user is deleted, and the users you already have are matched by email with the initial sync.
 
+= Can I import and export users from the command line? =
+
+Yes. The plugin adds WP-CLI commands: `wp acui import users.csv` imports a file (or a URL) with the same engine as the import screen, `--auto-map` matches the columns of the file like the import assistant and `--dry-run` shows what would happen without saving anything. `wp acui export --file=users.csv` exports the users, with filters by role, users and registration date and the columns you choose. `wp acui columns` lists the columns you can use, `wp acui history` shows the latest imports and exports, and `wp acui cron run` runs the recurring import from the crontab of your server. Run `wp help acui` to see every option.
+
+= Can I import Ultimate Member profiles with their photos and fields? =
+
+Yes, with the [Ultimate Member add-on](https://import-wp.com/plugins/ultimate-member-addon/?utm_source=wordpress.org&utm_medium=import-users-from-csv-with-meta&utm_campaign=readme-faq-ultimate-member). Ultimate Member saves photos, files and many fields in its own way, so a plain import leaves profiles half empty. The add-on imports every field of your forms converted to its type (dropdowns, checkboxes, multi selects, dates, times and ratings), profile and cover photos from a URL or the media library with the thumbnails of Ultimate Member, image and file fields, the account status with or without emails, privacy and members directory visibility. It also exports them with the same columns, ready to import on another site.
+
 = Can I delete the users who are not in the file? =
 
 Yes, in More options of the third step. You can also change their role instead. The preview tells you how many users will be deleted, and nothing is deleted if the import has errors.
@@ -274,6 +283,18 @@ Thank you! A review in wordpress.org helps a lot, and you can also [buy us a cof
 8. Welcome email template
 
 == Changelog ==
+
+= 3.2.0 - 2026-11-19 =
+*   New WP-CLI commands: wp acui import, wp acui export, wp acui columns, wp acui history and wp acui cron run
+*   wp acui import: imports from a path or a URL, with --auto-map to match the columns like the import assistant, --map to match them by hand, --dry-run to check the file without saving anything, and every option of the import (roles, updates, empty cells, emails, users not present)
+*   wp acui export: exports to a file or to the standard output, with filters by role, users and registration date, chosen columns, delimiter, order and every format of your addons
+*   wp acui cron run: runs the recurring import now in one go, so it can be launched from the crontab of the server
+*   Imports and exports made with WP-CLI are shown in the history
+*   New WP-CLI section in the Documentation tab with every command and examples
+*   Ultimate Member: radio fields (like "Hide my profile from directory") are saved as Ultimate Member saves them, which avoids a fatal error of Ultimate Member when the value is "No"
+*   Ultimate Member: information about the new Ultimate Member add-on in the import and export screens (with the number of members who do not appear in the members directory), in the sidebar, in the documentation and after an import with photos, files or fields that need converting
+*   New filter acui_import_result_addon_notice to add notices to the result of the import
+*   Ultimate Member add-on added to the list of add-ons and to the FAQ
 
 = 3.1.5 - 2026-11-18 =
 *   New "Sync" tab that explains the new Sync add-on, which keeps users in sync between several sites in real time instead of exporting and importing files. It is also suggested in the export screen, in the recurring import screen when a recurring import is active (mentioning the site the file is downloaded from when it is a URL) and in the import sidebar. The suggestions can be dismissed

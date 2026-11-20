@@ -61,6 +61,11 @@ class ACUI_Doc{
 				'title'   => __( 'Cron', 'import-users-from-csv-with-meta' ),
 				'content' => self::section_cron(),
 			),
+			array(
+				'id'      => 'wp_cli',
+				'title'   => __( 'WP-CLI (command line)', 'import-users-from-csv-with-meta' ),
+				'content' => self::section_wp_cli(),
+			),
 		);
 
 		$sections = apply_filters( 'acui_documentation_sections', $sections );
@@ -256,6 +261,32 @@ class ACUI_Doc{
 			. '} );</pre>'
 			. '<p>' . __( 'This code has to be added to a plugin or to your theme\'s functions.php by someone with server access; the plugin does not expose a setting for it, since only a folder a developer explicitly trusts should be added.', 'import-users-from-csv-with-meta' ) . '</p>'
 			. '<p>' . __( 'A remote URL is safe to use too: the plugin blocks requests to private, loopback, link-local (including the cloud metadata endpoint 169.254.169.254) and carrier-grade NAT addresses, and re-checks that block on every redirect the server sends, instead of trusting the first URL alone.', 'import-users-from-csv-with-meta' ) . '</p>';
+	}
+
+	static function section_wp_cli(){
+		$commands = array(
+			'wp acui import <file>' => __( 'Imports users from a path or a URL with the same engine as this screen. Options: --role, --update-existing, --update-emails, --update-roles, --update-passwords, --empty-cells, --send-email, --delete-not-present, --change-role-not-present and more.', 'import-users-from-csv-with-meta' ),
+			'--auto-map' => __( 'Matches the columns of the file with WordPress fields like the import assistant does, so they can have any name and order. Use --map="Column=field,Other=__skip" to choose some of them by hand.', 'import-users-from-csv-with-meta' ),
+			'--dry-run' => __( 'Checks the whole file and shows what would happen with each row, without saving anything.', 'import-users-from-csv-with-meta' ),
+			'wp acui export' => __( 'Exports users to a file (--file) or to the standard output, with filters by role, users and registration date, the columns you choose (--columns), delimiter, order and format.', 'import-users-from-csv-with-meta' ),
+			'wp acui columns' => __( 'Lists the columns you can use in the file, including the ones added by your plugins and addons.', 'import-users-from-csv-with-meta' ),
+			'wp acui history' => __( 'Shows the latest imports and exports, also the ones made from this screen.', 'import-users-from-csv-with-meta' ),
+			'wp acui cron run' => __( 'Runs the recurring import of the Cron tab now, in one go. Useful to run it from the crontab of your server instead of WP-Cron.', 'import-users-from-csv-with-meta' ),
+		);
+
+		$rows = '';
+
+		foreach( $commands as $command => $description )
+			$rows .= '<tr><td style="white-space:nowrap"><code>' . esc_html( $command ) . '</code></td><td>' . esc_html( $description ) . '</td></tr>';
+
+		return '<p>' . sprintf( __( 'If your server has <a href="%s" target="_blank">WP-CLI</a>, you can import and export users from the command line, with no time limits and from your own scripts and cron jobs:', 'import-users-from-csv-with-meta' ), 'https://wp-cli.org/' ) . '</p>'
+			. '<table class="widefat striped" style="max-width:1000px"><tbody>' . $rows . '</tbody></table>'
+			. '<p>' . __( 'Examples:', 'import-users-from-csv-with-meta' ) . '</p>'
+			. '<pre>wp acui import users.csv --role=subscriber' . "\n"
+			. 'wp acui import crm-export.csv --auto-map --dry-run' . "\n"
+			. 'wp acui export --role=customer --columns=user_email,first_name,billing_city --file=customers.csv' . "\n"
+			. '30 2 * * * cd /var/www/site &amp;&amp; wp acui import /data/users.csv --update-roles=yes</pre>'
+			. '<p>' . __( 'The commands run as the user chosen with --user; without it, they use the first administrator. No emails are sent unless you add --send-email. Run <code>wp help acui import</code> or <code>wp help acui export</code> to see every option.', 'import-users-from-csv-with-meta' ) . '</p>';
 	}
 
 	static function section_hooks(){

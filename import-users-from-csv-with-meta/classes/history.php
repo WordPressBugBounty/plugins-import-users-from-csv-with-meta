@@ -123,6 +123,7 @@ class ACUI_History {
             'manual' => __( 'Backend', 'import-users-from-csv-with-meta' ),
             'frontend' => __( 'Frontend', 'import-users-from-csv-with-meta' ),
             'cron' => __( 'Recurring', 'import-users-from-csv-with-meta' ),
+            'cli' => 'WP-CLI',
         );
 
         return isset( $labels[ $entry['source'] ] ) ? $labels[ $entry['source'] ] : $entry['source'];

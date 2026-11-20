@@ -1343,7 +1343,7 @@ class ACUI_Import{
                 'log' => $log,
                 'results' => $results_data,
                 'errors_count' => $errors_count,
-                'addon_notice' => $this->get_no_email_addon_notice( $errors_for_log ),
+                'addon_notice' => $this->get_no_email_addon_notice( $errors_for_log ) . apply_filters( 'acui_import_result_addon_notice', '', $results_data, $errors_for_log ),
                 'recurring_notice' => $this->get_recurring_import_notice( $form_data, $results_data ),
                 'review_notice' => ACUI_Review_Notice::get_html( $results_data, isset( $state['errors_totals'] ) ? $state['errors_totals'] : array() ),
             ) );
